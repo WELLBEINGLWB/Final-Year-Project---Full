@@ -1,0 +1,8 @@
+prefix=/home/faisallab008/catkin_ws/install
+
+Name: natnet_msgs
+Description: Description of natnet_msgs
+Version: 0.1.0
+Cflags: -I/home/faisallab008/catkin_ws/install/include
+Libs: -L/home/faisallab008/catkin_ws/install/lib 
+Requires: message_runtime geometry_msgs

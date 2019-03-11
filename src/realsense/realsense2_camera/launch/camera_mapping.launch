@@ -1,0 +1,29 @@
+<launch>
+
+  <include file="$(find realsense2_camera)/launch/rs_rgbd_pc.launch"/>
+  <node pkg="natnet_ros" type="client" name="mocap" output="screen" args="--clock"/> <!--add negative negative to clock-->
+  <node pkg="realsense2_camera" type="tf_broadcaster.py" name="camera_tf_node" output="screen"/>
+
+  <!-- <node pkg="realsense2_camera" type="point_cloud_publisherv2.cpp" name="point_cloud_publisherv2" output="screen"/>  -->
+  <!-- <include file="$(find octomap_server)/launch/octomap_mapping.launch">
+    <param name="frame_id" value="mocap"/>
+  </include> -->
+  <node pkg="octomap_server" type="octomap_server_node" name="octomap_server">
+  		<param name="resolution" value="0.05" />
+
+  		<!-- fixed map frame (set to 'map' if SLAM or localization running!) -->
+  		<param name="frame_id" type="string" value="camera_link" />  <!--mocap-->
+
+  		<!-- maximum range to integrate (speedup!) -->
+  		<param name="sensor_model/max_range" value="1" />
+
+  		<!-- data source to integrate (PointCloud2) -->
+  		<remap from="cloud_in" to="/depth/points" />  <!--/camera/depth_registered/points-->
+ </node>
+ <node type="rviz" name="rviz" pkg="rviz" args="-d /home/faisallab008/.rviz/rviz_config.rviz"/>
+</launch>
+
+
+<!--rosrun tf static_transform_publisher 0 0 0 0 0 1.57079632679 mocap_z_up mocap 100-->
+<!-- <node pkg="tf" type="static_transform_publisher" name="y_up" args="0 0 0 0 1.57079632679 0 mocap_z_up mocap 100"/> -->
+<!-- <node pkg="tf" type="static_transform_publisher" name="camera_tf_x" args="0 0 0 -1.57 0 0 camera_link mocap 100"/> -->

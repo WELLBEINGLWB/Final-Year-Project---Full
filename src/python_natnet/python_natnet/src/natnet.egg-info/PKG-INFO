@@ -1,0 +1,76 @@
+Metadata-Version: 1.1
+Name: natnet
+Version: 0.1.0
+Summary: NatNet 3 client
+Home-page: https://github.com/mje-nz/python_natnet
+Author: Matthew Edwards
+Author-email: matthew@matthewedwards.co.nz
+License: BSD 3-Clause License
+Description: ========
+        Overview
+        ========
+        
+        
+        
+        This is a NatNet client library written in Python, supporting protocol version 3 (Motive version 2.0).
+        
+        Features:
+        
+        * Supports rigid bodies and markers
+        * Synchronizes clocks with the server to calculate correct frame timestamps
+        * Server autodiscovery
+        * Free software: BSD 3-Clause License
+        
+        See also:
+        
+        * `mje-nz/natnet_ros <https://github.com/mje-nz/natnet_ros>`_, a ROS driver based on this library.
+        * `mje-nz/natnet-sdk-mirror <https://github.com/mje-nz/natnet-sdk-mirror>`_, a versioned mirror of NaturalPoint's NatNet SDK.
+        
+        
+        Documentation
+        =============
+        
+        https://python-natnet.readthedocs.io/
+        
+        
+        Installation
+        ============
+        
+        For now, use::
+        
+            python setup.py install
+        
+        to build and install the package, or::
+        
+            python setup.py develop
+        
+        to install in "development mode" i.e. to install symlinks.
+        
+        
+        Development
+        ===========
+        Install Python 2.7 and 3.6, git, and pip3 install tox.  On Windows you'll have to manually git to your PATH,
+        and it's probably best to add at least one Python (tox will use the "py" launcher to find your installed Pythons, but if
+        you want to be able to run "python27", "pip3" etc on the command line you'll have to set that up yourself).  On Windows,
+        Gow makes the command line a bit less painful.
+        
+        To run the checks and tests run::
+        
+            tox
+        
+        To run the most important checks and tests automatically before you commit, run::
+        
+            ln -s $(pwd)/pre-commit-hook .git/hooks/pre-commit
+        
+        
+Keywords: natnet NaturalPoint Optitrack motion capture mocap
+Platform: UNKNOWN
+Classifier: Development Status :: 3 - Alpha
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: BSD License
+Classifier: Operating System :: MacOS
+Classifier: Operating System :: POSIX :: Linux
+Classifier: Programming Language :: Python
+Classifier: Programming Language :: Python :: 2.7
+Classifier: Programming Language :: Python :: 3.6
+Classifier: Programming Language :: Python :: Implementation :: CPython

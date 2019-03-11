@@ -1,0 +1,30 @@
+<launch>
+
+
+  <!--<param name ="/use_sim_time" value="false"/>-->
+  <include file="$(find realsense2_camera)/launch/rs_rgbd_pc.launch"/>
+  <node pkg="natnet_ros" type="client" name="mocap" output="screen" args="--clock"/>
+  <node pkg="realsense2_camera" type="tf_broadcaster.py" name="camera_tf_node" output="screen"/>
+  <include file="$(find octomap_server)/launch/octomap_mapping.launch">
+	<arg name="frame_id" value="mocap"/>
+  </include>
+
+
+
+
+  <!-- <node pkg="tf" type="static_transform_publisher" name="y_up" args="0 0 0 0 1.57079632679 0 mocap_z_up mocap 100"/> -->
+  <!-- <node pkg="tf" type="static_transform_publisher" name="camera_tf_x" args="0 0 0 -1.57 0 0 camera_link mocap 100"/> -->
+  <!--<node pkg="camera_nodes" type="clock.py" name="clock_node" output="screen"/>-->
+  <!--<node type="rviz" name="rviz" pkg="rviz"/>-->
+
+
+  <!--<node type="rviz" name="rviz" pkg="rviz" args="-d /home/faisallab/.rviz//rviz_config.rviz"/>-->
+
+
+
+
+
+</launch>
+
+
+<!--rosrun tf static_transform_publisher 0 0 0 0 0 1.57079632679 mocap_z_up mocap 100-->

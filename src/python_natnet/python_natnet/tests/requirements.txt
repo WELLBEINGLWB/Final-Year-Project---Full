@@ -1,0 +1,7 @@
+mock
+multiprocess
+# Leave pytest implied so we can restrict the version later
+pytest-benchmark
+pytest-timeout
+pytest-travis-fold
+pytest-cov

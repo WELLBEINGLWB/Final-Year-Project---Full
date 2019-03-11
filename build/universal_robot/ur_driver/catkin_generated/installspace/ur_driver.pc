@@ -1,0 +1,8 @@
+prefix=/home/faisallab008/catkin_ws/install
+
+Name: ur_driver
+Description: Description of ur_driver
+Version: 1.2.1
+Cflags: -I/home/faisallab008/catkin_ws/install/include
+Libs: -L/home/faisallab008/catkin_ws/install/lib 
+Requires: dynamic_reconfigure
