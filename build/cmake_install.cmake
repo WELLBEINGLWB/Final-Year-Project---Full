@@ -121,6 +121,7 @@ endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for each subdirectory.
+  include("/home/faisallab008/catkin_ws/build/moveit_python/cmake_install.cmake")
   include("/home/faisallab008/catkin_ws/build/python_natnet/cmake_install.cmake")
   include("/home/faisallab008/catkin_ws/build/natnet_msgs/cmake_install.cmake")
   include("/home/faisallab008/catkin_ws/build/universal_robot/universal_robot/cmake_install.cmake")

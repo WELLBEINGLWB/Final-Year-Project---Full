@@ -6,6 +6,7 @@ Panels:
       Expanded:
         - /Global Options1
         - /MotionPlanning1
+        - /MotionPlanning1/Scene Geometry1
       Splitter Ratio: 0.5
     Tree Height: 212
   - Class: rviz/Selection
@@ -105,6 +106,11 @@ Visualization Manager:
             Show Axes: false
             Show Trail: false
             Value: true
+          fake_hand_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
           forearm_link:
             Alpha: 1
             Show Axes: false
@@ -175,7 +181,7 @@ Visualization Manager:
       Robot Description: robot_description
       Scene Geometry:
         Scene Alpha: 0.9
-        Scene Color: 50; 100; 250
+        Scene Color: 59; 101; 200
         Scene Display Time: 0.2
         Show Scene Geometry: true
         Voxel Coloring: Z-Axis
@@ -213,6 +219,11 @@ Visualization Manager:
             Show Trail: false
             Value: true
           ee_sensor_plate:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          fake_hand_link:
             Alpha: 1
             Show Axes: false
             Show Trail: false
@@ -388,22 +399,22 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 4.73773
+      Distance: 4.55473
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.06
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: -0.0162424
-        Y: 0.478504
-        Z: -0.0623177
+        X: 0.0450364
+        Y: 0.455363
+        Z: 0.459844
       Name: Current View
       Near Clip Distance: 0.01
-      Pitch: 0.450398
+      Pitch: 0.364796
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 3.1504
+      Yaw: 3.1204
     Saved: ~
 Window Geometry:
   Displays:
@@ -425,5 +436,5 @@ Window Geometry:
   Views:
     collapsed: true
   Width: 1294
-  X: 237
-  Y: 92
+  X: 217
+  Y: 72

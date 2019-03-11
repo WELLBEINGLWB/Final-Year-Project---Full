@@ -5,6 +5,7 @@ import math
 import sys
 import copy
 import moveit_commander
+import moveit_python
 import moveit_msgs.msg
 import numpy as np
 import geometry_msgs.msg
@@ -38,6 +39,8 @@ def all_close(goal, actual, tolerance):
     return all_close(pose_to_list(goal), pose_to_list(actual), tolerance)
 
   return True
+
+
 
 
 class MoveGroupPythonInterface(object):
@@ -81,6 +84,13 @@ class MoveGroupPythonInterface(object):
     #print "============ Printing robot state"
     #print robot.get_current_state()
     #print ""
+
+    self.objectAdder = moveit_python.PlanningSceneInterface("world")
+    # groupTest.addCube("my_cube", 0.5, 0.7, 0.5, 0.5)
+    # groupTest.addBox("name", size_x, size_y, size_z, x, y, z)
+    # groupTest.addBox("name", 0.1, 0.1, 0.2, 0.4, 0.6, 0.25)
+    # groupTest.setColor("name", 0.2, 1.0, 0.1, a=0.9)
+    # groupTest.sendColors()
 
 	# Misc variables
     self.box_name = ''
@@ -224,7 +234,7 @@ class MoveGroupPythonInterface(object):
     constraint.name = "fixed wrist orientation"
     #
     # constraint.joint_constraints.append(moveit_msgs.msg.JointConstraint(joint_name='elbow_joint', position=0, tolerance_above=math.pi,tolerance_below=math.pi, weight=1))
-    # # Create an orientation constraint for the
+    ## Orientation constraint for the end effector to keep the orientation constant
     orientation_constraint = moveit_msgs.msg.OrientationConstraint()
     orientation_constraint.header.frame_id = "world"
     orientation_constraint.link_name = group.get_end_effector_link()
@@ -236,7 +246,7 @@ class MoveGroupPythonInterface(object):
     orientation_constraint.absolute_y_axis_tolerance = 0.05
     orientation_constraint.absolute_z_axis_tolerance = 0.14
     orientation_constraint.weight = 1.0
-    #
+
     # # Append the constraint to the list of contraints
     constraint.orientation_constraints.append(orientation_constraint)
 
@@ -250,9 +260,9 @@ class MoveGroupPythonInterface(object):
     # joint_constraint.weight = 0.9
     # constraint.joint_constraints.append(joint_constraint)
 
+    # Positin constraint that define the workspace of the end effector link
     primitive = shape_msgs.msg.SolidPrimitive()
     primitive.type = primitive.BOX
-    # primitive.dimensions.resize(3)
     dim = [0.5,1.7,0.2]
     primitive.dimensions = dim
     ws_pose = geometry_msgs.msg.Pose();
@@ -260,13 +270,6 @@ class MoveGroupPythonInterface(object):
     ws_pose.position.y = 0.65
     ws_pose.position.z = 0.25
     ws_pose.orientation.w = 0.0
-
-
-    # table_pose.pose.position.x = 0.44
-    # table_pose.pose.position.y = 0.65
-    # table_pose.pose.position.z = 0.3
-    # scene.add_box("ws", table_pose, size=( 0.7, 1.7, 0.2))
-
     pos_constraint = moveit_msgs.msg.PositionConstraint()
     pos_constraint.header.frame_id = "world"
     pos_constraint.link_name = group.get_end_effector_link()
@@ -336,7 +339,7 @@ class MoveGroupPythonInterface(object):
     #                                    0.0, True)         # jump_threshold
 
 
-    # group.set_max_acceleration_scaling_factor(0.1)
+    group.set_max_acceleration_scaling_factor(0.1)
     # group.get_planner_id()
     # [minX, minY, minZ, maxX, maxY, maxZ]
     # ws = [0.0,0.0,0.0,0.0,0.1,0.1]
@@ -382,14 +385,13 @@ class MoveGroupPythonInterface(object):
     orientation_constraint.absolute_y_axis_tolerance = 0.05
     orientation_constraint.absolute_z_axis_tolerance = 0.14
     orientation_constraint.weight = 1.0
-    #
-    # # Append the constraint to the list of contraints
+
+    ## Append the constraint to the list of contraints
     constraint.orientation_constraints.append(orientation_constraint)
 
     joint_constraint = moveit_msgs.msg.JointConstraint()
 
     # group.setMaxVelocityScalingFactor(0.1);
-
 
 
     # Set the path constraints on the end effector
@@ -595,7 +597,10 @@ class MoveGroupPythonInterface(object):
     table_pose.pose.position.x = 0.44
     table_pose.pose.position.y = 0.65
     table_pose.pose.position.z = -0.24
-    scene.add_box("table", table_pose, size=( 0.7, 1.7, 0.85))
+    # scene.add_box("table", table_pose, size=( 0.7, 1.7, 0.85))
+
+    self.objectAdder.addBox("table", 0.7, 1.7, 0.85, 0.44, 0.65, -0.24)
+    self.objectAdder.setColor("table", 0.1, 1.0, 0.2, a=0.9)
 
     table_pose.pose.position.x = 0.40
     table_pose.pose.position.y = 0.70
@@ -612,15 +617,7 @@ class MoveGroupPythonInterface(object):
     table_pose.pose.position.z = 0.20
     scene.add_box("dummy2", table_pose, size=( 0.055, 0.055, 0.05))
 
-    table_pose.pose.position.x = 0.40
-    table_pose.pose.position.y = 0.70
-    table_pose.pose.position.z = 0.65
-    # scene.add_box("dummy_height", table_pose, size=( 0.055, 0.055, 0.25))
 
-    table_pose.pose.position.x = 0.6
-    table_pose.pose.position.y = 0.70
-    table_pose.pose.position.z = 0.55
-    # scene.add_box("back_wall", table_pose, size=( 0.055, 2.0, 0.5))
 
     # table_pose.header.frame_id = "world"
     table_pose.pose.position.x = 0.44
@@ -634,14 +631,18 @@ class MoveGroupPythonInterface(object):
     # scene.add_box("2", table_pose, size=( 0.25, 0.25, 1.75))
     # print("Table height: ")
     # print(-0.24 + (0.85/2))
+    #
+    # wall_pose = geometry_msgs.msg.PoseStamped()
+    # wall_pose.header.frame_id = "base"
+    # wall_pose.pose.orientation.w = 0.0
+    # wall_pose.pose.position.x = -0.45
+    # wall_pose.pose.position.y = 0.40
+    # wall_pose.pose.position.z = 0.20
+    # scene.add_box("wall", wall_pose, size=( 2.0, 0.1, 1.5))
 
-    wall_pose = geometry_msgs.msg.PoseStamped()
-    wall_pose.header.frame_id = "base"
-    wall_pose.pose.orientation.w = 0.0
-    wall_pose.pose.position.x = -0.45
-    wall_pose.pose.position.y = 0.40
-    wall_pose.pose.position.z = 0.20
-    scene.add_box("wall", wall_pose, size=( 2.0, 0.1, 1.5))
+    self.objectAdder.addBox("side_wall", 2.0, 0.1, 1.5, 0.45, -0.40, 0.20)
+    self.objectAdder.setColor("side_wall", 0.1, 1.0, 0.2, a=0.9)
+    self.objectAdder.sendColors()
 
     top_pose = geometry_msgs.msg.PoseStamped()
     top_pose.header.frame_id = "base"
@@ -742,18 +743,6 @@ class MoveGroupPythonInterface(object):
         # print("Height to table: ")
         # print(height_to_table)
         # print("------- ")
-        # rate = rospy.Rate(10)
-        # rate.sleep()
-        # while not rospy.is_shutdown():
-        #     transformer.transformPoint("world", pointstamp)
-        #     rate.sleep()
-        # t = transformer.getLatestCommonTime("wo   rld", "/camera_link")
-        # transformer.lookupTransform("world", "camera_link", t)
-        # try:
-        #     transformer.transformPoint("world", pointstamp)
-        # except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
-        #     pass
-        # rate.sleep()
 
         box_name = self.box_name
         box_pose = geometry_msgs.msg.PoseStamped()
@@ -765,22 +754,7 @@ class MoveGroupPythonInterface(object):
         box_pose.pose.position.z = 0.185 + (objects[i+2]/2)
         box_pose.pose.position.z = box_pose.pose.position.z + (p_tr.point.z - box_pose.pose.position.z)/2
         # objects[i+2] = objects[i+2] + (p_tr.point.z - box_pose.pose.position.z)
-        # print(objects[i+5])
-        # print(self.q)
-        # print("camera height: ")
-        # print(self.translation[2])
-        # box_pose.header.frame_id = "camera_link"
-        # box_pose.pose.position.x = objects[i+3]
-        # box_pose.pose.position.y = objects[i+4]
-        # box_pose.pose.position.z = objects[i+5]
-        # box_pose.pose.orientation.x = -0.107199147344
-        # box_pose.pose.orientation.y = 0.131568521261
-        # box_pose.pose.orientation.z = -0.0581172332168
-        # box_pose.pose.orientation.w = -0.983778655529
-        # box_pose.pose.orientation.x = self.q[0]
-        # box_pose.pose.orientation.y = self.q[1]
-        # box_pose.pose.orientation.z = self.q[2]
-        # box_pose.pose.orientation.w = -self.q[3]
+
 
         box_name = str(i/6)
         scene.add_box(box_name, box_pose, size=(objects[i] + margin, objects[i+1] + margin, objects[i+2] + (p_tr.point.z - box_pose.pose.position.z)))
@@ -790,6 +764,81 @@ class MoveGroupPythonInterface(object):
         # print("Added object number: ")
         # print(i/6)
         i += 6
+
+
+    while i < len(objects):
+
+        # Transform the center point of the object from cameraLink frame to world frame
+        transformer.waitForTransform("camera_link", "world", rospy.Time(0),rospy.Duration(4.0))
+        pointstamp = geometry_msgs.msg.PointStamped()
+        pointstamp.header.frame_id = "camera_link"
+        pointstamp.header.stamp = rospy.Time()
+        pointstamp.point.x = objects[i+3]
+        pointstamp.point.y = objects[i+4]
+        pointstamp.point.z = objects[i+5]
+        # Converting the center point if the object to /world frame
+        objects[i+3] = pointstamp.point.x
+        objects[i+4] = pointstamp.point.y
+        objects[i+5] = pointstamp.point.z
+
+        # print("Before: ")
+        # print(pointstamp.point.x)
+        # print(pointstamp.point.y)
+        # print(pointstamp.point.z)
+        # transformer.waitForTransform("camera_link", "world", rospy.Time(0),rospy.Duration(4.0))
+        p_tr = transformer.transformPoint("world", pointstamp)
+        # print("After: ")
+        # print(p_tr.point.x)
+        # print(p_tr.point.y)
+        # print(p_tr.point.z)
+
+        height_to_table = 0.185 - (p_tr.point.z - (objects[i+2]/2))
+        # print("Object height: ")
+        # print(objects[i+2])
+        # print("Height to table: ")
+        # print(height_to_table)
+        # print("------- ")
+
+        box_name = self.box_name
+        box_pose = geometry_msgs.msg.PoseStamped()
+        box_pose.header.frame_id = "world"
+        box_pose.pose.position.x = p_tr.point.x
+        box_pose.pose.position.y = p_tr.point.y
+        # box_pose.pose.position.z = p_tr.point.z  # - height_to_table
+
+        box_pose.pose.position.z = 0.185 + (objects[i+2]/2)
+        box_pose.pose.position.z = box_pose.pose.position.z + (p_tr.point.z - box_pose.pose.position.z)/2
+        # objects[i+2] = objects[i+2] + (p_tr.point.z - box_pose.pose.position.z)
+
+
+        box_name = str(i/6)
+        scene.add_box(box_name, box_pose, size=(objects[i] + margin, objects[i+1] + margin, objects[i+2] + (p_tr.point.z - box_pose.pose.position.z)))
+
+        ## Gaze integration
+        # gaze_margin = 0 #0.042
+        # objects = [1.0,1.0,1.0,1.0,1.0,1.0]
+        # # Finding whithin which object the gaze point lies
+        # for j in objects:
+        #     obj_name = str(j/6)
+        #     if (((objects[j+3] - (objects[j]/2) - gaze_margin) <= point.x <= (objects[j+3] + (objects[j]/2) + gaze_margin))
+        #       and ((objects[j+4] - (objects[j+1]/2) - gaze_margin) <= point.y <= (objects[j+4] + (objects[j+1]/2) + gaze_margin))
+        #       and ((objects[j+5] - (objects[j+2]/2) - gaze_margin) <= point.y <= (objects[j+5] + (objects[j+2]/2) + gaze_margin))):
+        #
+        #         target_obj.name = obj_name
+        #         target_obj.x = objects[j+3]
+        #         target_obj.y = objects[j+4]
+        #         target_obj.z = objects[j+5]
+        #         self.objectAdder.addBox(str(i), )
+        #
+        #     else:
+        #         self.objectAdder.addBox(str(i), )
+        #         self.objectAdder.setColor(s)
+        #     j+=6
+        #
+        # self.objectAdder.sendColors()
+        # # print( box_pose.pose.position.z - (objects[i+2] + (p_tr.point.z - box_pose.pose.position.z))/2)
+        # i += 6
+
 
     # obj_ids=['0','1','2','table']
     # print(scene.get_object_poses(obj_ids))
@@ -805,8 +854,7 @@ class MoveGroupPythonInterface(object):
     # self.leg_mesh = "/home/faisallab008/catkin_ws/src/universal_robot/ur_description/meshes/cube.stl" # or better, use find_package()
     # scene.add_mesh("mesh_test", box_pose, self.leg_mesh)
 
-    # Copy local variables back to class variables. In practice, you should use the class
-    # variables directly unless you have a good reason not to.
+
     self.box_name=box_name
     # print(scene.get_known_object_names())
     return self.wait_for_state_update(box_is_known=True, timeout=4)
@@ -896,9 +944,6 @@ def main():
     commander = MoveGroupPythonInterface()
     option = True
     #rospy.init_node('send_pose', anonymous="True")
-    #rospy.Subscriber("/objects_array", Float32MultiArray, commander.add_box(), queue_size=1)
-    # rospy.spin()
-    # commander.table()
 
     commander.go_to_initial_state()
 
@@ -957,10 +1002,6 @@ def main():
         elif option !="":
           print("\n Invalid input, try again")
 
-            # 1) Attach to robot
-            # 2) Detach from robot
-            # 3) Remove object from scene
-            # 4) Main menu
 
 if __name__ == '__main__':
 	main()
