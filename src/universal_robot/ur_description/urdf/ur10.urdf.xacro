@@ -371,17 +371,69 @@
         <origin rpy="0 ${pi/2.0} 0" xyz="0 0 0"/>
       </collision>
     </link>
+<!--
+    <joint name="${prefix}fake_hand_joint" type="fixed">
+      <parent link="${prefix}ee_magnet_cylinder" />
+      <child link = "${prefix}fake_hand_link" />
+      <origin xyz="0.05 0.0 -0.05" rpy="0.0 0.0 0.0" /> -->
+      <!-- <origin xyz="0.0 0.0 0.065" rpy="0.0 0.0 0.0" /> -->
+    <!-- </joint> -->
+
+    <!-- <link name="${prefix}fake_hand_link">
+      <visual>
+        <geometry>
+          <box size="0.35 0.05 0.05"/> -->
+          <!-- <box size="0.08 0.05 0.05"/> -->
+        <!-- </geometry>
+        <origin rpy="0 ${pi/2.0} 0" xyz="0 0 0"/>
+        <material name="HandColor">
+          <color rgba="0.4 0.4 0.4 1.0"/>
+        </material>
+      </visual>
+      <collision>
+        <geometry>
+          <box size="0.35 0.05 0.05"/> -->
+          <!-- <box size="0.08 0.05 0.05"/> -->
+        <!-- </geometry>
+        <origin rpy="0 ${pi/2.0} 0" xyz="0 0 0"/>
+      </collision>
+    </link> -->
+    <joint name="${prefix}fake_arm_joint" type="fixed">
+      <parent link="${prefix}ee_magnet_cylinder" />
+      <child link = "${prefix}fake_arm_link" />
+      <origin xyz="0.05 0.0 -0.12" rpy="0.0 0.0 0.0" />
+    </joint>
+
+    <link name="${prefix}fake_arm_link">
+      <visual>
+        <geometry>
+          <cylinder length="0.25" radius="0.025"/>
+        </geometry>
+        <origin rpy="0 0 0" xyz="0 0 0"/>
+        <material name="ArmColor">
+          <color rgba="1.0 1.0 1.0 1.0"/>
+        </material>
+      </visual>
+      <collision>
+        <geometry>
+          <cylinder length="0.25" radius="0.025"/>
+        </geometry>
+        <origin rpy="0 0 0" xyz="0 0 0"/>
+      </collision>
+    </link>
 
     <joint name="${prefix}fake_hand_joint" type="fixed">
       <parent link="${prefix}ee_magnet_cylinder" />
       <child link = "${prefix}fake_hand_link" />
-      <origin xyz="0.0 0.0 0.065" rpy="0.0 0.0 0.0" />
+      <origin xyz="0.05 0.0 0.05" rpy="0.0 0.0 0.0" />
+      <!-- <origin xyz="0.0 0.0 0.065" rpy="0.0 0.0 0.0" /> -->
     </joint>
 
     <link name="${prefix}fake_hand_link">
       <visual>
         <geometry>
-          <box size="0.08 0.05 0.05"/>
+          <!-- <box size="0.35 0.05 0.05"/> -->
+          <box size="0.1 0.05 0.05"/>
         </geometry>
         <origin rpy="0 ${pi/2.0} 0" xyz="0 0 0"/>
         <material name="HandColor">
@@ -390,7 +442,8 @@
       </visual>
       <collision>
         <geometry>
-          <box size="0.08 0.05 0.05"/>
+          <!-- <box size="0.35 0.05 0.05"/> -->
+          <box size="0.1 0.05 0.05"/>
         </geometry>
         <origin rpy="0 ${pi/2.0} 0" xyz="0 0 0"/>
       </collision>
