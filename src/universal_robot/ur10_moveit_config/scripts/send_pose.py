@@ -67,23 +67,18 @@ class MoveGroupPythonInterface(object):
     ## Create a `DisplayTrajectory`_ publisher which is used later to publish trajectories for RViz to visualize:
     display_trajectory_publisher = rospy.Publisher('/move_group/display_planned_path', moveit_msgs.msg.DisplayTrajectory, queue_size=20)
 
-	# Getting Basic Information
-	##################
+	## Getting Basic Information
     # Get the name of the reference frame for the robot:
     planning_frame = group.get_planning_frame()
-    #print "============ Reference frame: %s" % planning_frame
 
     # Print the name of the end-effector link for this group:
     eef_link = group.get_end_effector_link()
 
     # Get a list of all the groups in the robot:
     group_names = robot.get_group_names()
-    #print "Robot Groups:", robot.get_group_names()
 
-    # Sometimes for debugging it is useful to print the entire state of the robot:
     #print "============ Printing robot state"
     #print robot.get_current_state()
-    #print ""
 
     self.objectAdder = moveit_python.PlanningSceneInterface("world")
     # groupTest.addCube("my_cube", 0.5, 0.7, 0.5, 0.5)
@@ -157,19 +152,20 @@ class MoveGroupPythonInterface(object):
   def go_to_initial_state(self):
     group = self.group
 
-    joint_goal = group.get_current_joint_values()
+    # joint_goal = group.get_current_joint_values()
+    group.set_planning_time(10)
     # joint_goal[0] = 0 # elbow_joint
     # joint_goal[1] = -4*pi/5 # shoulder_lift_joint
     # joint_goal[2] = 2*pi/3 # shoulder_pan_joint
     # joint_goal[3] = -pi/2 # wrist_1_joint
     # joint_goal[4] = -pi/2 # wrist_2_joint
     # joint_goal[5] = 0 # wrist_3_joint
-    joint_goal[0] = 0.61 # shoulder_pan_joint
-    joint_goal[1] = -1.87 # shoulder_lift_joint
-    joint_goal[2] = 2.44 # elbow_joint
-    joint_goal[3] = -2.14 # wrist_1_joint
-    joint_goal[4] = -1.57 # wrist_2_joint
-    joint_goal[5] = 0.61 # wrist_3_joint
+    # joint_goal[0] = 0.61 # shoulder_pan_joint
+    # joint_goal[1] = -1.87 # shoulder_lift_joint
+    # joint_goal[2] = 2.44 # elbow_joint
+    # joint_goal[3] = -2.14 # wrist_1_joint
+    # joint_goal[4] = -1.57 # wrist_2_joint
+    # joint_goal[5] = 0.61 # wrist_3_joint
     constraint = moveit_msgs.msg.Constraints()
     constraint.name = "fixed wrist orientation"
     #
@@ -186,30 +182,68 @@ class MoveGroupPythonInterface(object):
     orientation_constraint.absolute_y_axis_tolerance = 0.05
     orientation_constraint.absolute_z_axis_tolerance = 0.14
     orientation_constraint.weight = 1.0
-    #
-    # # Append the constraint to the list of contraints
+
+    ## Append the constraint to the list of contraints
     constraint.orientation_constraints.append(orientation_constraint)
 
-    group.set_path_constraints(constraint)
-    # The go command can be called with joint values, poses, or without any
-    # parameters if you have already set the pose or joint target for the group
-    group.go(joint_goal, wait=True)
+    primitive = shape_msgs.msg.SolidPrimitive()
+    primitive.type = primitive.BOX
+    ws_x = 0.7
+    ws_y = 1.7
+    ws_z = 0.3
+    ## The workspace dimensions and center point will change according to the object to be grasped
+    dim = [ws_x,ws_y,ws_z]
+    primitive.dimensions = dim
+    ws_pose = geometry_msgs.msg.Pose();
+    ## table center point = (0.44,0.65,0.25)
+    ws_pose.position.x = 0.44
+    ws_pose.position.y = 0.65
+    ws_pose.position.z = 0.25
+    ws_pose.orientation.w = 0.0
+    pos_constraint = moveit_msgs.msg.PositionConstraint()
+    pos_constraint.header.frame_id = "world"
+    pos_constraint.link_name = group.get_end_effector_link()
+    pos_constraint.weight = 0.9
+    primitives = [primitive]
+    ws_poses = [ws_pose]
+    pos_constraint.constraint_region.primitives = primitives
+    pos_constraint.constraint_region.primitive_poses = ws_poses
 
-    # Calling ``stop()`` ensures that there is no residual movement
+    constraint.position_constraints.append(pos_constraint)
+
+
+    initial_pose = geometry_msgs.msg.Pose()
+    # pose_goal = geometry_msgs.msg.PoseStamped()
+    # pose_goal.header.frame_id = group.get_end_effector_link()
+    initial_pose.orientation.x = 0.00111054358639
+    initial_pose.orientation.y = 0.70699483645
+    initial_pose.orientation.z = 0.00111089701837
+    initial_pose.orientation.w = 0.707216963763
+    initial_pose.position.x = 0.297788083223
+    initial_pose.position.y = 0.373332917389
+    initial_pose.position.z = 0.240255679557
+
+    group.set_pose_target(initial_pose, group.get_end_effector_link())
+    group.set_path_constraints(constraint)
+    group.go(wait=True)
+    # Calling `stop()` ensures that there is no residual movement
     group.stop()
+    # It is always good to clear your targets after planning with poses.
+    group.clear_pose_targets()
 
     # For testing:
     # Note that since this section of code will not be included in the tutorials
     # we use the class variable rather than the copied state variable
-    current_joints = self.group.get_current_joint_values()
-    return all_close(joint_goal, current_joints, 0.01)
+    # current_joints = self.group.get_current_joint_values()
+    current_pose = self.group.get_current_pose().pose
+    return all_close(initial_pose, current_pose, 0.01)
 
   def go_to_pose_goal(self):
     # Copy class variables to local variables to make the web tutorials more clear.
     # In practice, you should use the class variables directly unless you have a good reason not to.
     group = self.group
     scene = self.scene
-    group.set_planning_time(10)
+    group.set_planning_time(15)
 
      # Create a contraints list and name it
     constraint = moveit_msgs.msg.Constraints()
@@ -242,20 +276,42 @@ class MoveGroupPythonInterface(object):
     # joint_constraint.weight = 0.9
     # constraint.joint_constraints.append(joint_constraint)
 
-    # Positin constraint that define the workspace of the end effector link
+
+    # self.target_obj = [0.055,0.055,0.15,0.3,0.7,0.26,"ID"] #dummy0
+    self.target_obj = [0.055,0.055,0.15,0.4,0.9,0.25,"ID"] #dummy1
+    ws_margin = 0.05
+    # Position constraint that define the workspace of the end effector link
     primitive = shape_msgs.msg.SolidPrimitive()
     primitive.type = primitive.BOX
-    ws_x = 0.7
-    ws_y = 1.7
-    ws_z = 0.2
     ## The workspace dimensions and center point will change according to the object to be grasped
+    # ws_x = 0.7 #self.table_x #table original dimensions
+    # ws_y = 1.7 #self.table_y
+    # ws_z = 0.2 #self.table_z
+    ws_x = (self.target_obj[3] + (self.target_obj[0]/2) + ws_margin) - 0.15 # (0.15 is the bottom margin of the table)
+    ws_y = (self.target_obj[4] + (self.target_obj[1]/2) + ws_margin) + 0.2
+    ws_z = (self.target_obj[5] + (self.target_obj[2]/2)) - 0.185
     dim = [ws_x,ws_y,ws_z]
     primitive.dimensions = dim
     ws_pose = geometry_msgs.msg.Pose();
-    ## table center point = (0.44,0.65,0.25)
-    ws_pose.position.x = 0.44
-    ws_pose.position.y = 0.65
-    ws_pose.position.z = 0.25
+    ## Table center point = (0.44,0.65,0.25)
+    # ws_pose.position.x = 0.44
+    # ws_pose.position.y = 0.65
+    # ws_pose.position.z = 0.25
+    ws_pose.position.x = 0.15 + ws_x/2
+    ws_pose.position.y = -0.2 + ws_y/2
+    ws_pose.position.z = 0.185 + ws_z/2
+    # targe_obj is set as such: [xDimension, yDimension, zDimension, xCenter, yCenter, zCenter, objectID]
+    # self.objectAdder.addBox("ws", ws_x, ws_y, ws_z, ws_pose.position.x, ws_pose.position.y, ws_pose.position.z)
+    # self.objectAdder.setColor("ws", 1.0, 1.0, 1.0, a=0.7)
+    # self.objectAdder.sendColors()
+    #
+    rospy.sleep(1.0)
+    scene.remove_world_object("ws")
+    # table_pose.pose.position.x = 0.30
+    # table_pose.pose.position.y = 0.70
+    # table_pose.pose.position.z = 0.26
+    # scene.add_box("dummy0", table_pose, size=( 0.055, 0.055, 0.15))
+
     ws_pose.orientation.w = 0.0
     pos_constraint = moveit_msgs.msg.PositionConstraint()
     pos_constraint.header.frame_id = "world"
@@ -274,13 +330,12 @@ class MoveGroupPythonInterface(object):
     # Set the path constraints on the end effector
     group.set_path_constraints(constraint)
 
-
-
-    pos_x = float(input("Enter x coordinate: "))
-    pos_y = float(input("Enter y coordinate: "))
-    pos_z = float(input("Enter z coordinate: "))
-    # or_w = float(input("Enter w orientation: "))
-
+    # pos_x = float(input("Enter x coordinate: "))
+    # pos_y = float(input("Enter y coordinate: "))
+    # pos_z = float(input("Enter z coordinate: "))
+    pos_x = self.target_obj[3] - self.target_obj[0]/2 - 0.03
+    pos_y = self.target_obj[4] - self.target_obj[1]/2 - 0.035
+    pos_z = self.target_obj[5]
     ## Planning to a Pose Goal of the end-effector:
     pose_goal = geometry_msgs.msg.Pose()
     # pose_goal = geometry_msgs.msg.PoseStamped()
@@ -293,11 +348,11 @@ class MoveGroupPythonInterface(object):
     pose_goal.position.y = pos_y
     pose_goal.position.z = pos_z
 
-    waypoints = []
+    # waypoints = []
     # x = 0.40
     # y = 0.70
     # z = 0.25
-    wpose = group.get_current_pose().pose
+    # wpose = group.get_current_pose().pose
 
     # wpose.position.y = 0.45
     # wpose.position.x = 0.4
@@ -306,16 +361,16 @@ class MoveGroupPythonInterface(object):
     # wpose.position.y = 0.6
     # wpose.position.x = 0.2
     # waypoints.append(copy.deepcopy(wpose))
-
-    wpose.position.y = 0.4
-    wpose.position.x = 0.4
-    wpose.position.z = 0.25
-    waypoints.append(copy.deepcopy(wpose))
-
-    wpose.position.y = 0.8
-    wpose.position.x = 0.4
-    wpose.position.z = 0.25
-    waypoints.append(copy.deepcopy(wpose))
+    #
+    # wpose.position.y = 0.4
+    # wpose.position.x = 0.4
+    # wpose.position.z = 0.25
+    # waypoints.append(copy.deepcopy(wpose))
+    #
+    # wpose.position.y = 0.8
+    # wpose.position.x = 0.4
+    # wpose.position.z = 0.25
+    # waypoints.append(copy.deepcopy(wpose))
 
     # # We want the Cartesian path to be interpolated at a resolution of 1 cm
     # # which is why we will specify 0.01 as the eef_step in Cartesian
@@ -326,7 +381,7 @@ class MoveGroupPythonInterface(object):
     #                                    0.0, True)         # jump_threshold
 
 
-    group.set_max_acceleration_scaling_factor(0.1)
+    # group.set_max_acceleration_scaling_factor(0.1)
     # group.get_planner_id()
     # [minX, minY, minZ, maxX, maxY, maxZ]
     # ws = [0.0,0.0,0.0,0.0,0.1,0.1]
@@ -592,12 +647,12 @@ class MoveGroupPythonInterface(object):
     table_pose.pose.position.x = 0.30
     table_pose.pose.position.y = 0.70
     table_pose.pose.position.z = 0.26
-    # scene.add_box("dummy0", table_pose, size=( 0.055, 0.055, 0.15))
+    scene.add_box("dummy0", table_pose, size=( 0.055, 0.055, 0.15))
 
     table_pose.pose.position.x = 0.40
     table_pose.pose.position.y = 0.90
     table_pose.pose.position.z = 0.25
-    # scene.add_box("dummy1", table_pose, size=( 0.055, 0.055, 0.15))
+    scene.add_box("dummy1", table_pose, size=( 0.055, 0.055, 0.15))
 
     table_pose.pose.position.x = 0.40
     table_pose.pose.position.y = 0.45
@@ -823,31 +878,38 @@ class MoveGroupPythonInterface(object):
         print(world_objects[i+4])
         print(world_objects[i+5])
         print("------")
+
+        #Adding the objects to the world
+        ## If the gaze point is within the object, that is the target object
         if (((world_objects[i+3] - (world_objects[i]/2) - margin) <= self.gaze_point.x <= (world_objects[i+3] + (world_objects[i]/2) + margin))
               and ((world_objects[i+4] - (world_objects[i+1]/2) - margin) <= self.gaze_point.y <= (world_objects[i+4] + (world_objects[i+1]/2) + margin))
               and ((world_objects[i+5] - (world_objects[i+2]/2) - margin) <= self.gaze_point.z <= (world_objects[i+5] + (world_objects[i+2]/2) + margin))):
 
                 # self.target_obj_name = object_id
                 self.target_obj = []
-                self.target_obj.insert(0, object_id)
-                self.target_obj.insert(1, world_objects[i])
-                self.target_obj.insert(2, world_objects[i+1])
-                self.target_obj.insert(3, world_objects[i+2])
-                self.target_obj.insert(4, world_objects[i+3])
-                self.target_obj.insert(5, world_objects[i+4])
-                self.target_obj.insert(6, world_objects[i+5])
+                self.target_obj.insert(0, world_objects[i])
+                self.target_obj.insert(1, world_objects[i+1])
+                self.target_obj.insert(2, world_objects[i+2])
+                self.target_obj.insert(3, world_objects[i+3])
+                self.target_obj.insert(4, world_objects[i+4])
+                self.target_obj.insert(5, world_objects[i+5])
+                self.target_obj.insert(6, object_id)
                 print(self.target_obj)
+                # targe_obj is set as such: [xDimension, yDimension, zDimension, xCenter, yCenter, zCenter, objectID]
+
                 # self.target_obj_x = world_objects[i+3]
                 # self.target_obj_y = world_objects[i+4]
                 # self.target_obj_z = world_objects[i+5]
                 self.objectAdder.addBox(object_id, world_objects[i] + margin, world_objects[i+1] + margin, world_objects[i+2], world_objects[i+3], world_objects[i+4], world_objects[i+5])
-                ## remove target object from world_objects
+                ## remove target object from world_objects???
                 self.objectAdder.setColor(object_id, 1.0, 0.2, 0.2, a=0.9)
+                ## Target object will have a different colour
 
         else:
                 self.objectAdder.addBox(object_id, world_objects[i] + margin, world_objects[i+1] + margin, world_objects[i+2], world_objects[i+3], world_objects[i+4], world_objects[i+5])
                 self.objectAdder.setColor(object_id, 0.1, 0.4, 1.0, a=0.9)
-
+                # All obstacles have the same colour
+        # All the colours are set at the same time
         self.objectAdder.sendColors()
         i+=6
 
