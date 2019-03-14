@@ -15,10 +15,10 @@
   </include>
 
   <!-- Camera node -->
-  <include file="$(find realsense2_camera)/launch/rs_rgbd_pc.launch"/>
-  <node pkg="natnet_ros" type="client" name="mocap" output="screen" args="--clock"/>
+  <!-- <include file="$(find realsense2_camera)/launch/rs_rgbd_pc.launch"/> -->
+  <!-- <node pkg="natnet_ros" type="client" name="mocap" output="screen" args="clock"/> -->
    <!--add negative negative to clock-->
-  <node pkg="realsense2_camera" type="tf_broadcaster.py" name="camera_tf_node" output="screen"/>
+  <!-- <node pkg="realsense2_camera" type="tf_broadcaster.py" name="camera_tf_node" output="screen"/> -->
   <node name="send_pose" pkg="ur10_moveit_config" type="send_pose.py" respawn="false" output="screen"/>
   <!-- rosrun natnet_ros client _server:=10.0.0.108 -->
 
