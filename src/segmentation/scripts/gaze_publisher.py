@@ -8,8 +8,8 @@ pub = rospy.Publisher('/gaze_point', Point, queue_size=10)
 rate = rospy.Rate(1) # 3 Hz
 
 gaze_point = Point()
-gaze_point.x = 0.44
-gaze_point.y = 0.60
+gaze_point.x = 0.52 #0.44
+gaze_point.y = 0.78 #0.60
 gaze_point.z = 0.26
 
 

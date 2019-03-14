@@ -278,7 +278,7 @@ class MoveGroupPythonInterface(object):
 
 
     # self.target_obj = [0.055,0.055,0.15,0.3,0.7,0.26,"ID"] #dummy0
-    self.target_obj = [0.055,0.055,0.15,0.4,0.9,0.25,"ID"] #dummy1
+    # self.target_obj = [0.055,0.055,0.15,0.4,0.9,0.25,"ID"] #dummy1
     ws_margin = 0.05
     # Position constraint that define the workspace of the end effector link
     primitive = shape_msgs.msg.SolidPrimitive()
@@ -305,8 +305,8 @@ class MoveGroupPythonInterface(object):
     # self.objectAdder.setColor("ws", 1.0, 1.0, 1.0, a=0.7)
     # self.objectAdder.sendColors()
     #
-    rospy.sleep(1.0)
-    scene.remove_world_object("ws")
+    # rospy.sleep(1.0)
+    # scene.remove_world_object("ws")
     # table_pose.pose.position.x = 0.30
     # table_pose.pose.position.y = 0.70
     # table_pose.pose.position.z = 0.26
@@ -388,9 +388,13 @@ class MoveGroupPythonInterface(object):
     # group.set_workspace(ws)
     group.set_pose_target(pose_goal, group.get_end_effector_link())
     # group.execute(plan, wait=True)
-
+    group.plan(pose_goal)
+    option=raw_input("Execute? (y/n)")
+    if option=="y":
+      print("\n ")
+      group.go(pose_goal, wait=True)
     # Call the planner to compute the plan and execute it.
-    group.go(wait=True)
+    # group.go(wait=True)
     # plan = group.go(wait=True)
     # Calling `stop()` ensures that there is no residual movement
     group.stop()
@@ -474,7 +478,7 @@ class MoveGroupPythonInterface(object):
     # Publish
     # display_trajectory_publisher.publish(display_trajectory);
 
-    group.set_max_acceleration_scaling_factor(0.1)
+    # group.set_max_acceleration_scaling_factor(0.1)
     ## Executing a Plan
     ## ^^^^^^^^^^^^^^^^
     ## Use execute if you would like the robot to follow the plan that has already been computed:
@@ -647,12 +651,12 @@ class MoveGroupPythonInterface(object):
     table_pose.pose.position.x = 0.30
     table_pose.pose.position.y = 0.70
     table_pose.pose.position.z = 0.26
-    scene.add_box("dummy0", table_pose, size=( 0.055, 0.055, 0.15))
+    # scene.add_box("dummy0", table_pose, size=( 0.055, 0.055, 0.15))
 
     table_pose.pose.position.x = 0.40
     table_pose.pose.position.y = 0.90
     table_pose.pose.position.z = 0.25
-    scene.add_box("dummy1", table_pose, size=( 0.055, 0.055, 0.15))
+    # scene.add_box("dummy1", table_pose, size=( 0.055, 0.055, 0.15))
 
     table_pose.pose.position.x = 0.40
     table_pose.pose.position.y = 0.45
@@ -867,7 +871,7 @@ class MoveGroupPythonInterface(object):
         # self.objectAdder.sendColors()
 
         ## Gaze integration
-        margin = 0.02 #0.042
+        margin = 0.0 #0.042
         # gaze_margin = 0
         # self.gaze_point = geometry_msgs.msg.Point()
         # self.gaze_point.x = 0.4
@@ -1026,7 +1030,7 @@ def main():
     option = True
     #rospy.init_node('send_pose', anonymous="True")
 
-    commander.go_to_initial_state()
+    # commander.go_to_initial_state()
 
     rospy.Subscriber("/objects_array", Float32MultiArray, commander.add_box, queue_size=1)
     rospy.Subscriber("/gaze_point", geometry_msgs.msg.Point, commander.gaze_callback, queue_size=1)
