@@ -1,0 +1,57 @@
+<?xml version="1.0" ?>
+
+<sdf version='1.4'>
+  <model name="ur10">
+
+    <!-- <link name="base_link" >
+      <visual>
+        <geometry>
+          <mesh filename="package://ur_description/meshes/ur10/visual/base.dae"/>
+        </geometry>
+        <material name="LightGrey">
+          <color rgba="0.7 0.7 0.7 1.0"/>
+        </material>
+      </visual>
+      <collision>
+        <geometry>
+          <mesh filename="package://ur_description/meshes/ur10/collision/base.stl"/>
+        </geometry>
+      </collision>
+      <xacro:cylinder_inertial radius="0.075" length="0.038" mass="4.0">
+        <origin xyz="0.0 0.0 0.0" rpy="0 0 0" />
+      </xacro:cylinder_inertial>
+    </link> -->
+
+
+  
+
+    <!-- <joint name="shoulder_pan_joint" type="revolute">
+      <parent link="base_link" />
+      <child link = "shoulder_link" />
+      <origin xyz="0.0 0.0 0.1273" rpy="0.0 0.0 0.0" />
+      <axis xyz="0 0 1" />
+      <limit lower="-3.1415" upper="3.1415" effort="330.0" velocity="2.16"/>
+      <dynamics damping="0.0" friction="0.0"/>
+    </joint>
+
+    <link name="shoulder_link">
+      <visual>
+        <geometry>
+          <mesh filename="package://ur_description/meshes/ur10/visual/shoulder.dae"/>
+        </geometry>
+        <material name="LightGrey">
+          <color rgba="0.7 0.7 0.7 1.0"/>
+        </material>
+      </visual>
+      <collision>
+        <geometry>
+          <mesh filename="package://ur_description/meshes/ur10/collision/shoulder.stl"/>
+        </geometry>
+      </collision>
+      <xacro:cylinder_inertial radius="0.075" length="0.178" mass="7.778">
+        <origin xyz="0.0 0.0 0.0" rpy="0 0 0" />
+      </xacro:cylinder_inertial>
+    </link> -->
+
+  </model>
+</sdf>

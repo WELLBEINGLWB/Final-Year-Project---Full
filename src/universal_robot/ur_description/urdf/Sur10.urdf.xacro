@@ -31,6 +31,14 @@
      hand_lower_limit:=${-pi}    hand_upper_limit:=${pi}
      ">
 
+     <!-- shoulder_pan_lower_limit:=${-pi}    shoulder_pan_upper_limit:=${pi}
+    shoulder_lift_lower_limit:=${-pi}    shoulder_lift_upper_limit:=${pi}
+    elbow_joint_lower_limit:=${-pi}    elbow_joint_upper_limit:=${pi}
+    wrist_1_lower_limit:=${-pi}    wrist_1_upper_limit:=${pi}
+    wrist_2_lower_limit:=${-pi}    wrist_2_upper_limit:=${pi}
+    wrist_3_lower_limit:=${-pi}    wrist_3_upper_limit:=${pi}
+     wrist_3_lower_limit:=${-pi}    wrist_3_upper_limit:=${pi}
+     hand_lower_limit:=${-pi}    hand_upper_limit:=${pi} -->
 
      <!-- arm_elbow_lower_limit:=${-pi}    arm_elbow_upper_limit:=${pi}
      arm_forearm_lower_limit:=${-pi}    arm_forearm_upper_limit:=${pi}
@@ -53,12 +61,12 @@
         but are not verified for the correct permutation.
         The permutation was guessed by looking at the UR5 parameters.
         Serious use of these parameters needs further inspection. -->
-    <xacro:property name="shoulder_cog" value="0.00008 0.00244 -0.037" />
+    <!-- <xacro:property name="shoulder_cog" value="0.00008 0.00244 -0.037" />
     <xacro:property name="upper_arm_cog" value="0.00001 0.15061 0.38757" />
     <xacro:property name="forearm_cog" value="-0.00012 0.06112 0.1984" />
     <xacro:property name="wrist_1_cog" value="-0.00021 -0.00112 0.02269" />
     <xacro:property name="wrist_2_cog" value="-0.00021 0.00112 0.002269" />
-    <xacro:property name="wrist_3_cog" value="0 -0.001156 -0.00149" />
+    <xacro:property name="wrist_3_cog" value="0 -0.001156 -0.00149" /> -->
 
     <!-- Kinematic model -->
     <!-- Properties from urcontrol.conf -->
@@ -81,7 +89,7 @@
     <!-- <xacro:property name="wrist_2_length" value="${0.1157}" /> -->
     <!-- <xacro:property name="wrist_3_length" value="${0.0922}" /> -->
 
-    <link name="${prefix}base_link" >
+    <link name="base_link" >
       <visual>
         <geometry>
           <mesh filename="package://ur_description/meshes/ur10/visual/base.dae"/>
@@ -100,16 +108,16 @@
       </xacro:cylinder_inertial>
     </link>
 
-    <joint name="${prefix}shoulder_pan_joint" type="revolute">
-      <parent link="${prefix}base_link" />
-      <child link = "${prefix}shoulder_link" />
+    <joint name="shoulder_pan_joint" type="revolute">
+      <parent link="base_link" />
+      <child link = "shoulder_link" />
       <origin xyz="0.0 0.0 0.1273" rpy="0.0 0.0 0.0" />
       <axis xyz="0 0 1" />
-      <limit lower="${shoulder_pan_lower_limit}" upper="${shoulder_pan_upper_limit}" effort="330.0" velocity="2.16"/>
+      <limit lower="0" upper="1.5070796" effort="330.0" velocity="2.16"/>
       <dynamics damping="0.0" friction="0.0"/>
     </joint>
 
-    <link name="${prefix}shoulder_link">
+    <link name="shoulder_link">
       <visual>
         <geometry>
           <mesh filename="package://ur_description/meshes/ur10/visual/shoulder.dae"/>
@@ -128,17 +136,17 @@
       </xacro:cylinder_inertial>
     </link>
 
-    <joint name="${prefix}shoulder_lift_joint" type="revolute">
-      <parent link="${prefix}shoulder_link" />
-      <child link = "${prefix}upper_arm_link" />
+    <joint name="shoulder_lift_joint" type="revolute">
+      <parent link="shoulder_link" />
+      <child link = "upper_arm_link" />
       <origin xyz="0.0 0.220941 0.0" rpy="0.0 ${pi / 2.0} 0.0" />
       <axis xyz="0 1 0" />
       <!-- <limit lower="${-2.0 * pi}" upper="${2.0 * pi}" effort="330.0" velocity="2.16"/> -->
-      <limit lower="${shoulder_lift_lower_limit}" upper="${shoulder_lift_upper_limit}" effort="330.0" velocity="2.16"/>
+      <limit lower="-3.14159265" upper="0" effort="330.0" velocity="2.16"/>
       <dynamics damping="0.0" friction="0.0"/>
     </joint>
 
-    <link name="${prefix}upper_arm_link">
+    <link name="upper_arm_link">
       <visual>
         <geometry>
           <mesh filename="package://ur_description/meshes/ur10/visual/upperarm.dae"/>
@@ -157,17 +165,17 @@
       </xacro:cylinder_inertial>
     </link>
 
-    <joint name="${prefix}elbow_joint" type="revolute">
-      <parent link="${prefix}upper_arm_link" />
-      <child link = "${prefix}forearm_link" />
+    <joint name="elbow_joint" type="revolute">
+      <parent link="upper_arm_link" />
+      <child link = "forearm_link" />
       <origin xyz="0.0 -0.1719 0.612" rpy="0.0 0.0 0.0" />
       <axis xyz="0 1 0" />
       <!-- <limit lower="${-pi}" upper="${pi}" effort="150.0" velocity="3.15"/> -->
-      <limit lower="${elbow_joint_lower_limit}" upper="${elbow_joint_upper_limit}" effort="150.0" velocity="3.15"/>
+      <limit lower="0" upper="3.14159265" effort="150.0" velocity="3.15"/>
       <dynamics damping="0.0" friction="0.0"/>
     </joint>
 
-    <link name="${prefix}forearm_link">
+    <link name="forearm_link">
       <visual>
          <geometry>
           <mesh filename="package://ur_description/meshes/ur10/visual/forearm.dae"/>
@@ -186,17 +194,17 @@
       </xacro:cylinder_inertial>
     </link>
 
-    <joint name="${prefix}wrist_1_joint" type="revolute">
-      <parent link="${prefix}forearm_link" />
-      <child link = "${prefix}wrist_1_link" />
+    <joint name="wrist_1_joint" type="revolute">
+      <parent link="forearm_link" />
+      <child link = "wrist_1_link" />
       <origin xyz="0.0 0.0 0.5723" rpy="0.0 ${pi/2.0} 0.0" />
       <axis xyz="0 1 0" />
       <!-- <limit lower="${-2.0 * pi}" upper="${2.0 * pi}" effort="54.0" velocity="3.2"/> -->
-      <limit lower="${wrist_1_lower_limit}" upper="${wrist_1_upper_limit}" effort="54.0" velocity="3.2"/>
+      <limit lower="-3.14159265" upper="0" effort="54.0" velocity="3.2"/>
       <dynamics damping="0.0" friction="0.0"/>
     </joint>
 
-    <link name="${prefix}wrist_1_link">
+    <link name="wrist_1_link">
       <visual>
         <geometry>
           <mesh filename="package://ur_description/meshes/ur10/visual/wrist1.dae"/>
@@ -215,17 +223,17 @@
       </xacro:cylinder_inertial>
     </link>
 
-    <joint name="${prefix}wrist_2_joint" type="revolute">
-      <parent link="${prefix}wrist_1_link" />
-      <child link = "${prefix}wrist_2_link" />
+    <joint name="wrist_2_joint" type="revolute">
+      <parent link="wrist_1_link" />
+      <child link = "wrist_2_link" />
       <origin xyz="0.0 0.1149 0.0" rpy="0.0 0.0 0.0" />
       <axis xyz="0 0 1" />
       <!-- <limit lower="${-2.0 * pi}" upper="${2.0 * pi}" effort="54.0" velocity="3.2"/> -->
-      <limit lower="${wrist_2_lower_limit}" upper="${wrist_2_upper_limit}" effort="54.0" velocity="3.2"/>
+      <limit lower="-3.14159265" upper="0.785398" effort="54.0" velocity="3.2"/>
       <dynamics damping="0.0" friction="0.0"/>
     </joint>
 
-    <link name="${prefix}wrist_2_link">
+    <link name="wrist_2_link">
       <visual>
         <geometry>
           <mesh filename="package://ur_description/meshes/ur10/visual/wrist2.dae"/>
@@ -244,17 +252,17 @@
       </xacro:cylinder_inertial>
     </link>
 
-    <joint name="${prefix}wrist_3_joint" type="revolute">
-      <parent link="${prefix}wrist_2_link" />
-      <child link = "${prefix}wrist_3_link" />
+    <joint name="wrist_3_joint" type="revolute">
+      <parent link="wrist_2_link" />
+      <child link = "wrist_3_link" />
       <origin xyz="0.0 0.0 0.1157" rpy="0.0 0.0 0.0" />
       <axis xyz="0 1 0" />
       <!-- <limit lower="${-2.0 * pi}" upper="${2.0 * pi}" effort="54.0" velocity="3.2"/> -->
-      <limit lower="${wrist_3_lower_limit}" upper="${wrist_3_upper_limit}" effort="54.0" velocity="3.2"/>
+      <limit lower="-3.14159265" upper="3.14159265" effort="54.0" velocity="3.2"/>
       <dynamics damping="0.0" friction="0.0"/>
     </joint>
 
-    <link name="${prefix}wrist_3_link">
+    <link name="wrist_3_link">
       <visual>
         <geometry>
           <mesh filename="package://ur_description/meshes/ur10/visual/wrist3.dae"/>
@@ -273,13 +281,13 @@
       </xacro:cylinder_inertial>
     </link>
 
-    <joint name="${prefix}ee_fixed_joint" type="fixed">
-      <parent link="${prefix}wrist_3_link" />
-      <child link = "${prefix}ee_link" />
+    <joint name="ee_fixed_joint" type="fixed">
+      <parent link="wrist_3_link" />
+      <child link = "ee_link" />
       <origin xyz="0.0 0.0922 0.0" rpy="0.0 0.0 ${pi/2.0}" />
     </joint>
 
-    <link name="${prefix}ee_link">
+    <link name="ee_link">
       <collision>
         <geometry>
           <box size="0.01 0.01 0.01"/>
@@ -288,18 +296,18 @@
       </collision>
     </link>
 
-    <joint name="${prefix}ee_plate_joint" type="fixed">
-      <parent link="${prefix}ee_link" />
-      <child link = "${prefix}ee_metal_plate" />
+    <joint name="ee_plate_joint" type="fixed">
+      <parent link="ee_link" />
+      <child link = "ee_metal_plate" />
       <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
     </joint>
 
-    <link name="${prefix}ee_metal_plate">
+    <link name="ee_metal_plate">
       <visual>
         <geometry>
           <box size="0.085 0.085 0.01"/>
         </geometry>
-        <origin rpy="0 ${pi/2.0} 0" xyz="0 0 0"/>
+        <origin rpy="0 1.570796 0" xyz="0 0 0"/>
         <material name="LightGrey">
           <color rgba="0.7 0.7 0.7 1.0"/>
         </material>
@@ -308,22 +316,22 @@
         <geometry>
           <box size="0.085 0.085 0.01"/>
         </geometry>
-        <origin rpy="0 ${pi/2.0} 0" xyz="0 0 0"/>
+        <origin rpy="0 1.570796 0" xyz="0 0 0"/>
       </collision>
     </link>
 
-    <joint name="${prefix}ee_sensor_joint" type="fixed">
-      <parent link="${prefix}ee_metal_plate" />
-      <child link = "${prefix}ee_sensor_plate" />
+    <joint name="ee_sensor_joint" type="fixed">
+      <parent link="ee_metal_plate" />
+      <child link = "ee_sensor_plate" />
       <origin xyz="0.022 0.0 0.0" rpy="0.0 0.0 0.0" />
     </joint>
 
-    <link name="${prefix}ee_sensor_plate">
+    <link name="ee_sensor_plate">
       <visual>
         <geometry>
           <cylinder length="0.035" radius="0.06"/>
         </geometry>
-        <origin rpy="0 ${pi/2.0} 0" xyz="0 0 0"/>
+        <origin rpy="0 1.570796 0" xyz="0 0 0"/>
         <material name="Black">
           <color rgba="0.0 0.0 0.0 1.0"/>
         </material>
@@ -332,22 +340,22 @@
         <geometry>
           <cylinder length="0.035" radius="0.06"/>
         </geometry>
-        <origin rpy="0 ${pi/2.0} 0" xyz="0 0 0"/>
+        <origin rpy="0 1.570796 0" xyz="0 0 0"/>
       </collision>
     </link>
 
-    <joint name="${prefix}ee_magnet_joint" type="fixed">
-      <parent link="${prefix}ee_sensor_plate" />
-      <child link = "${prefix}ee_magnet_cylinder" />
+    <joint name="ee_magnet_joint" type="fixed">
+      <parent link="ee_sensor_plate" />
+      <child link = "ee_magnet_cylinder" />
       <origin xyz="0.042 0.0 0.0" rpy="0.0 0.0 0.0" />
     </joint>
 
-    <link name="${prefix}ee_magnet_cylinder">
+    <link name="ee_magnet_cylinder">
       <visual>
         <geometry>
           <cylinder length="0.05" radius="0.04"/>
         </geometry>
-        <origin rpy="0 ${pi/2.0} 0" xyz="0 0 0"/>
+        <origin rpy="0 1.570796 0" xyz="0 0 0"/>
         <material name="White">
           <color rgba="1.0 1.0 1.0 1.0"/>
         </material>
@@ -356,7 +364,7 @@
         <geometry>
           <cylinder length="0.05" radius="0.04"/>
         </geometry>
-        <origin rpy="0 ${pi/2.0} 0" xyz="0 0 0"/>
+        <origin rpy="0 1.570796 0" xyz="0 0 0"/>
       </collision>
     </link>
 <!--
@@ -386,13 +394,15 @@
         <origin rpy="0 ${pi/2.0} 0" xyz="0 0 0"/>
       </collision>
     </link> -->
-    <joint name="${prefix}fake_arm_joint" type="fixed">
-      <parent link="${prefix}ee_magnet_cylinder" />
-      <child link = "${prefix}fake_arm_link" />
+
+
+    <!-- <joint name="fake_arm_joint" type="fixed">
+      <parent link="ee_magnet_cylinder" />
+      <child link = "fake_arm_link" />
       <origin xyz="0.05 0.0 -0.12" rpy="0.0 0.0 0.0" />
     </joint>
 
-    <link name="${prefix}fake_arm_link">
+    <link name="fake_arm_link">
       <visual>
         <geometry>
           <cylinder length="0.25" radius="0.025"/>
@@ -408,11 +418,11 @@
         </geometry>
         <origin rpy="0 0 0" xyz="0 0 0"/>
       </collision>
-    </link>
+    </link> -->
 
-    <joint name="${prefix}fake_hand_joint" type="fixed">
-      <parent link="${prefix}ee_magnet_cylinder" />
-      <child link = "${prefix}fake_hand_link" />
+    <joint name="fake_hand_joint" type="fixed">
+      <parent link="ee_magnet_cylinder" />
+      <child link = "fake_hand_link" />
       <origin xyz="0.05 0.0 0.05" rpy="0.0 0.0 0.0" />
     </joint>
 
@@ -425,13 +435,13 @@
       <dynamics damping="0.0" friction="0.0"/>
     </joint> -->
 
-    <link name="${prefix}fake_hand_link">
+    <link name="fake_hand_link">
       <visual>
         <geometry>
           <!-- <box size="0.35 0.05 0.05"/> -->
           <box size="0.1 0.05 0.05"/>
         </geometry>
-        <origin rpy="0 ${pi/2.0} 0" xyz="0 0 0"/>
+        <origin rpy="0 1.570796 0" xyz="0 0 0"/>
         <material name="HandColor">
           <color rgba="0.4 0.4 0.4 1.0"/>
         </material>
@@ -441,13 +451,174 @@
           <!-- <box size="0.35 0.05 0.05"/> -->
           <box size="0.1 0.05 0.05"/>
         </geometry>
-        <origin rpy="0 ${pi/2.0} 0" xyz="0 0 0"/>
+        <origin rpy="0 1.570796 0" xyz="0 0 0"/>
       </collision>
     </link>
 
 
 <!-- #########################ARM TEST########################## -->
 
+<joint name="arm_base_joint" type="fixed">
+  <parent link="base_link" />
+  <child link = "arm_shoulder_1_link" />
+  <origin xyz="-0.2 0.5 0.35" rpy="0.0 0.0 0.0" />
+</joint>
+
+<link name="arm_shoulder_1_link">
+  <visual>
+    <geometry>
+      <box size="0.07 0.07 0.1"/>
+    </geometry>
+    <origin rpy="0 0 0" xyz="0 0 0"/>
+    <material name="ShoulderColour">
+      <color rgba="0.4 0.4 0.4 1.0"/>
+    </material>
+  </visual>
+  <collision>
+    <geometry>
+      <box size="0.05 0.05 0.05"/>
+    </geometry>
+    <origin rpy="0 0 0" xyz="0 0 0"/>
+  </collision>
+</link>
+
+<joint name="arm_shoulder_1_joint" type="revolute">
+  <parent link="arm_shoulder_1_link" />
+  <child link = "arm_shoulder_2_link" />
+  <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
+  <axis xyz="0 1 0" />
+  <limit lower="-3.14159265" upper="3.14159265" effort="54.0" velocity="3.2"/>
+  <dynamics damping="0.0" friction="0.0"/>
+</joint>
+
+<link name="arm_shoulder_2_link">
+  <visual>
+    <geometry>
+      <box size="0.01 0.01 0.01"/>
+    </geometry>
+    <origin rpy="0 0 0" xyz="0 0 0"/>
+    <material name="ShoulderColour">
+      <color rgba="0.4 0.4 0.4 1.0"/>
+    </material>
+  </visual>
+  <collision>
+    <geometry>
+      <box size="0.01 0.01 0.01"/>
+    </geometry>
+    <origin rpy="0 0 0" xyz="0 0 0"/>
+  </collision>
+</link>
+
+<joint name="arm_shoulder_2_joint" type="revolute">
+  <parent link="arm_shoulder_2_link" />
+  <child link = "arm_upper_arm_link" />
+  <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
+  <axis xyz="0 0 1" />
+  <limit lower="-3.14159265" upper="3.14159265" effort="54.0" velocity="3.2"/>
+  <dynamics damping="0.0" friction="0.0"/>
+</joint>
+
+<link name="arm_upper_arm_link">
+  <visual>
+    <geometry>
+      <cylinder length="0.3" radius="0.035"/>
+    </geometry>
+    <origin rpy="0 1.570796 0" xyz="0.15 0 0"/>
+    <material name="Elbow">
+      <color rgba="0.2 0.2 0.2 1.0"/>
+    </material>
+  </visual>
+  <collision>
+    <geometry>
+      <cylinder length="0.3" radius="0.035"/>
+    </geometry>
+    <origin rpy="0 1.570796 0" xyz="0.15 0 0"/>
+  </collision>
+</link>
+
+<joint name="arm_elbow_1_joint" type="revolute">
+  <parent link="arm_upper_arm_link" />
+  <child link = "arm_forearm_1_link" />
+  <origin xyz="0.3 0.0 0.0" rpy="0.0 0.0 0.0" />
+  <axis xyz="0 0 1" />
+  <limit lower="-3.14159265" upper="3.14159265" effort="54.0" velocity="3.2"/>
+  <dynamics damping="0.0" friction="0.0"/>
+</joint>
+
+<link name="arm_forearm_1_link">
+  <visual>
+    <geometry>
+      <box size="0.01 0.01 0.01"/>
+    </geometry>
+    <origin rpy="0 1.570796 0" xyz="0.0 0.0 0.0"/>
+    <material name="FA">
+      <color rgba="0.0 0.0 0.0 1.0"/>
+    </material>
+  </visual>
+  <collision>
+    <geometry>
+      <box size="0.01 0.01 0.01"/>
+    </geometry>
+    <origin rpy="0 1.570796 0" xyz="0.0 0.0 0.0"/>
+  </collision>
+  <!-- <inertial>
+    <mass value="1.80"/>
+    <inertia ixx="0.4" ixy="0.0" ixz="0.0" iyy="0.4" iyz="0.0" izz="0.2"/>
+    <origin xyz="0.0 0.0 0.0" rpy="0 0 0" />
+  </inertial> -->
+</link>
+
+<joint name="arm_elbow_2_joint" type="revolute">
+  <parent link="arm_forearm_1_link" />
+  <child link = "arm_forearm_2_link" />
+  <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
+  <axis xyz="0 1 0" />
+  <limit lower="-3.14159265" upper="3.14159265" effort="54.0" velocity="3.2"/>
+  <dynamics damping="0.0" friction="0.0"/>
+</joint>
+
+<link name="arm_forearm_2_link">
+  <visual>
+    <geometry>
+      <cylinder length="0.25" radius="0.025"/>
+    </geometry>
+    <origin rpy="0 1.570796 0" xyz="0.125 0.0 0.0"/>
+    <material name="FA">
+      <color rgba="0.0 0.0 0.0 1.0"/>
+    </material>
+  </visual>
+  <collision>
+    <geometry>
+      <cylinder length="0.25" radius="0.025"/>
+    </geometry>
+    <origin rpy="0 1.570796 0" xyz="0.0 0.0 0.0"/>
+  </collision>
+  <!-- <inertial>
+    <mass value="1.80"/>
+    <inertia ixx="0.4" ixy="0.0" ixz="0.0" iyy="0.4" iyz="0.0" izz="0.2"/>
+    <origin xyz="0.0 0.0 0.0" rpy="0 0 0" />
+  </inertial> -->
+</link>
+
+<!-- <joint name="arm_common_joint" type="revolute">
+  <parent link="fake_hand_link" />
+  <child link = "arm_forearm_2_link" />
+  <origin xyz="0 0.0 0.0" rpy="0.0 0.0 0.0" />
+  <axis xyz="0 0 1" />
+  <limit lower="-3.14159265" upper="3.14159265" effort="54.0" velocity="3.2"/>
+  <dynamics damping="0.0" friction="0.0"/>
+</joint> -->
+
+<joint name="arm_common_joint" type="fixed">
+  <parent link="arm_forearm_2_link" />
+  <child link = "fake_hand_link" />
+  <origin xyz="0.3 0.0 0.0" rpy="0.0 0.0 0.0" />
+  <axis xyz="0 0 1" />
+  <limit lower="-3.14159265" upper="3.14159265" effort="54.0" velocity="3.2"/>
+  <dynamics damping="0.0" friction="0.0"/>
+</joint>
+
+<!-- ##################### -->
 <!-- <joint name="${prefix}fake_forearm_joint" type="fixed">
   <parent link="${prefix}fake_arm_link" />
   <child link = "${prefix}fake_forearm_link" />
@@ -507,13 +678,13 @@
 
 <!-- ################### -->
 
-    <!-- <joint name="${prefix}arm_shoulder_joint" type="fixed">
-      <parent link="${prefix}base_link" />
-      <child link = "${prefix}arm_shoulder_link" />
+    <!-- <joint name="arm_shoulder_joint" type="fixed">
+      <parent link="base_link" />
+      <child link = "arm_shoulder_link" />
       <origin xyz="-0.15 0.5 0.4" rpy="0.0 0.0 0.0" />
     </joint>
 
-    <link name="${prefix}arm_shoulder_link">
+    <link name="arm_shoulder_link">
       <visual>
         <geometry>
           <box size="0.07 0.07 0.1"/>
@@ -531,21 +702,21 @@
       </collision>
     </link>
 
-    <joint name="${prefix}arm_elbow_joint" type="revolute">
-      <parent link="${prefix}arm_shoulder_link" />
-      <child link = "${prefix}arm_elbow_link" />
+    <joint name="arm_elbow_joint" type="revolute">
+      <parent link="arm_shoulder_link" />
+      <child link = "arm_elbow_link" />
       <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
       <axis xyz="0 0 1" />
-      <limit lower="${arm_elbow_lower_limit}" upper="${arm_elbow_upper_limit}" effort="54.0" velocity="3.2"/>
+      <limit lower="-3.14159265" upper="3.14159265" effort="54.0" velocity="3.2"/>
       <dynamics damping="0.0" friction="0.0"/>
     </joint>
 
-    <link name="${prefix}arm_elbow_link">
+    <link name="arm_elbow_link">
       <visual>
         <geometry>
           <cylinder length="0.3" radius="0.035"/>
         </geometry>
-        <origin rpy="0 ${pi/2.0} 0" xyz="0.15 0 0"/>
+        <origin rpy="0 1.570796 0" xyz="0.15 0 0"/>
         <material name="Elbow">
           <color rgba="0.0 1.0 0.0 1.0"/>
         </material>
@@ -554,25 +725,25 @@
         <geometry>
           <cylinder length="0.3" radius="0.035"/>
         </geometry>
-        <origin rpy="0 ${pi/2.0} 0" xyz="0.15 0 0"/>
+        <origin rpy="0 1.570796 0" xyz="0.15 0 0"/>
       </collision>
     </link>
 
-    <joint name="${prefix}arm_forearm_joint" type="revolute">
-      <parent link="${prefix}arm_elbow_link" />
-      <child link = "${prefix}arm_forearm_link" />
+    <joint name="arm_forearm_joint" type="revolute">
+      <parent link="arm_elbow_link" />
+      <child link = "arm_forearm_link" />
       <origin xyz="0.15 0.0 0.0" rpy="0.0 0.0 0.0" />
       <axis xyz="0 0 1" />
-      <limit lower="${arm_forearm_lower_limit}" upper="${arm_forearm_upper_limit}" effort="54.0" velocity="3.2"/>
+      <limit lower="-3.14159265" upper="3.14159265" effort="54.0" velocity="3.2"/>
       <dynamics damping="0.0" friction="0.0"/>
     </joint>
 
-    <link name="${prefix}arm_forearm_link">
+    <link name="arm_forearm_link">
       <visual>
         <geometry>
           <cylinder length="0.25" radius="0.025"/>
         </geometry>
-        <origin rpy="0 ${pi/2.0} 0" xyz="0.25 0.0 0.0"/>
+        <origin rpy="0 1.570796 0" xyz="0.25 0.0 0.0"/>
         <material name="FA">
           <color rgba="0.0 0.0 0.0 1.0"/>
         </material>
@@ -581,16 +752,16 @@
         <geometry>
           <cylinder length="0.25" radius="0.025"/>
         </geometry>
-        <origin rpy="0 ${pi/2.0} 0" xyz="0.25 0.0 0.0"/>
+        <origin rpy="0 1.570796 0" xyz="0.25 0.0 0.0"/>
       </collision>
     </link>
 
-    <joint name="${prefix}arm_wrist_joint" type="revolute">
-      <parent link="${prefix}arm_forearm_link" />
-      <child link = "${prefix}fake_arm_link" />
+    <joint name="arm_wrist_joint" type="revolute">
+      <parent link="arm_forearm_link" />
+      <child link = "fake_arm_link" />
       <origin xyz="0.15 0.0 0.0" rpy="0.0 0.0 0.0" />
       <axis xyz="0 0 1" />
-      <limit lower="${arm_wrist_lower_limit}" upper="${arm_wrist_upper_limit}" effort="54.0" velocity="3.2"/>
+      <limit lower="-3.14159265" upper="3.14159265" effort="54.0" velocity="3.2"/>
       <dynamics damping="0.0" friction="0.0"/>
     </joint> -->
 
@@ -598,16 +769,17 @@
     <xacro:ur_arm_gazebo prefix="${prefix}" /> -->
 
     <!-- ROS base_link to UR 'Base' Coordinates transform -->
-    <link name="${prefix}base"/>
-    <joint name="${prefix}base_link-base_fixed_joint" type="fixed">
+    <link name="base"/>
+    <joint name="base_link-base_fixed_joint" type="fixed">
       <!-- NOTE: this rotation is only needed as long as base_link itself is
                  not corrected wrt the real robot (ie: rotated over 180
                  degrees)
       -->
       <origin xyz="0 0 0" rpy="0 0 ${-pi}"/>
-      <parent link="${prefix}base_link"/>
-      <child link="${prefix}base"/>
+      <parent link="base_link"/>
+      <child link="base"/>
     </joint>
+
 
     <!-- Frame coincident with all-zeros TCP on UR controller -->
     <!-- <link name="${prefix}tool0"/>

@@ -63,7 +63,7 @@
     </visual>
     <collision>
       <geometry>
-        <box size="0.01 0.01 0.01"/>
+        <box size="0.05 0.05 0.05"/>
       </geometry>
       <origin rpy="0 0 0" xyz="0 0 0"/>
     </collision>
@@ -108,38 +108,6 @@
   <link name="arm_forearm_1_link">
     <visual>
       <geometry>
-        <box size="0.01 0.01 0.01"/>
-      </geometry>
-      <origin rpy="0 1.570796 0" xyz="0.0 0.0 0.0"/>
-      <material name="FA">
-        <color rgba="0.0 0.0 0.0 1.0"/>
-      </material>
-    </visual>
-    <collision>
-      <geometry>
-        <box size="0.01 0.01 0.01"/>
-      </geometry>
-      <origin rpy="0 1.570796 0" xyz="0.0 0.0 0.0"/>
-    </collision>
-    <!-- <inertial>
-      <mass value="1.80"/>
-      <inertia ixx="0.4" ixy="0.0" ixz="0.0" iyy="0.4" iyz="0.0" izz="0.2"/>
-      <origin xyz="0.0 0.0 0.0" rpy="0 0 0" />
-    </inertial> -->
-  </link>
-
-  <joint name="arm_elbow_2_joint" type="revolute">
-    <parent link="arm_forearm_1_link" />
-    <child link = "arm_forearm_2_link" />
-    <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
-    <axis xyz="0 1 0" />
-    <limit lower="-3.14159265" upper="3.14159265" effort="54.0" velocity="3.2"/>
-    <dynamics damping="0.0" friction="0.0"/>
-  </joint>
-
-  <link name="arm_forearm_2_link">
-    <visual>
-      <geometry>
         <cylinder length="0.25" radius="0.025"/>
       </geometry>
       <origin rpy="0 1.570796 0" xyz="0.125 0.0 0.0"/>
@@ -151,7 +119,7 @@
       <geometry>
         <cylinder length="0.25" radius="0.025"/>
       </geometry>
-      <origin rpy="0 1.570796 0" xyz="0.0 0.0 0.0"/>
+      <origin rpy="0 1.570796 0" xyz="0.125 0.0 0.0"/>
     </collision>
     <!-- <inertial>
       <mass value="1.80"/>

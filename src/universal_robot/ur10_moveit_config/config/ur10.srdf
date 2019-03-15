@@ -15,8 +15,12 @@
     <group name="endeffector">
         <link name="fake_hand_link"/>
     </group>
-    <!-- <group name="arm">
-        <chain base_link="base_link" tip_link="arm_elbow_link"/>
+    <group name="arm">
+        <chain base_link="arm_shoulder_1_link" tip_link="arm_forearm_2_link"/>
+    </group>
+
+    <!-- <group name="arm_test">
+        <chain base_link="fake_hand_link" tip_link="arm_forearm_2_link"/>
     </group> -->
     <!-- <group name="human_arm">
         <chain base_link="arm_shoulder_link" tip_link="arm_forearm_link"/>
@@ -52,6 +56,15 @@
     <disable_collisions link1="ee_link" link2="wrist_1_link" reason="Never" />
     <disable_collisions link1="ee_link" link2="wrist_2_link" reason="Never" />
     <disable_collisions link1="ee_link" link2="wrist_3_link" reason="Adjacent" />
+    <disable_collisions link1="forearm_link" link2="upper_arm_link" reason="Adjacent" />
+    <disable_collisions link1="forearm_link" link2="wrist_1_link" reason="Adjacent" />
+    <disable_collisions link1="shoulder_link" link2="upper_arm_link" reason="Adjacent" />
+    <disable_collisions link1="shoulder_link" link2="wrist_1_link" reason="Never" />
+    <disable_collisions link1="shoulder_link" link2="wrist_2_link" reason="Never" />
+    <disable_collisions link1="wrist_1_link" link2="wrist_2_link" reason="Adjacent" />
+    <disable_collisions link1="wrist_1_link" link2="wrist_3_link" reason="Never" />
+    <disable_collisions link1="wrist_2_link" link2="wrist_3_link" reason="Adjacent" />
+
 
     <disable_collisions link1="ee_link" link2="ee_metal_plate" reason="Adjacent" />
     <disable_collisions link1="ee_metal_plate" link2="wrist_3_link" reason="Adjacent" />
@@ -71,6 +84,16 @@
     <disable_collisions link1="fake_arm_link" link2="wrist_3_link" reason="Never" />
     <disable_collisions link1="ee_magnet_cylinder" link2="fake_arm_link" reason="Adjacent" />
 
+
+    <disable_collisions link1="ee_magnet_cylinder" link2="arm_forearm_2_link" reason="Adjacent" />
+    <disable_collisions link1="fake_arm_link" link2="arm_forearm_2_link" reason="Adjacent" />
+    <disable_collisions link1="ee_sensor_plate" link2="arm_forearm_2_link" reason="Adjacent" />
+    <disable_collisions link1="ee_metal_plate" link2="arm_forearm_2_link" reason="Adjacent" />
+    <disable_collisions link1="ee_link" link2="arm_forearm_2_link" reason="Adjacent" />
+    <disable_collisions link1="wrist_3_link" link2="arm_forearm_2_link" reason="Adjacent" />
+    <disable_collisions link1="wrist_2_link" link2="arm_forearm_2_link" reason="Adjacent" />
+    <disable_collisions link1="fake_hand_link" link2="arm_forearm_2_link" reason="Adjacent" />
+
     <!-- <disable_collisions link1="fake_arm_link" link2="fake_forearm_link" reason="Adjacent" />
     <disable_collisions link1="ee_magnet_cylinder" link2="fake_forearm_link" reason="Adjacent" />
     <disable_collisions link1="fake_hand_link" link2="fake_forearm_link" reason="Adjacent" /> -->
@@ -83,15 +106,13 @@
 
 
 
+    <disable_collisions link1="arm_shoulder_1_link" link2="arm_upper_arm_link" reason="Adjacent" />
+    <disable_collisions link1="arm_shoulder_1_link" link2="arm_shoulder_2_link" reason="Adjacent" />
+    <disable_collisions link1="arm_shoulder_2_link" link2="arm_upper_arm_link" reason="Adjacent" />
+    <disable_collisions link1="arm_upper_arm_link" link2="arm_forearm_1_link" reason="Adjacent" />
+    <disable_collisions link1="arm_upper_arm_link" link2="arm_forearm_2_link" reason="Adjacent" />
+    <disable_collisions link1="arm_forearm_1_link" link2="arm_forearm_2_link" reason="Adjacent" />
 
-    <disable_collisions link1="forearm_link" link2="upper_arm_link" reason="Adjacent" />
-    <disable_collisions link1="forearm_link" link2="wrist_1_link" reason="Adjacent" />
-    <disable_collisions link1="shoulder_link" link2="upper_arm_link" reason="Adjacent" />
-    <disable_collisions link1="shoulder_link" link2="wrist_1_link" reason="Never" />
-    <disable_collisions link1="shoulder_link" link2="wrist_2_link" reason="Never" />
-    <disable_collisions link1="wrist_1_link" link2="wrist_2_link" reason="Adjacent" />
-    <disable_collisions link1="wrist_1_link" link2="wrist_3_link" reason="Never" />
-    <disable_collisions link1="wrist_2_link" link2="wrist_3_link" reason="Adjacent" />
 
 
     <!-- ARM TESTING -->
