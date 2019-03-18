@@ -1275,17 +1275,108 @@ point_cloud_publisherv2/fast:
 .PHONY : point_cloud_publisherv2/fast
 
 #=============================================================================
-# Target rules for targets named seg2
+# Target rules for targets named segmentation_generate_messages_lisp
 
 # Build rule for target.
-seg2: cmake_check_build_system
-	$(MAKE) -f CMakeFiles/Makefile2 seg2
-.PHONY : seg2
+segmentation_generate_messages_lisp: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 segmentation_generate_messages_lisp
+.PHONY : segmentation_generate_messages_lisp
 
 # fast build rule for target.
-seg2/fast:
-	$(MAKE) -f segmentation/CMakeFiles/seg2.dir/build.make segmentation/CMakeFiles/seg2.dir/build
-.PHONY : seg2/fast
+segmentation_generate_messages_lisp/fast:
+	$(MAKE) -f segmentation/CMakeFiles/segmentation_generate_messages_lisp.dir/build.make segmentation/CMakeFiles/segmentation_generate_messages_lisp.dir/build
+.PHONY : segmentation_generate_messages_lisp/fast
+
+#=============================================================================
+# Target rules for targets named segmentation_gencpp
+
+# Build rule for target.
+segmentation_gencpp: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 segmentation_gencpp
+.PHONY : segmentation_gencpp
+
+# fast build rule for target.
+segmentation_gencpp/fast:
+	$(MAKE) -f segmentation/CMakeFiles/segmentation_gencpp.dir/build.make segmentation/CMakeFiles/segmentation_gencpp.dir/build
+.PHONY : segmentation_gencpp/fast
+
+#=============================================================================
+# Target rules for targets named segmentation_generate_messages_py
+
+# Build rule for target.
+segmentation_generate_messages_py: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 segmentation_generate_messages_py
+.PHONY : segmentation_generate_messages_py
+
+# fast build rule for target.
+segmentation_generate_messages_py/fast:
+	$(MAKE) -f segmentation/CMakeFiles/segmentation_generate_messages_py.dir/build.make segmentation/CMakeFiles/segmentation_generate_messages_py.dir/build
+.PHONY : segmentation_generate_messages_py/fast
+
+#=============================================================================
+# Target rules for targets named segmentation_generate_messages
+
+# Build rule for target.
+segmentation_generate_messages: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 segmentation_generate_messages
+.PHONY : segmentation_generate_messages
+
+# fast build rule for target.
+segmentation_generate_messages/fast:
+	$(MAKE) -f segmentation/CMakeFiles/segmentation_generate_messages.dir/build.make segmentation/CMakeFiles/segmentation_generate_messages.dir/build
+.PHONY : segmentation_generate_messages/fast
+
+#=============================================================================
+# Target rules for targets named segmentation_generate_messages_cpp
+
+# Build rule for target.
+segmentation_generate_messages_cpp: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 segmentation_generate_messages_cpp
+.PHONY : segmentation_generate_messages_cpp
+
+# fast build rule for target.
+segmentation_generate_messages_cpp/fast:
+	$(MAKE) -f segmentation/CMakeFiles/segmentation_generate_messages_cpp.dir/build.make segmentation/CMakeFiles/segmentation_generate_messages_cpp.dir/build
+.PHONY : segmentation_generate_messages_cpp/fast
+
+#=============================================================================
+# Target rules for targets named segmentation_genlisp
+
+# Build rule for target.
+segmentation_genlisp: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 segmentation_genlisp
+.PHONY : segmentation_genlisp
+
+# fast build rule for target.
+segmentation_genlisp/fast:
+	$(MAKE) -f segmentation/CMakeFiles/segmentation_genlisp.dir/build.make segmentation/CMakeFiles/segmentation_genlisp.dir/build
+.PHONY : segmentation_genlisp/fast
+
+#=============================================================================
+# Target rules for targets named _segmentation_generate_messages_check_deps_AddTwoInts
+
+# Build rule for target.
+_segmentation_generate_messages_check_deps_AddTwoInts: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 _segmentation_generate_messages_check_deps_AddTwoInts
+.PHONY : _segmentation_generate_messages_check_deps_AddTwoInts
+
+# fast build rule for target.
+_segmentation_generate_messages_check_deps_AddTwoInts/fast:
+	$(MAKE) -f segmentation/CMakeFiles/_segmentation_generate_messages_check_deps_AddTwoInts.dir/build.make segmentation/CMakeFiles/_segmentation_generate_messages_check_deps_AddTwoInts.dir/build
+.PHONY : _segmentation_generate_messages_check_deps_AddTwoInts/fast
+
+#=============================================================================
+# Target rules for targets named segmentation_genpy
+
+# Build rule for target.
+segmentation_genpy: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 segmentation_genpy
+.PHONY : segmentation_genpy
+
+# fast build rule for target.
+segmentation_genpy/fast:
+	$(MAKE) -f segmentation/CMakeFiles/segmentation_genpy.dir/build.make segmentation/CMakeFiles/segmentation_genpy.dir/build
+.PHONY : segmentation_genpy/fast
 
 #=============================================================================
 # Target rules for targets named segmentation
@@ -1299,6 +1390,45 @@ segmentation: cmake_check_build_system
 segmentation/fast:
 	$(MAKE) -f segmentation/CMakeFiles/segmentation.dir/build.make segmentation/CMakeFiles/segmentation.dir/build
 .PHONY : segmentation/fast
+
+#=============================================================================
+# Target rules for targets named seg2
+
+# Build rule for target.
+seg2: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 seg2
+.PHONY : seg2
+
+# fast build rule for target.
+seg2/fast:
+	$(MAKE) -f segmentation/CMakeFiles/seg2.dir/build.make segmentation/CMakeFiles/seg2.dir/build
+.PHONY : seg2/fast
+
+#=============================================================================
+# Target rules for targets named segmentation_server
+
+# Build rule for target.
+segmentation_server: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 segmentation_server
+.PHONY : segmentation_server
+
+# fast build rule for target.
+segmentation_server/fast:
+	$(MAKE) -f segmentation/CMakeFiles/segmentation_server.dir/build.make segmentation/CMakeFiles/segmentation_server.dir/build
+.PHONY : segmentation_server/fast
+
+#=============================================================================
+# Target rules for targets named _segmentation_generate_messages_check_deps_seg
+
+# Build rule for target.
+_segmentation_generate_messages_check_deps_seg: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 _segmentation_generate_messages_check_deps_seg
+.PHONY : _segmentation_generate_messages_check_deps_seg
+
+# fast build rule for target.
+_segmentation_generate_messages_check_deps_seg/fast:
+	$(MAKE) -f segmentation/CMakeFiles/_segmentation_generate_messages_check_deps_seg.dir/build.make segmentation/CMakeFiles/_segmentation_generate_messages_check_deps_seg.dir/build
+.PHONY : _segmentation_generate_messages_check_deps_seg/fast
 
 #=============================================================================
 # Target rules for targets named ur_driver_gencfg
@@ -1840,8 +1970,18 @@ help:
 	@echo "... _realsense2_camera_generate_messages_check_deps_IMUInfo"
 	@echo "... _realsense2_camera_generate_messages_check_deps_Extrinsics"
 	@echo "... point_cloud_publisherv2"
-	@echo "... seg2"
+	@echo "... segmentation_generate_messages_lisp"
+	@echo "... segmentation_gencpp"
+	@echo "... segmentation_generate_messages_py"
+	@echo "... segmentation_generate_messages"
+	@echo "... segmentation_generate_messages_cpp"
+	@echo "... segmentation_genlisp"
+	@echo "... _segmentation_generate_messages_check_deps_AddTwoInts"
+	@echo "... segmentation_genpy"
 	@echo "... segmentation"
+	@echo "... seg2"
+	@echo "... segmentation_server"
+	@echo "... _segmentation_generate_messages_check_deps_seg"
 	@echo "... ur_driver_gencfg"
 	@echo "... controller_manager_msgs_generate_messages_cpp"
 	@echo "... control_msgs_generate_messages_lisp"

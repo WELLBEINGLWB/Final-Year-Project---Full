@@ -3,6 +3,6 @@ prefix=/home/faisallab008/catkin_ws/devel
 Name: segmentation
 Description: Description of segmentation
 Version: 0.0.0
-Cflags: 
+Cflags: -I/home/faisallab008/catkin_ws/devel/include
 Libs: -L/home/faisallab008/catkin_ws/devel/lib 
 Requires: 

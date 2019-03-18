@@ -320,7 +320,7 @@
     <link name="${prefix}ee_metal_plate">
       <visual>
         <geometry>
-          <box size="0.085 0.085 0.01"/>
+          <box size="0.09 0.09 0.015"/>
         </geometry>
         <origin rpy="0 ${pi/2.0} 0" xyz="0 0 0"/>
         <material name="LightGrey">
@@ -338,13 +338,13 @@
     <joint name="${prefix}ee_sensor_joint" type="fixed">
       <parent link="${prefix}ee_metal_plate" />
       <child link = "${prefix}ee_sensor_plate" />
-      <origin xyz="0.022 0.0 0.0" rpy="0.0 0.0 0.0" />
+      <origin xyz="0.027 0.0 0.0" rpy="0.0 0.0 0.0" />
     </joint>
 
     <link name="${prefix}ee_sensor_plate">
       <visual>
         <geometry>
-          <cylinder length="0.035" radius="0.06"/>
+          <cylinder length="0.04" radius="0.06"/>
         </geometry>
         <origin rpy="0 ${pi/2.0} 0" xyz="0 0 0"/>
         <material name="Black">
@@ -353,7 +353,7 @@
       </visual>
       <collision>
         <geometry>
-          <cylinder length="0.035" radius="0.06"/>
+          <cylinder length="0.04" radius="0.06"/>
         </geometry>
         <origin rpy="0 ${pi/2.0} 0" xyz="0 0 0"/>
       </collision>
@@ -362,7 +362,7 @@
     <joint name="${prefix}ee_magnet_joint" type="fixed">
       <parent link="${prefix}ee_sensor_plate" />
       <child link = "${prefix}ee_magnet_cylinder" />
-      <origin xyz="0.042 0.0 0.0" rpy="0.0 0.0 0.0" />
+      <origin xyz="0.045 0.0 0.0" rpy="0.0 0.0 0.0" />
     </joint>
 
     <link name="${prefix}ee_magnet_cylinder">
@@ -436,7 +436,7 @@
     <joint name="${prefix}fake_hand_joint" type="fixed">
       <parent link="${prefix}ee_magnet_cylinder" />
       <child link = "${prefix}fake_hand_link" />
-      <origin xyz="0.05 0.0 0.05" rpy="0.0 0.0 0.0" />
+      <origin xyz="0.05 0.0 0.09" rpy="0.0 0.0 0.0" />
     </joint>
 
     <!-- <joint name="${prefix}fake_hand_joint" type="revolute">
@@ -457,7 +457,7 @@
       <visual>
         <geometry>
           <!-- <box size="0.35 0.05 0.05"/> -->
-          <box size="0.1 0.05 0.05"/>
+          <box size="0.17 0.05 0.05"/>
         </geometry>
         <origin rpy="0 ${pi/2.0} 0" xyz="0 0 0"/>
         <material name="HandColor">
@@ -467,7 +467,7 @@
       <collision>
         <geometry>
           <!-- <box size="0.35 0.05 0.05"/> -->
-          <box size="0.1 0.05 0.05"/>
+          <box size="0.17 0.05 0.05"/>
         </geometry>
         <origin rpy="0 ${pi/2.0} 0" xyz="0 0 0"/>
       </collision>

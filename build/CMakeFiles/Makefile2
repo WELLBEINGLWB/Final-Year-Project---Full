@@ -992,7 +992,7 @@ universal_robot/ur_msgs/CMakeFiles/ur_msgs_generate_messages_cpp.dir/all: univer
 universal_robot/ur_msgs/CMakeFiles/ur_msgs_generate_messages_cpp.dir/all: universal_robot/ur_msgs/CMakeFiles/_ur_msgs_generate_messages_check_deps_Analog.dir/all
 	$(MAKE) -f universal_robot/ur_msgs/CMakeFiles/ur_msgs_generate_messages_cpp.dir/build.make universal_robot/ur_msgs/CMakeFiles/ur_msgs_generate_messages_cpp.dir/depend
 	$(MAKE) -f universal_robot/ur_msgs/CMakeFiles/ur_msgs_generate_messages_cpp.dir/build.make universal_robot/ur_msgs/CMakeFiles/ur_msgs_generate_messages_cpp.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/faisallab008/catkin_ws/build/CMakeFiles --progress-num=54,55,56,57,58,59,60,61 "Built target ur_msgs_generate_messages_cpp"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/faisallab008/catkin_ws/build/CMakeFiles --progress-num=63,64,65,66,67,68,69,70 "Built target ur_msgs_generate_messages_cpp"
 .PHONY : universal_robot/ur_msgs/CMakeFiles/ur_msgs_generate_messages_cpp.dir/all
 
 # Build rule for subdir invocation for target.
@@ -1199,7 +1199,7 @@ universal_robot/ur_msgs/CMakeFiles/ur_msgs_generate_messages_lisp.dir/all: unive
 universal_robot/ur_msgs/CMakeFiles/ur_msgs_generate_messages_lisp.dir/all: universal_robot/ur_msgs/CMakeFiles/_ur_msgs_generate_messages_check_deps_Analog.dir/all
 	$(MAKE) -f universal_robot/ur_msgs/CMakeFiles/ur_msgs_generate_messages_lisp.dir/build.make universal_robot/ur_msgs/CMakeFiles/ur_msgs_generate_messages_lisp.dir/depend
 	$(MAKE) -f universal_robot/ur_msgs/CMakeFiles/ur_msgs_generate_messages_lisp.dir/build.make universal_robot/ur_msgs/CMakeFiles/ur_msgs_generate_messages_lisp.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/faisallab008/catkin_ws/build/CMakeFiles --progress-num=62,63,64,65,66,67,68,69 "Built target ur_msgs_generate_messages_lisp"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/faisallab008/catkin_ws/build/CMakeFiles --progress-num=71,72,73,74,75,76,77,78 "Built target ur_msgs_generate_messages_lisp"
 .PHONY : universal_robot/ur_msgs/CMakeFiles/ur_msgs_generate_messages_lisp.dir/all
 
 # Build rule for subdir invocation for target.
@@ -1239,7 +1239,7 @@ universal_robot/ur_msgs/CMakeFiles/ur_msgs_generate_messages_py.dir/all: univers
 universal_robot/ur_msgs/CMakeFiles/ur_msgs_generate_messages_py.dir/all: universal_robot/ur_msgs/CMakeFiles/_ur_msgs_generate_messages_check_deps_Analog.dir/all
 	$(MAKE) -f universal_robot/ur_msgs/CMakeFiles/ur_msgs_generate_messages_py.dir/build.make universal_robot/ur_msgs/CMakeFiles/ur_msgs_generate_messages_py.dir/depend
 	$(MAKE) -f universal_robot/ur_msgs/CMakeFiles/ur_msgs_generate_messages_py.dir/build.make universal_robot/ur_msgs/CMakeFiles/ur_msgs_generate_messages_py.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/faisallab008/catkin_ws/build/CMakeFiles --progress-num=70,71,72,73,74,75,76,77,78,79 "Built target ur_msgs_generate_messages_py"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/faisallab008/catkin_ws/build/CMakeFiles --progress-num=79,80,81,82,83,84,85,86,87,88 "Built target ur_msgs_generate_messages_py"
 .PHONY : universal_robot/ur_msgs/CMakeFiles/ur_msgs_generate_messages_py.dir/all
 
 # Build rule for subdir invocation for target.
@@ -3184,14 +3184,26 @@ clean: realsense/realsense2_camera/CMakeFiles/point_cloud_publisherv2.dir/clean
 # Directory level rules for directory segmentation
 
 # Convenience name for "all" pass in the directory.
-segmentation/all: segmentation/CMakeFiles/seg2.dir/all
+segmentation/all: segmentation/CMakeFiles/segmentation_generate_messages.dir/all
 segmentation/all: segmentation/CMakeFiles/segmentation.dir/all
+segmentation/all: segmentation/CMakeFiles/seg2.dir/all
+segmentation/all: segmentation/CMakeFiles/segmentation_server.dir/all
 
 .PHONY : segmentation/all
 
 # Convenience name for "clean" pass in the directory.
-segmentation/clean: segmentation/CMakeFiles/seg2.dir/clean
+segmentation/clean: segmentation/CMakeFiles/segmentation_generate_messages_lisp.dir/clean
+segmentation/clean: segmentation/CMakeFiles/segmentation_gencpp.dir/clean
+segmentation/clean: segmentation/CMakeFiles/segmentation_generate_messages_py.dir/clean
+segmentation/clean: segmentation/CMakeFiles/segmentation_generate_messages.dir/clean
+segmentation/clean: segmentation/CMakeFiles/segmentation_generate_messages_cpp.dir/clean
+segmentation/clean: segmentation/CMakeFiles/segmentation_genlisp.dir/clean
+segmentation/clean: segmentation/CMakeFiles/_segmentation_generate_messages_check_deps_AddTwoInts.dir/clean
+segmentation/clean: segmentation/CMakeFiles/segmentation_genpy.dir/clean
 segmentation/clean: segmentation/CMakeFiles/segmentation.dir/clean
+segmentation/clean: segmentation/CMakeFiles/seg2.dir/clean
+segmentation/clean: segmentation/CMakeFiles/segmentation_server.dir/clean
+segmentation/clean: segmentation/CMakeFiles/_segmentation_generate_messages_check_deps_seg.dir/clean
 
 .PHONY : segmentation/clean
 
@@ -3199,6 +3211,315 @@ segmentation/clean: segmentation/CMakeFiles/segmentation.dir/clean
 segmentation/preinstall:
 
 .PHONY : segmentation/preinstall
+
+#=============================================================================
+# Target rules for target segmentation/CMakeFiles/segmentation_generate_messages_lisp.dir
+
+# All Build rule for target.
+segmentation/CMakeFiles/segmentation_generate_messages_lisp.dir/all: natnet_msgs/CMakeFiles/std_msgs_generate_messages_lisp.dir/all
+segmentation/CMakeFiles/segmentation_generate_messages_lisp.dir/all: pcl_ros_tutorial/CMakeFiles/sensor_msgs_generate_messages_lisp.dir/all
+segmentation/CMakeFiles/segmentation_generate_messages_lisp.dir/all: segmentation/CMakeFiles/_segmentation_generate_messages_check_deps_AddTwoInts.dir/all
+segmentation/CMakeFiles/segmentation_generate_messages_lisp.dir/all: segmentation/CMakeFiles/_segmentation_generate_messages_check_deps_seg.dir/all
+	$(MAKE) -f segmentation/CMakeFiles/segmentation_generate_messages_lisp.dir/build.make segmentation/CMakeFiles/segmentation_generate_messages_lisp.dir/depend
+	$(MAKE) -f segmentation/CMakeFiles/segmentation_generate_messages_lisp.dir/build.make segmentation/CMakeFiles/segmentation_generate_messages_lisp.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/faisallab008/catkin_ws/build/CMakeFiles --progress-num=33,34 "Built target segmentation_generate_messages_lisp"
+.PHONY : segmentation/CMakeFiles/segmentation_generate_messages_lisp.dir/all
+
+# Build rule for subdir invocation for target.
+segmentation/CMakeFiles/segmentation_generate_messages_lisp.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/faisallab008/catkin_ws/build/CMakeFiles 2
+	$(MAKE) -f CMakeFiles/Makefile2 segmentation/CMakeFiles/segmentation_generate_messages_lisp.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/faisallab008/catkin_ws/build/CMakeFiles 0
+.PHONY : segmentation/CMakeFiles/segmentation_generate_messages_lisp.dir/rule
+
+# Convenience name for target.
+segmentation_generate_messages_lisp: segmentation/CMakeFiles/segmentation_generate_messages_lisp.dir/rule
+
+.PHONY : segmentation_generate_messages_lisp
+
+# clean rule for target.
+segmentation/CMakeFiles/segmentation_generate_messages_lisp.dir/clean:
+	$(MAKE) -f segmentation/CMakeFiles/segmentation_generate_messages_lisp.dir/build.make segmentation/CMakeFiles/segmentation_generate_messages_lisp.dir/clean
+.PHONY : segmentation/CMakeFiles/segmentation_generate_messages_lisp.dir/clean
+
+# clean rule for target.
+clean: segmentation/CMakeFiles/segmentation_generate_messages_lisp.dir/clean
+
+.PHONY : clean
+
+#=============================================================================
+# Target rules for target segmentation/CMakeFiles/segmentation_gencpp.dir
+
+# All Build rule for target.
+segmentation/CMakeFiles/segmentation_gencpp.dir/all: segmentation/CMakeFiles/segmentation_generate_messages_cpp.dir/all
+	$(MAKE) -f segmentation/CMakeFiles/segmentation_gencpp.dir/build.make segmentation/CMakeFiles/segmentation_gencpp.dir/depend
+	$(MAKE) -f segmentation/CMakeFiles/segmentation_gencpp.dir/build.make segmentation/CMakeFiles/segmentation_gencpp.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/faisallab008/catkin_ws/build/CMakeFiles --progress-num= "Built target segmentation_gencpp"
+.PHONY : segmentation/CMakeFiles/segmentation_gencpp.dir/all
+
+# Build rule for subdir invocation for target.
+segmentation/CMakeFiles/segmentation_gencpp.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/faisallab008/catkin_ws/build/CMakeFiles 2
+	$(MAKE) -f CMakeFiles/Makefile2 segmentation/CMakeFiles/segmentation_gencpp.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/faisallab008/catkin_ws/build/CMakeFiles 0
+.PHONY : segmentation/CMakeFiles/segmentation_gencpp.dir/rule
+
+# Convenience name for target.
+segmentation_gencpp: segmentation/CMakeFiles/segmentation_gencpp.dir/rule
+
+.PHONY : segmentation_gencpp
+
+# clean rule for target.
+segmentation/CMakeFiles/segmentation_gencpp.dir/clean:
+	$(MAKE) -f segmentation/CMakeFiles/segmentation_gencpp.dir/build.make segmentation/CMakeFiles/segmentation_gencpp.dir/clean
+.PHONY : segmentation/CMakeFiles/segmentation_gencpp.dir/clean
+
+# clean rule for target.
+clean: segmentation/CMakeFiles/segmentation_gencpp.dir/clean
+
+.PHONY : clean
+
+#=============================================================================
+# Target rules for target segmentation/CMakeFiles/segmentation_generate_messages_py.dir
+
+# All Build rule for target.
+segmentation/CMakeFiles/segmentation_generate_messages_py.dir/all: natnet_msgs/CMakeFiles/std_msgs_generate_messages_py.dir/all
+segmentation/CMakeFiles/segmentation_generate_messages_py.dir/all: pcl_ros_tutorial/CMakeFiles/sensor_msgs_generate_messages_py.dir/all
+segmentation/CMakeFiles/segmentation_generate_messages_py.dir/all: segmentation/CMakeFiles/_segmentation_generate_messages_check_deps_AddTwoInts.dir/all
+segmentation/CMakeFiles/segmentation_generate_messages_py.dir/all: segmentation/CMakeFiles/_segmentation_generate_messages_check_deps_seg.dir/all
+	$(MAKE) -f segmentation/CMakeFiles/segmentation_generate_messages_py.dir/build.make segmentation/CMakeFiles/segmentation_generate_messages_py.dir/depend
+	$(MAKE) -f segmentation/CMakeFiles/segmentation_generate_messages_py.dir/build.make segmentation/CMakeFiles/segmentation_generate_messages_py.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/faisallab008/catkin_ws/build/CMakeFiles --progress-num=35,36,37 "Built target segmentation_generate_messages_py"
+.PHONY : segmentation/CMakeFiles/segmentation_generate_messages_py.dir/all
+
+# Build rule for subdir invocation for target.
+segmentation/CMakeFiles/segmentation_generate_messages_py.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/faisallab008/catkin_ws/build/CMakeFiles 3
+	$(MAKE) -f CMakeFiles/Makefile2 segmentation/CMakeFiles/segmentation_generate_messages_py.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/faisallab008/catkin_ws/build/CMakeFiles 0
+.PHONY : segmentation/CMakeFiles/segmentation_generate_messages_py.dir/rule
+
+# Convenience name for target.
+segmentation_generate_messages_py: segmentation/CMakeFiles/segmentation_generate_messages_py.dir/rule
+
+.PHONY : segmentation_generate_messages_py
+
+# clean rule for target.
+segmentation/CMakeFiles/segmentation_generate_messages_py.dir/clean:
+	$(MAKE) -f segmentation/CMakeFiles/segmentation_generate_messages_py.dir/build.make segmentation/CMakeFiles/segmentation_generate_messages_py.dir/clean
+.PHONY : segmentation/CMakeFiles/segmentation_generate_messages_py.dir/clean
+
+# clean rule for target.
+clean: segmentation/CMakeFiles/segmentation_generate_messages_py.dir/clean
+
+.PHONY : clean
+
+#=============================================================================
+# Target rules for target segmentation/CMakeFiles/segmentation_generate_messages.dir
+
+# All Build rule for target.
+segmentation/CMakeFiles/segmentation_generate_messages.dir/all: segmentation/CMakeFiles/segmentation_generate_messages_lisp.dir/all
+segmentation/CMakeFiles/segmentation_generate_messages.dir/all: segmentation/CMakeFiles/segmentation_generate_messages_py.dir/all
+segmentation/CMakeFiles/segmentation_generate_messages.dir/all: segmentation/CMakeFiles/segmentation_generate_messages_cpp.dir/all
+	$(MAKE) -f segmentation/CMakeFiles/segmentation_generate_messages.dir/build.make segmentation/CMakeFiles/segmentation_generate_messages.dir/depend
+	$(MAKE) -f segmentation/CMakeFiles/segmentation_generate_messages.dir/build.make segmentation/CMakeFiles/segmentation_generate_messages.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/faisallab008/catkin_ws/build/CMakeFiles --progress-num= "Built target segmentation_generate_messages"
+.PHONY : segmentation/CMakeFiles/segmentation_generate_messages.dir/all
+
+# Include target in all.
+all: segmentation/CMakeFiles/segmentation_generate_messages.dir/all
+
+.PHONY : all
+
+# Build rule for subdir invocation for target.
+segmentation/CMakeFiles/segmentation_generate_messages.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/faisallab008/catkin_ws/build/CMakeFiles 7
+	$(MAKE) -f CMakeFiles/Makefile2 segmentation/CMakeFiles/segmentation_generate_messages.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/faisallab008/catkin_ws/build/CMakeFiles 0
+.PHONY : segmentation/CMakeFiles/segmentation_generate_messages.dir/rule
+
+# Convenience name for target.
+segmentation_generate_messages: segmentation/CMakeFiles/segmentation_generate_messages.dir/rule
+
+.PHONY : segmentation_generate_messages
+
+# clean rule for target.
+segmentation/CMakeFiles/segmentation_generate_messages.dir/clean:
+	$(MAKE) -f segmentation/CMakeFiles/segmentation_generate_messages.dir/build.make segmentation/CMakeFiles/segmentation_generate_messages.dir/clean
+.PHONY : segmentation/CMakeFiles/segmentation_generate_messages.dir/clean
+
+# clean rule for target.
+clean: segmentation/CMakeFiles/segmentation_generate_messages.dir/clean
+
+.PHONY : clean
+
+#=============================================================================
+# Target rules for target segmentation/CMakeFiles/segmentation_generate_messages_cpp.dir
+
+# All Build rule for target.
+segmentation/CMakeFiles/segmentation_generate_messages_cpp.dir/all: natnet_msgs/CMakeFiles/std_msgs_generate_messages_cpp.dir/all
+segmentation/CMakeFiles/segmentation_generate_messages_cpp.dir/all: pcl_ros_tutorial/CMakeFiles/sensor_msgs_generate_messages_cpp.dir/all
+segmentation/CMakeFiles/segmentation_generate_messages_cpp.dir/all: segmentation/CMakeFiles/_segmentation_generate_messages_check_deps_AddTwoInts.dir/all
+segmentation/CMakeFiles/segmentation_generate_messages_cpp.dir/all: segmentation/CMakeFiles/_segmentation_generate_messages_check_deps_seg.dir/all
+	$(MAKE) -f segmentation/CMakeFiles/segmentation_generate_messages_cpp.dir/build.make segmentation/CMakeFiles/segmentation_generate_messages_cpp.dir/depend
+	$(MAKE) -f segmentation/CMakeFiles/segmentation_generate_messages_cpp.dir/build.make segmentation/CMakeFiles/segmentation_generate_messages_cpp.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/faisallab008/catkin_ws/build/CMakeFiles --progress-num=31,32 "Built target segmentation_generate_messages_cpp"
+.PHONY : segmentation/CMakeFiles/segmentation_generate_messages_cpp.dir/all
+
+# Build rule for subdir invocation for target.
+segmentation/CMakeFiles/segmentation_generate_messages_cpp.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/faisallab008/catkin_ws/build/CMakeFiles 2
+	$(MAKE) -f CMakeFiles/Makefile2 segmentation/CMakeFiles/segmentation_generate_messages_cpp.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/faisallab008/catkin_ws/build/CMakeFiles 0
+.PHONY : segmentation/CMakeFiles/segmentation_generate_messages_cpp.dir/rule
+
+# Convenience name for target.
+segmentation_generate_messages_cpp: segmentation/CMakeFiles/segmentation_generate_messages_cpp.dir/rule
+
+.PHONY : segmentation_generate_messages_cpp
+
+# clean rule for target.
+segmentation/CMakeFiles/segmentation_generate_messages_cpp.dir/clean:
+	$(MAKE) -f segmentation/CMakeFiles/segmentation_generate_messages_cpp.dir/build.make segmentation/CMakeFiles/segmentation_generate_messages_cpp.dir/clean
+.PHONY : segmentation/CMakeFiles/segmentation_generate_messages_cpp.dir/clean
+
+# clean rule for target.
+clean: segmentation/CMakeFiles/segmentation_generate_messages_cpp.dir/clean
+
+.PHONY : clean
+
+#=============================================================================
+# Target rules for target segmentation/CMakeFiles/segmentation_genlisp.dir
+
+# All Build rule for target.
+segmentation/CMakeFiles/segmentation_genlisp.dir/all: segmentation/CMakeFiles/segmentation_generate_messages_lisp.dir/all
+	$(MAKE) -f segmentation/CMakeFiles/segmentation_genlisp.dir/build.make segmentation/CMakeFiles/segmentation_genlisp.dir/depend
+	$(MAKE) -f segmentation/CMakeFiles/segmentation_genlisp.dir/build.make segmentation/CMakeFiles/segmentation_genlisp.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/faisallab008/catkin_ws/build/CMakeFiles --progress-num= "Built target segmentation_genlisp"
+.PHONY : segmentation/CMakeFiles/segmentation_genlisp.dir/all
+
+# Build rule for subdir invocation for target.
+segmentation/CMakeFiles/segmentation_genlisp.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/faisallab008/catkin_ws/build/CMakeFiles 2
+	$(MAKE) -f CMakeFiles/Makefile2 segmentation/CMakeFiles/segmentation_genlisp.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/faisallab008/catkin_ws/build/CMakeFiles 0
+.PHONY : segmentation/CMakeFiles/segmentation_genlisp.dir/rule
+
+# Convenience name for target.
+segmentation_genlisp: segmentation/CMakeFiles/segmentation_genlisp.dir/rule
+
+.PHONY : segmentation_genlisp
+
+# clean rule for target.
+segmentation/CMakeFiles/segmentation_genlisp.dir/clean:
+	$(MAKE) -f segmentation/CMakeFiles/segmentation_genlisp.dir/build.make segmentation/CMakeFiles/segmentation_genlisp.dir/clean
+.PHONY : segmentation/CMakeFiles/segmentation_genlisp.dir/clean
+
+# clean rule for target.
+clean: segmentation/CMakeFiles/segmentation_genlisp.dir/clean
+
+.PHONY : clean
+
+#=============================================================================
+# Target rules for target segmentation/CMakeFiles/_segmentation_generate_messages_check_deps_AddTwoInts.dir
+
+# All Build rule for target.
+segmentation/CMakeFiles/_segmentation_generate_messages_check_deps_AddTwoInts.dir/all:
+	$(MAKE) -f segmentation/CMakeFiles/_segmentation_generate_messages_check_deps_AddTwoInts.dir/build.make segmentation/CMakeFiles/_segmentation_generate_messages_check_deps_AddTwoInts.dir/depend
+	$(MAKE) -f segmentation/CMakeFiles/_segmentation_generate_messages_check_deps_AddTwoInts.dir/build.make segmentation/CMakeFiles/_segmentation_generate_messages_check_deps_AddTwoInts.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/faisallab008/catkin_ws/build/CMakeFiles --progress-num= "Built target _segmentation_generate_messages_check_deps_AddTwoInts"
+.PHONY : segmentation/CMakeFiles/_segmentation_generate_messages_check_deps_AddTwoInts.dir/all
+
+# Build rule for subdir invocation for target.
+segmentation/CMakeFiles/_segmentation_generate_messages_check_deps_AddTwoInts.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/faisallab008/catkin_ws/build/CMakeFiles 0
+	$(MAKE) -f CMakeFiles/Makefile2 segmentation/CMakeFiles/_segmentation_generate_messages_check_deps_AddTwoInts.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/faisallab008/catkin_ws/build/CMakeFiles 0
+.PHONY : segmentation/CMakeFiles/_segmentation_generate_messages_check_deps_AddTwoInts.dir/rule
+
+# Convenience name for target.
+_segmentation_generate_messages_check_deps_AddTwoInts: segmentation/CMakeFiles/_segmentation_generate_messages_check_deps_AddTwoInts.dir/rule
+
+.PHONY : _segmentation_generate_messages_check_deps_AddTwoInts
+
+# clean rule for target.
+segmentation/CMakeFiles/_segmentation_generate_messages_check_deps_AddTwoInts.dir/clean:
+	$(MAKE) -f segmentation/CMakeFiles/_segmentation_generate_messages_check_deps_AddTwoInts.dir/build.make segmentation/CMakeFiles/_segmentation_generate_messages_check_deps_AddTwoInts.dir/clean
+.PHONY : segmentation/CMakeFiles/_segmentation_generate_messages_check_deps_AddTwoInts.dir/clean
+
+# clean rule for target.
+clean: segmentation/CMakeFiles/_segmentation_generate_messages_check_deps_AddTwoInts.dir/clean
+
+.PHONY : clean
+
+#=============================================================================
+# Target rules for target segmentation/CMakeFiles/segmentation_genpy.dir
+
+# All Build rule for target.
+segmentation/CMakeFiles/segmentation_genpy.dir/all: segmentation/CMakeFiles/segmentation_generate_messages_py.dir/all
+	$(MAKE) -f segmentation/CMakeFiles/segmentation_genpy.dir/build.make segmentation/CMakeFiles/segmentation_genpy.dir/depend
+	$(MAKE) -f segmentation/CMakeFiles/segmentation_genpy.dir/build.make segmentation/CMakeFiles/segmentation_genpy.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/faisallab008/catkin_ws/build/CMakeFiles --progress-num= "Built target segmentation_genpy"
+.PHONY : segmentation/CMakeFiles/segmentation_genpy.dir/all
+
+# Build rule for subdir invocation for target.
+segmentation/CMakeFiles/segmentation_genpy.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/faisallab008/catkin_ws/build/CMakeFiles 3
+	$(MAKE) -f CMakeFiles/Makefile2 segmentation/CMakeFiles/segmentation_genpy.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/faisallab008/catkin_ws/build/CMakeFiles 0
+.PHONY : segmentation/CMakeFiles/segmentation_genpy.dir/rule
+
+# Convenience name for target.
+segmentation_genpy: segmentation/CMakeFiles/segmentation_genpy.dir/rule
+
+.PHONY : segmentation_genpy
+
+# clean rule for target.
+segmentation/CMakeFiles/segmentation_genpy.dir/clean:
+	$(MAKE) -f segmentation/CMakeFiles/segmentation_genpy.dir/build.make segmentation/CMakeFiles/segmentation_genpy.dir/clean
+.PHONY : segmentation/CMakeFiles/segmentation_genpy.dir/clean
+
+# clean rule for target.
+clean: segmentation/CMakeFiles/segmentation_genpy.dir/clean
+
+.PHONY : clean
+
+#=============================================================================
+# Target rules for target segmentation/CMakeFiles/segmentation.dir
+
+# All Build rule for target.
+segmentation/CMakeFiles/segmentation.dir/all:
+	$(MAKE) -f segmentation/CMakeFiles/segmentation.dir/build.make segmentation/CMakeFiles/segmentation.dir/depend
+	$(MAKE) -f segmentation/CMakeFiles/segmentation.dir/build.make segmentation/CMakeFiles/segmentation.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/faisallab008/catkin_ws/build/CMakeFiles --progress-num=29,30 "Built target segmentation"
+.PHONY : segmentation/CMakeFiles/segmentation.dir/all
+
+# Include target in all.
+all: segmentation/CMakeFiles/segmentation.dir/all
+
+.PHONY : all
+
+# Build rule for subdir invocation for target.
+segmentation/CMakeFiles/segmentation.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/faisallab008/catkin_ws/build/CMakeFiles 2
+	$(MAKE) -f CMakeFiles/Makefile2 segmentation/CMakeFiles/segmentation.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/faisallab008/catkin_ws/build/CMakeFiles 0
+.PHONY : segmentation/CMakeFiles/segmentation.dir/rule
+
+# Convenience name for target.
+segmentation: segmentation/CMakeFiles/segmentation.dir/rule
+
+.PHONY : segmentation
+
+# clean rule for target.
+segmentation/CMakeFiles/segmentation.dir/clean:
+	$(MAKE) -f segmentation/CMakeFiles/segmentation.dir/build.make segmentation/CMakeFiles/segmentation.dir/clean
+.PHONY : segmentation/CMakeFiles/segmentation.dir/clean
+
+# clean rule for target.
+clean: segmentation/CMakeFiles/segmentation.dir/clean
+
+.PHONY : clean
 
 #=============================================================================
 # Target rules for target segmentation/CMakeFiles/seg2.dir
@@ -3238,39 +3559,71 @@ clean: segmentation/CMakeFiles/seg2.dir/clean
 .PHONY : clean
 
 #=============================================================================
-# Target rules for target segmentation/CMakeFiles/segmentation.dir
+# Target rules for target segmentation/CMakeFiles/segmentation_server.dir
 
 # All Build rule for target.
-segmentation/CMakeFiles/segmentation.dir/all:
-	$(MAKE) -f segmentation/CMakeFiles/segmentation.dir/build.make segmentation/CMakeFiles/segmentation.dir/depend
-	$(MAKE) -f segmentation/CMakeFiles/segmentation.dir/build.make segmentation/CMakeFiles/segmentation.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/faisallab008/catkin_ws/build/CMakeFiles --progress-num=29,30 "Built target segmentation"
-.PHONY : segmentation/CMakeFiles/segmentation.dir/all
+segmentation/CMakeFiles/segmentation_server.dir/all:
+	$(MAKE) -f segmentation/CMakeFiles/segmentation_server.dir/build.make segmentation/CMakeFiles/segmentation_server.dir/depend
+	$(MAKE) -f segmentation/CMakeFiles/segmentation_server.dir/build.make segmentation/CMakeFiles/segmentation_server.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/faisallab008/catkin_ws/build/CMakeFiles --progress-num=38,39 "Built target segmentation_server"
+.PHONY : segmentation/CMakeFiles/segmentation_server.dir/all
 
 # Include target in all.
-all: segmentation/CMakeFiles/segmentation.dir/all
+all: segmentation/CMakeFiles/segmentation_server.dir/all
 
 .PHONY : all
 
 # Build rule for subdir invocation for target.
-segmentation/CMakeFiles/segmentation.dir/rule: cmake_check_build_system
+segmentation/CMakeFiles/segmentation_server.dir/rule: cmake_check_build_system
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/faisallab008/catkin_ws/build/CMakeFiles 2
-	$(MAKE) -f CMakeFiles/Makefile2 segmentation/CMakeFiles/segmentation.dir/all
+	$(MAKE) -f CMakeFiles/Makefile2 segmentation/CMakeFiles/segmentation_server.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/faisallab008/catkin_ws/build/CMakeFiles 0
-.PHONY : segmentation/CMakeFiles/segmentation.dir/rule
+.PHONY : segmentation/CMakeFiles/segmentation_server.dir/rule
 
 # Convenience name for target.
-segmentation: segmentation/CMakeFiles/segmentation.dir/rule
+segmentation_server: segmentation/CMakeFiles/segmentation_server.dir/rule
 
-.PHONY : segmentation
-
-# clean rule for target.
-segmentation/CMakeFiles/segmentation.dir/clean:
-	$(MAKE) -f segmentation/CMakeFiles/segmentation.dir/build.make segmentation/CMakeFiles/segmentation.dir/clean
-.PHONY : segmentation/CMakeFiles/segmentation.dir/clean
+.PHONY : segmentation_server
 
 # clean rule for target.
-clean: segmentation/CMakeFiles/segmentation.dir/clean
+segmentation/CMakeFiles/segmentation_server.dir/clean:
+	$(MAKE) -f segmentation/CMakeFiles/segmentation_server.dir/build.make segmentation/CMakeFiles/segmentation_server.dir/clean
+.PHONY : segmentation/CMakeFiles/segmentation_server.dir/clean
+
+# clean rule for target.
+clean: segmentation/CMakeFiles/segmentation_server.dir/clean
+
+.PHONY : clean
+
+#=============================================================================
+# Target rules for target segmentation/CMakeFiles/_segmentation_generate_messages_check_deps_seg.dir
+
+# All Build rule for target.
+segmentation/CMakeFiles/_segmentation_generate_messages_check_deps_seg.dir/all:
+	$(MAKE) -f segmentation/CMakeFiles/_segmentation_generate_messages_check_deps_seg.dir/build.make segmentation/CMakeFiles/_segmentation_generate_messages_check_deps_seg.dir/depend
+	$(MAKE) -f segmentation/CMakeFiles/_segmentation_generate_messages_check_deps_seg.dir/build.make segmentation/CMakeFiles/_segmentation_generate_messages_check_deps_seg.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/faisallab008/catkin_ws/build/CMakeFiles --progress-num= "Built target _segmentation_generate_messages_check_deps_seg"
+.PHONY : segmentation/CMakeFiles/_segmentation_generate_messages_check_deps_seg.dir/all
+
+# Build rule for subdir invocation for target.
+segmentation/CMakeFiles/_segmentation_generate_messages_check_deps_seg.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/faisallab008/catkin_ws/build/CMakeFiles 0
+	$(MAKE) -f CMakeFiles/Makefile2 segmentation/CMakeFiles/_segmentation_generate_messages_check_deps_seg.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/faisallab008/catkin_ws/build/CMakeFiles 0
+.PHONY : segmentation/CMakeFiles/_segmentation_generate_messages_check_deps_seg.dir/rule
+
+# Convenience name for target.
+_segmentation_generate_messages_check_deps_seg: segmentation/CMakeFiles/_segmentation_generate_messages_check_deps_seg.dir/rule
+
+.PHONY : _segmentation_generate_messages_check_deps_seg
+
+# clean rule for target.
+segmentation/CMakeFiles/_segmentation_generate_messages_check_deps_seg.dir/clean:
+	$(MAKE) -f segmentation/CMakeFiles/_segmentation_generate_messages_check_deps_seg.dir/build.make segmentation/CMakeFiles/_segmentation_generate_messages_check_deps_seg.dir/clean
+.PHONY : segmentation/CMakeFiles/_segmentation_generate_messages_check_deps_seg.dir/clean
+
+# clean rule for target.
+clean: segmentation/CMakeFiles/_segmentation_generate_messages_check_deps_seg.dir/clean
 
 .PHONY : clean
 
@@ -3317,7 +3670,7 @@ universal_robot/ur_driver/preinstall:
 universal_robot/ur_driver/CMakeFiles/ur_driver_gencfg.dir/all:
 	$(MAKE) -f universal_robot/ur_driver/CMakeFiles/ur_driver_gencfg.dir/build.make universal_robot/ur_driver/CMakeFiles/ur_driver_gencfg.dir/depend
 	$(MAKE) -f universal_robot/ur_driver/CMakeFiles/ur_driver_gencfg.dir/build.make universal_robot/ur_driver/CMakeFiles/ur_driver_gencfg.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/faisallab008/catkin_ws/build/CMakeFiles --progress-num=51 "Built target ur_driver_gencfg"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/faisallab008/catkin_ws/build/CMakeFiles --progress-num=60 "Built target ur_driver_gencfg"
 .PHONY : universal_robot/ur_driver/CMakeFiles/ur_driver_gencfg.dir/all
 
 # Include target in all.
@@ -3600,7 +3953,7 @@ ur_modern_driver/CMakeFiles/ur_driver.dir/all: ur_modern_driver/CMakeFiles/traje
 ur_modern_driver/CMakeFiles/ur_driver.dir/all: ur_modern_driver/CMakeFiles/ur_hardware_interface.dir/all
 	$(MAKE) -f ur_modern_driver/CMakeFiles/ur_driver.dir/build.make ur_modern_driver/CMakeFiles/ur_driver.dir/depend
 	$(MAKE) -f ur_modern_driver/CMakeFiles/ur_driver.dir/build.make ur_modern_driver/CMakeFiles/ur_driver.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/faisallab008/catkin_ws/build/CMakeFiles --progress-num=43,44,45,46,47,48,49,50 "Built target ur_driver"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/faisallab008/catkin_ws/build/CMakeFiles --progress-num=52,53,54,55,56,57,58,59 "Built target ur_driver"
 .PHONY : ur_modern_driver/CMakeFiles/ur_driver.dir/all
 
 # Include target in all.
@@ -3765,7 +4118,7 @@ clean: ur_modern_driver/CMakeFiles/trajectory_msgs_generate_messages_py.dir/clea
 ur_modern_driver/CMakeFiles/ur_hardware_interface.dir/all:
 	$(MAKE) -f ur_modern_driver/CMakeFiles/ur_hardware_interface.dir/build.make ur_modern_driver/CMakeFiles/ur_hardware_interface.dir/depend
 	$(MAKE) -f ur_modern_driver/CMakeFiles/ur_hardware_interface.dir/build.make ur_modern_driver/CMakeFiles/ur_hardware_interface.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/faisallab008/catkin_ws/build/CMakeFiles --progress-num=52,53 "Built target ur_hardware_interface"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/faisallab008/catkin_ws/build/CMakeFiles --progress-num=61,62 "Built target ur_hardware_interface"
 .PHONY : ur_modern_driver/CMakeFiles/ur_hardware_interface.dir/all
 
 # Include target in all.
@@ -3846,7 +4199,7 @@ universal_robot/ur_kinematics/preinstall:
 universal_robot/ur_kinematics/CMakeFiles/ur5_moveit_plugin.dir/all: universal_robot/ur_kinematics/CMakeFiles/ur5_kin.dir/all
 	$(MAKE) -f universal_robot/ur_kinematics/CMakeFiles/ur5_moveit_plugin.dir/build.make universal_robot/ur_kinematics/CMakeFiles/ur5_moveit_plugin.dir/depend
 	$(MAKE) -f universal_robot/ur_kinematics/CMakeFiles/ur5_moveit_plugin.dir/build.make universal_robot/ur_kinematics/CMakeFiles/ur5_moveit_plugin.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/faisallab008/catkin_ws/build/CMakeFiles --progress-num=41,42 "Built target ur5_moveit_plugin"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/faisallab008/catkin_ws/build/CMakeFiles --progress-num=50,51 "Built target ur5_moveit_plugin"
 .PHONY : universal_robot/ur_kinematics/CMakeFiles/ur5_moveit_plugin.dir/all
 
 # Include target in all.
@@ -3883,7 +4236,7 @@ clean: universal_robot/ur_kinematics/CMakeFiles/ur5_moveit_plugin.dir/clean
 universal_robot/ur_kinematics/CMakeFiles/ur3_moveit_plugin.dir/all: universal_robot/ur_kinematics/CMakeFiles/ur3_kin.dir/all
 	$(MAKE) -f universal_robot/ur_kinematics/CMakeFiles/ur3_moveit_plugin.dir/build.make universal_robot/ur_kinematics/CMakeFiles/ur3_moveit_plugin.dir/depend
 	$(MAKE) -f universal_robot/ur_kinematics/CMakeFiles/ur3_moveit_plugin.dir/build.make universal_robot/ur_kinematics/CMakeFiles/ur3_moveit_plugin.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/faisallab008/catkin_ws/build/CMakeFiles --progress-num=37,38 "Built target ur3_moveit_plugin"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/faisallab008/catkin_ws/build/CMakeFiles --progress-num=46,47 "Built target ur3_moveit_plugin"
 .PHONY : universal_robot/ur_kinematics/CMakeFiles/ur3_moveit_plugin.dir/all
 
 # Include target in all.
@@ -3920,7 +4273,7 @@ clean: universal_robot/ur_kinematics/CMakeFiles/ur3_moveit_plugin.dir/clean
 universal_robot/ur_kinematics/CMakeFiles/ur10_kin.dir/all:
 	$(MAKE) -f universal_robot/ur_kinematics/CMakeFiles/ur10_kin.dir/build.make universal_robot/ur_kinematics/CMakeFiles/ur10_kin.dir/depend
 	$(MAKE) -f universal_robot/ur_kinematics/CMakeFiles/ur10_kin.dir/build.make universal_robot/ur_kinematics/CMakeFiles/ur10_kin.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/faisallab008/catkin_ws/build/CMakeFiles --progress-num=31,32 "Built target ur10_kin"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/faisallab008/catkin_ws/build/CMakeFiles --progress-num=40,41 "Built target ur10_kin"
 .PHONY : universal_robot/ur_kinematics/CMakeFiles/ur10_kin.dir/all
 
 # Include target in all.
@@ -3957,7 +4310,7 @@ clean: universal_robot/ur_kinematics/CMakeFiles/ur10_kin.dir/clean
 universal_robot/ur_kinematics/CMakeFiles/ur10_moveit_plugin.dir/all: universal_robot/ur_kinematics/CMakeFiles/ur10_kin.dir/all
 	$(MAKE) -f universal_robot/ur_kinematics/CMakeFiles/ur10_moveit_plugin.dir/build.make universal_robot/ur_kinematics/CMakeFiles/ur10_moveit_plugin.dir/depend
 	$(MAKE) -f universal_robot/ur_kinematics/CMakeFiles/ur10_moveit_plugin.dir/build.make universal_robot/ur_kinematics/CMakeFiles/ur10_moveit_plugin.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/faisallab008/catkin_ws/build/CMakeFiles --progress-num=33,34 "Built target ur10_moveit_plugin"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/faisallab008/catkin_ws/build/CMakeFiles --progress-num=42,43 "Built target ur10_moveit_plugin"
 .PHONY : universal_robot/ur_kinematics/CMakeFiles/ur10_moveit_plugin.dir/all
 
 # Include target in all.
@@ -3994,7 +4347,7 @@ clean: universal_robot/ur_kinematics/CMakeFiles/ur10_moveit_plugin.dir/clean
 universal_robot/ur_kinematics/CMakeFiles/ur5_kin.dir/all:
 	$(MAKE) -f universal_robot/ur_kinematics/CMakeFiles/ur5_kin.dir/build.make universal_robot/ur_kinematics/CMakeFiles/ur5_kin.dir/depend
 	$(MAKE) -f universal_robot/ur_kinematics/CMakeFiles/ur5_kin.dir/build.make universal_robot/ur_kinematics/CMakeFiles/ur5_kin.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/faisallab008/catkin_ws/build/CMakeFiles --progress-num=39,40 "Built target ur5_kin"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/faisallab008/catkin_ws/build/CMakeFiles --progress-num=48,49 "Built target ur5_kin"
 .PHONY : universal_robot/ur_kinematics/CMakeFiles/ur5_kin.dir/all
 
 # Include target in all.
@@ -4031,7 +4384,7 @@ clean: universal_robot/ur_kinematics/CMakeFiles/ur5_kin.dir/clean
 universal_robot/ur_kinematics/CMakeFiles/ur3_kin.dir/all:
 	$(MAKE) -f universal_robot/ur_kinematics/CMakeFiles/ur3_kin.dir/build.make universal_robot/ur_kinematics/CMakeFiles/ur3_kin.dir/depend
 	$(MAKE) -f universal_robot/ur_kinematics/CMakeFiles/ur3_kin.dir/build.make universal_robot/ur_kinematics/CMakeFiles/ur3_kin.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/faisallab008/catkin_ws/build/CMakeFiles --progress-num=35,36 "Built target ur3_kin"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/faisallab008/catkin_ws/build/CMakeFiles --progress-num=44,45 "Built target ur3_kin"
 .PHONY : universal_robot/ur_kinematics/CMakeFiles/ur3_kin.dir/all
 
 # Include target in all.

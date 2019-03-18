@@ -221,7 +221,7 @@ class MoveGroupPythonInterface(object):
     initial_pose.orientation.w = 0.707216963763
     initial_pose.position.x = 0.297788083223
     initial_pose.position.y = 0.373332917389
-    initial_pose.position.z = 0.240255679557
+    initial_pose.position.z = 0.3
 
     group.set_pose_target(initial_pose, group.get_end_effector_link())
     group.set_path_constraints(constraint)
@@ -287,8 +287,9 @@ class MoveGroupPythonInterface(object):
     # ws_x = 0.7 #self.table_x #table original dimensions
     # ws_y = 1.7 #self.table_y
     # ws_z = 0.2 #self.table_z
-    ws_x = (self.target_obj[3] + (self.target_obj[0]/2) + ws_margin) - 0.15 # (0.15 is the bottom margin of the table)
-    ws_y = (self.target_obj[4] + (self.target_obj[1]/2) + ws_margin) + 0.2
+    ws_x = (self.target_obj[3] + (self.target_obj[0]/2) + ws_margin) - 0.15 # (0.15 is the x coordinate of the bottom margin of the table)
+    # ws_y = (self.target_obj[4] + (self.target_obj[1]/2) + ws_margin) + 0.2
+    ws_y = self.target_obj[4]  + 0.2
     ws_z = (self.target_obj[5] + (self.target_obj[2]/2)) - 0.185
     dim = [ws_x,ws_y,ws_z]
     primitive.dimensions = dim
@@ -301,11 +302,12 @@ class MoveGroupPythonInterface(object):
     ws_pose.position.y = -0.2 + ws_y/2
     ws_pose.position.z = 0.185 + ws_z/2
     # targe_obj is set as such: [xDimension, yDimension, zDimension, xCenter, yCenter, zCenter, objectID]
-    # self.objectAdder.addBox("ws", ws_x, ws_y, ws_z, ws_pose.position.x, ws_pose.position.y, ws_pose.position.z)
-    # self.objectAdder.setColor("ws", 1.0, 1.0, 1.0, a=0.7)
-    # self.objectAdder.sendColors()
-    #
-    # rospy.sleep(1.0)
+    self.objectAdder.addBox("ws", ws_x, ws_y, ws_z, ws_pose.position.x, ws_pose.position.y, ws_pose.position.z)
+    self.objectAdder.setColor("ws", 0.0, 0.0, 0.0, a=0.7)
+    self.objectAdder.sendColors()
+
+    rospy.sleep(4.0)
+    self.objectAdder.removeCollisionObject("ws")
     # scene.remove_world_object("ws")
     # table_pose.pose.position.x = 0.30
     # table_pose.pose.position.y = 0.70
@@ -333,8 +335,11 @@ class MoveGroupPythonInterface(object):
     # pos_x = float(input("Enter x coordinate: "))
     # pos_y = float(input("Enter y coordinate: "))
     # pos_z = float(input("Enter z coordinate: "))
-    pos_x = self.target_obj[3] - self.target_obj[0]/2 - 0.03
-    pos_y = self.target_obj[4] - self.target_obj[1]/2 - 0.035
+    # Tagret pose to where the hand will be sent. The
+    offset_x = 0.015
+    offset_y = 0.035
+    pos_x = self.target_obj[3] - self.target_obj[0]/2 - offset_x
+    pos_y = self.target_obj[4] - self.target_obj[1]/2 - offset_y
     pos_z = self.target_obj[5]
     ## Planning to a Pose Goal of the end-effector:
     pose_goal = geometry_msgs.msg.Pose()
@@ -496,13 +501,10 @@ class MoveGroupPythonInterface(object):
     # plan = group.go(wait=True)
     # Calling `stop()` ensures that there is no residual movement
     # group.stop()
-    # It is always good to clear your targets after planning with poses.
+    # Clear your targets after planning with poses.
     # Note: there is no equivalent function for clear_joint_value_targets()
     # group.clear_pose_targets()
 
-    # For testing:
-    # Note that since this section of code will not be included in the tutorials
-    # we use the class variable rather than the copied state variable
     # current_pose = self.group.get_current_pose().pose
     # return all_close(pose_goal, current_pose, 0.01)
 
@@ -640,13 +642,33 @@ class MoveGroupPythonInterface(object):
     table_pose = geometry_msgs.msg.PoseStamped()
     table_pose.header.frame_id = "world"
     table_pose.pose.orientation.w = 0.0
-    table_pose.pose.position.x = 0.44
-    table_pose.pose.position.y = 0.65
-    table_pose.pose.position.z = -0.24
+    # table_pose.pose.position.x = 0.44
+    # table_pose.pose.position.y = 0.65
+    # table_pose.pose.position.z = -0.24
     # scene.add_box("table", table_pose, size=( 0.7, 1.7, 0.85))
+    self.table_x_dim = 0.7
+    self.table_y_dim = 1.7
+    # self.table_z_dim = 0.85
+    self.table_z_dim = 0.08
+    self.table_x_center = 0.44
+    self.table_y_center = 0.65
+    # self.table_z_center = -0.24
+    self.table_z_center = 0.145
+    # self.objectAdder.addBox("table1", self.table_x_dim, self.table_y_dim, 0.85, self.table_x_center, self.table_y_center, -0.24)
+    self.objectAdder.addBox("table", self.table_x_dim, self.table_y_dim, self.table_z_dim, self.table_x_center, self.table_y_center, self.table_z_center)
+    # self.objectAdder.setColor("table", 0.1, 1.0, 0.2, a=0.9)
+    self.objectAdder.setColor("table", 0.57, 0.73, 1.0, a=0.9)
 
-    self.objectAdder.addBox("table", 0.7, 1.7, 0.85, 0.44, 0.65, -0.24)
-    self.objectAdder.setColor("table", 0.1, 1.0, 0.2, a=0.9)
+    leg_length = 0.05
+    self.objectAdder.addBox("leg_1", leg_length , leg_length , 0.77 , self.table_x_center + self.table_x_dim/2 - leg_length/2 , self.table_y_center - self.table_y_dim/2 + leg_length/2 , -0.28)
+    self.objectAdder.addBox("leg_2", leg_length , leg_length , 0.77 , self.table_x_center + self.table_x_dim/2 - leg_length/2 , self.table_y_center + self.table_y_dim/2 - leg_length/2 , -0.28)
+    self.objectAdder.addBox("leg_3", leg_length , leg_length , 0.77 , self.table_x_center - self.table_x_dim/2 + leg_length/2 , self.table_y_center - self.table_y_dim/2 + leg_length/2 , -0.28)
+    self.objectAdder.addBox("leg_4", leg_length , leg_length , 0.77 , self.table_x_center - self.table_x_dim/2 + leg_length/2 , self.table_y_center + self.table_y_dim/2 - leg_length/2 , -0.28)
+    self.objectAdder.setColor("leg_1", 0.78, 0.44, 0.2, a=1.0)
+    self.objectAdder.setColor("leg_2", 0.78, 0.44, 0.2, a=1.0)
+    self.objectAdder.setColor("leg_3", 0.78, 0.44, 0.2, a=1.0)
+    self.objectAdder.setColor("leg_4", 0.78, 0.44, 0.2, a=1.0)
+
 
     table_pose.pose.position.x = 0.30
     table_pose.pose.position.y = 0.70
@@ -872,7 +894,7 @@ class MoveGroupPythonInterface(object):
 
         ## Gaze integration
         margin = 0.0 #0.042
-        # gaze_margin = 0
+        gaze_margin = 0.05
         # self.gaze_point = geometry_msgs.msg.Point()
         # self.gaze_point.x = 0.4
         # self.gaze_point.y = 0.6
@@ -885,9 +907,9 @@ class MoveGroupPythonInterface(object):
 
         #Adding the objects to the world
         ## If the gaze point is within the object, that is the target object
-        if (((world_objects[i+3] - (world_objects[i]/2) - margin) <= self.gaze_point.x <= (world_objects[i+3] + (world_objects[i]/2) + margin))
-              and ((world_objects[i+4] - (world_objects[i+1]/2) - margin) <= self.gaze_point.y <= (world_objects[i+4] + (world_objects[i+1]/2) + margin))
-              and ((world_objects[i+5] - (world_objects[i+2]/2) - margin) <= self.gaze_point.z <= (world_objects[i+5] + (world_objects[i+2]/2) + margin))):
+        if (((world_objects[i+3] - (world_objects[i]/2) - gaze_margin) <= self.gaze_point.x <= (world_objects[i+3] + (world_objects[i]/2) + gaze_margin))
+              and ((world_objects[i+4] - (world_objects[i+1]/2) - gaze_margin) <= self.gaze_point.y <= (world_objects[i+4] + (world_objects[i+1]/2) + gaze_margin))
+              and ((world_objects[i+5] - (world_objects[i+2]/2) - gaze_margin) <= self.gaze_point.z <= (world_objects[i+5] + (world_objects[i+2]/2) + gaze_margin))):
 
                 # self.target_obj_name = object_id
                 self.target_obj = []
@@ -906,12 +928,12 @@ class MoveGroupPythonInterface(object):
                 # self.target_obj_z = world_objects[i+5]
                 self.objectAdder.addBox(object_id, world_objects[i] + margin, world_objects[i+1] + margin, world_objects[i+2], world_objects[i+3], world_objects[i+4], world_objects[i+5])
                 ## remove target object from world_objects???
-                self.objectAdder.setColor(object_id, 1.0, 0.2, 0.2, a=0.9)
+                self.objectAdder.setColor(object_id, 1.0, 0.2, 0.2, a=1.0)
                 ## Target object will have a different colour
 
         else:
                 self.objectAdder.addBox(object_id, world_objects[i] + margin, world_objects[i+1] + margin, world_objects[i+2], world_objects[i+3], world_objects[i+4], world_objects[i+5])
-                self.objectAdder.setColor(object_id, 0.1, 0.4, 1.0, a=0.9)
+                self.objectAdder.setColor(object_id, 0.1, 0.4, 1.0, a=1.0)
                 # All obstacles have the same colour
         # All the colours are set at the same time
         self.objectAdder.sendColors()
@@ -957,7 +979,9 @@ class MoveGroupPythonInterface(object):
     ## Attach the box to the robot and add "touch link" to tell the plannign scene to ingore collision between the object and the linkself.
     grasping_group = 'manipulator'
     touch_links = robot.get_link_names(group=grasping_group)
-    scene.attach_box(eef_link, "dummy0", touch_links=touch_links)
+    self.objectAdder.setColor(self.target_obj[6],0.0,1.0,0.2,a=0.9)
+    self.objectAdder.sendColors()
+    scene.attach_box(eef_link, self.target_obj[6], touch_links=touch_links)
     # self.attached_box =
 
     # Wait for the planning scene to update.
@@ -1030,7 +1054,7 @@ def main():
     option = True
     #rospy.init_node('send_pose', anonymous="True")
 
-    # commander.go_to_initial_state()
+    commander.go_to_initial_state()
 
     rospy.Subscriber("/objects_array", Float32MultiArray, commander.add_box, queue_size=1)
     rospy.Subscriber("/gaze_point", geometry_msgs.msg.Point, commander.gaze_callback, queue_size=1)

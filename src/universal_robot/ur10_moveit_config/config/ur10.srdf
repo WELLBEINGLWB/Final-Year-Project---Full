@@ -15,9 +15,10 @@
     <group name="endeffector">
         <link name="fake_hand_link"/>
     </group>
-    <group name="arm">
+
+    <!-- <group name="arm">
         <chain base_link="arm_shoulder_1_link" tip_link="arm_forearm_2_link"/>
-    </group>
+    </group> -->
 
     <!-- <group name="arm_test">
         <chain base_link="fake_hand_link" tip_link="arm_forearm_2_link"/>

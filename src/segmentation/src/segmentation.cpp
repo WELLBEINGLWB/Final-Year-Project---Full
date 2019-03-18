@@ -30,6 +30,8 @@
 #include "std_msgs/Float32MultiArray.h"
 #include "geometry_msgs/Point.h"
 
+#include "segmentation/seg.h"
+
 ros::Publisher pub;
 ros::Publisher pub2;
 ros::Subscriber sub;
@@ -348,7 +350,7 @@ main (int argc, char** argv)
 
     while (ros::ok()){
       ros::spinOnce();
-      sleep(8);
+      sleep(5);
     }
 
 

@@ -1,0 +1,2 @@
+set(ur10_moveit_config_MESSAGE_FILES "")
+set(ur10_moveit_config_SERVICE_FILES "/home/faisallab008/catkin_ws/src/universal_robot/ur10_moveit_config/srv/seg.srv")
