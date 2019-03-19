@@ -59,6 +59,7 @@ add_service_files(
    FILES
    AddTwoInts.srv
    seg.srv
+   gazePoint.srv
 )
 
 ## Generate actions in the 'action' folder

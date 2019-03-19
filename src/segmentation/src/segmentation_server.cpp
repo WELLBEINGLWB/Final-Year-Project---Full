@@ -37,11 +37,12 @@ ros::Publisher pub2;
 ros::Subscriber sub;
 ros::ServiceServer service;
 
-
+void service_callback (){
+  
+}
 
 // void cloud_callback (const sensor_msgs::PointCloud2ConstPtr& cloud_msg){
 void cloud_callback (const sensor_msgs::PointCloud2 &cloud_msg) {
-
 
 
 
@@ -277,12 +278,6 @@ void cloud_callback (const sensor_msgs::PointCloud2 &cloud_msg) {
            array.data.push_back(yCenter);
            array.data.push_back(zCenter);
          }
-         // array.data.push_back(xDim);
-         // array.data.push_back(yDim);
-         // array.data.push_back(zDim);
-         // array.data.push_back(xCenter);
-         // array.data.push_back(yCenter);
-         // array.data.push_back(zCenter);
 
          // Merge each cluster to one cloud
          *clustered_cloud += *cluster_filtered;

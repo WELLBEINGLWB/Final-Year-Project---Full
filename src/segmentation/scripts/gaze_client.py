@@ -1,0 +1,32 @@
+#!/usr/bin/env python
+
+import rospy
+import sys
+from segmentation.srv import*
+
+
+def send_gaze_client(gaze_x, gaze_y, gaze_z):
+    rospy.wait_for_service('send_gaze')
+    try:
+        send_gaze = rospy.ServiceProxy('send_gaze', gazePoint)
+        resp = send_gaze(gaze_x, gaze_y, gaze_z)
+        return resp.success
+    except rospy.ServiceException, e:
+        print "Service call failed: %s"%e
+
+# In case the service is not called in the correct way
+def usage():
+    return "%s [x y z]"%sys.argv[0]
+
+if __name__ == "__main__":
+    if len(sys.argv) == 4:
+        # Get gaze point from terminal
+        gaze_x = float(sys.argv[1])
+        gaze_y = float(sys.argv[2])
+        gaze_z = float(sys.argv[3])
+    else:
+        print usage()
+        sys.exit(1)
+    print "Gaze point is x:%s y:%s z:%s"%(gaze_x, gaze_y, gaze_z)
+    # Obtain True if service got through
+    print "Gaze point sent state: %s"%(send_gaze_client(gaze_x, gaze_y, gaze_z))

@@ -54,6 +54,7 @@ CMAKE_BINARY_DIR = /home/faisallab008/catkin_ws/build
 include segmentation/CMakeFiles/segmentation_generate_messages_py.dir/progress.make
 
 segmentation/CMakeFiles/segmentation_generate_messages_py: /home/faisallab008/catkin_ws/devel/lib/python2.7/dist-packages/segmentation/srv/_seg.py
+segmentation/CMakeFiles/segmentation_generate_messages_py: /home/faisallab008/catkin_ws/devel/lib/python2.7/dist-packages/segmentation/srv/_gazePoint.py
 segmentation/CMakeFiles/segmentation_generate_messages_py: /home/faisallab008/catkin_ws/devel/lib/python2.7/dist-packages/segmentation/srv/_AddTwoInts.py
 segmentation/CMakeFiles/segmentation_generate_messages_py: /home/faisallab008/catkin_ws/devel/lib/python2.7/dist-packages/segmentation/srv/__init__.py
 
@@ -69,19 +70,26 @@ segmentation/CMakeFiles/segmentation_generate_messages_py: /home/faisallab008/ca
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/faisallab008/catkin_ws/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Generating Python code from SRV segmentation/seg"
 	cd /home/faisallab008/catkin_ws/build/segmentation && ../catkin_generated/env_cached.sh /usr/bin/python /opt/ros/indigo/share/genpy/cmake/../../../lib/genpy/gensrv_py.py /home/faisallab008/catkin_ws/src/segmentation/srv/seg.srv -Istd_msgs:/opt/ros/indigo/share/std_msgs/cmake/../msg -Isensor_msgs:/opt/ros/indigo/share/sensor_msgs/cmake/../msg -Igeometry_msgs:/opt/ros/indigo/share/geometry_msgs/cmake/../msg -p segmentation -o /home/faisallab008/catkin_ws/devel/lib/python2.7/dist-packages/segmentation/srv
 
+/home/faisallab008/catkin_ws/devel/lib/python2.7/dist-packages/segmentation/srv/_gazePoint.py: /opt/ros/indigo/lib/genpy/gensrv_py.py
+/home/faisallab008/catkin_ws/devel/lib/python2.7/dist-packages/segmentation/srv/_gazePoint.py: /home/faisallab008/catkin_ws/src/segmentation/srv/gazePoint.srv
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/faisallab008/catkin_ws/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Generating Python code from SRV segmentation/gazePoint"
+	cd /home/faisallab008/catkin_ws/build/segmentation && ../catkin_generated/env_cached.sh /usr/bin/python /opt/ros/indigo/share/genpy/cmake/../../../lib/genpy/gensrv_py.py /home/faisallab008/catkin_ws/src/segmentation/srv/gazePoint.srv -Istd_msgs:/opt/ros/indigo/share/std_msgs/cmake/../msg -Isensor_msgs:/opt/ros/indigo/share/sensor_msgs/cmake/../msg -Igeometry_msgs:/opt/ros/indigo/share/geometry_msgs/cmake/../msg -p segmentation -o /home/faisallab008/catkin_ws/devel/lib/python2.7/dist-packages/segmentation/srv
+
 /home/faisallab008/catkin_ws/devel/lib/python2.7/dist-packages/segmentation/srv/_AddTwoInts.py: /opt/ros/indigo/lib/genpy/gensrv_py.py
 /home/faisallab008/catkin_ws/devel/lib/python2.7/dist-packages/segmentation/srv/_AddTwoInts.py: /home/faisallab008/catkin_ws/src/segmentation/srv/AddTwoInts.srv
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/faisallab008/catkin_ws/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Generating Python code from SRV segmentation/AddTwoInts"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/faisallab008/catkin_ws/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Generating Python code from SRV segmentation/AddTwoInts"
 	cd /home/faisallab008/catkin_ws/build/segmentation && ../catkin_generated/env_cached.sh /usr/bin/python /opt/ros/indigo/share/genpy/cmake/../../../lib/genpy/gensrv_py.py /home/faisallab008/catkin_ws/src/segmentation/srv/AddTwoInts.srv -Istd_msgs:/opt/ros/indigo/share/std_msgs/cmake/../msg -Isensor_msgs:/opt/ros/indigo/share/sensor_msgs/cmake/../msg -Igeometry_msgs:/opt/ros/indigo/share/geometry_msgs/cmake/../msg -p segmentation -o /home/faisallab008/catkin_ws/devel/lib/python2.7/dist-packages/segmentation/srv
 
 /home/faisallab008/catkin_ws/devel/lib/python2.7/dist-packages/segmentation/srv/__init__.py: /opt/ros/indigo/lib/genpy/genmsg_py.py
 /home/faisallab008/catkin_ws/devel/lib/python2.7/dist-packages/segmentation/srv/__init__.py: /home/faisallab008/catkin_ws/devel/lib/python2.7/dist-packages/segmentation/srv/_seg.py
+/home/faisallab008/catkin_ws/devel/lib/python2.7/dist-packages/segmentation/srv/__init__.py: /home/faisallab008/catkin_ws/devel/lib/python2.7/dist-packages/segmentation/srv/_gazePoint.py
 /home/faisallab008/catkin_ws/devel/lib/python2.7/dist-packages/segmentation/srv/__init__.py: /home/faisallab008/catkin_ws/devel/lib/python2.7/dist-packages/segmentation/srv/_AddTwoInts.py
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/faisallab008/catkin_ws/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Generating Python srv __init__.py for segmentation"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/faisallab008/catkin_ws/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Generating Python srv __init__.py for segmentation"
 	cd /home/faisallab008/catkin_ws/build/segmentation && ../catkin_generated/env_cached.sh /usr/bin/python /opt/ros/indigo/share/genpy/cmake/../../../lib/genpy/genmsg_py.py -o /home/faisallab008/catkin_ws/devel/lib/python2.7/dist-packages/segmentation/srv --initpy
 
 segmentation_generate_messages_py: segmentation/CMakeFiles/segmentation_generate_messages_py
 segmentation_generate_messages_py: /home/faisallab008/catkin_ws/devel/lib/python2.7/dist-packages/segmentation/srv/_seg.py
+segmentation_generate_messages_py: /home/faisallab008/catkin_ws/devel/lib/python2.7/dist-packages/segmentation/srv/_gazePoint.py
 segmentation_generate_messages_py: /home/faisallab008/catkin_ws/devel/lib/python2.7/dist-packages/segmentation/srv/_AddTwoInts.py
 segmentation_generate_messages_py: /home/faisallab008/catkin_ws/devel/lib/python2.7/dist-packages/segmentation/srv/__init__.py
 segmentation_generate_messages_py: segmentation/CMakeFiles/segmentation_generate_messages_py.dir/build.make

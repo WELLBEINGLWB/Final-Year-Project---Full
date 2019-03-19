@@ -41,6 +41,7 @@ if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_
   file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/segmentation/srv" TYPE FILE FILES
     "/home/faisallab008/catkin_ws/src/segmentation/srv/AddTwoInts.srv"
     "/home/faisallab008/catkin_ws/src/segmentation/srv/seg.srv"
+    "/home/faisallab008/catkin_ws/src/segmentation/srv/gazePoint.srv"
     )
 endif()
 

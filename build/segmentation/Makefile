@@ -80,6 +80,16 @@ install/local/fast: preinstall/fast
 	/usr/local/bin/cmake -DCMAKE_INSTALL_LOCAL_ONLY=1 -P cmake_install.cmake
 .PHONY : install/local/fast
 
+# Special rule for the target list_install_components
+list_install_components:
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Available install components are: \"Unspecified\""
+.PHONY : list_install_components
+
+# Special rule for the target list_install_components
+list_install_components/fast: list_install_components
+
+.PHONY : list_install_components/fast
+
 # Special rule for the target rebuild_cache
 rebuild_cache:
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Running CMake to regenerate build system..."
@@ -90,16 +100,6 @@ rebuild_cache:
 rebuild_cache/fast: rebuild_cache
 
 .PHONY : rebuild_cache/fast
-
-# Special rule for the target list_install_components
-list_install_components:
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Available install components are: \"Unspecified\""
-.PHONY : list_install_components
-
-# Special rule for the target list_install_components
-list_install_components/fast: list_install_components
-
-.PHONY : list_install_components/fast
 
 # Special rule for the target install
 install: preinstall
@@ -157,21 +157,6 @@ depend:
 .PHONY : depend
 
 # Convenience name for target.
-segmentation/CMakeFiles/segmentation_generate_messages_lisp.dir/rule:
-	cd /home/faisallab008/catkin_ws/build && $(MAKE) -f CMakeFiles/Makefile2 segmentation/CMakeFiles/segmentation_generate_messages_lisp.dir/rule
-.PHONY : segmentation/CMakeFiles/segmentation_generate_messages_lisp.dir/rule
-
-# Convenience name for target.
-segmentation_generate_messages_lisp: segmentation/CMakeFiles/segmentation_generate_messages_lisp.dir/rule
-
-.PHONY : segmentation_generate_messages_lisp
-
-# fast build rule for target.
-segmentation_generate_messages_lisp/fast:
-	cd /home/faisallab008/catkin_ws/build && $(MAKE) -f segmentation/CMakeFiles/segmentation_generate_messages_lisp.dir/build.make segmentation/CMakeFiles/segmentation_generate_messages_lisp.dir/build
-.PHONY : segmentation_generate_messages_lisp/fast
-
-# Convenience name for target.
 segmentation/CMakeFiles/segmentation_gencpp.dir/rule:
 	cd /home/faisallab008/catkin_ws/build && $(MAKE) -f CMakeFiles/Makefile2 segmentation/CMakeFiles/segmentation_gencpp.dir/rule
 .PHONY : segmentation/CMakeFiles/segmentation_gencpp.dir/rule
@@ -200,6 +185,21 @@ segmentation_generate_messages_py: segmentation/CMakeFiles/segmentation_generate
 segmentation_generate_messages_py/fast:
 	cd /home/faisallab008/catkin_ws/build && $(MAKE) -f segmentation/CMakeFiles/segmentation_generate_messages_py.dir/build.make segmentation/CMakeFiles/segmentation_generate_messages_py.dir/build
 .PHONY : segmentation_generate_messages_py/fast
+
+# Convenience name for target.
+segmentation/CMakeFiles/segmentation_genlisp.dir/rule:
+	cd /home/faisallab008/catkin_ws/build && $(MAKE) -f CMakeFiles/Makefile2 segmentation/CMakeFiles/segmentation_genlisp.dir/rule
+.PHONY : segmentation/CMakeFiles/segmentation_genlisp.dir/rule
+
+# Convenience name for target.
+segmentation_genlisp: segmentation/CMakeFiles/segmentation_genlisp.dir/rule
+
+.PHONY : segmentation_genlisp
+
+# fast build rule for target.
+segmentation_genlisp/fast:
+	cd /home/faisallab008/catkin_ws/build && $(MAKE) -f segmentation/CMakeFiles/segmentation_genlisp.dir/build.make segmentation/CMakeFiles/segmentation_genlisp.dir/build
+.PHONY : segmentation_genlisp/fast
 
 # Convenience name for target.
 segmentation/CMakeFiles/segmentation_generate_messages.dir/rule:
@@ -232,19 +232,19 @@ segmentation_generate_messages_cpp/fast:
 .PHONY : segmentation_generate_messages_cpp/fast
 
 # Convenience name for target.
-segmentation/CMakeFiles/segmentation_genlisp.dir/rule:
-	cd /home/faisallab008/catkin_ws/build && $(MAKE) -f CMakeFiles/Makefile2 segmentation/CMakeFiles/segmentation_genlisp.dir/rule
-.PHONY : segmentation/CMakeFiles/segmentation_genlisp.dir/rule
+segmentation/CMakeFiles/segmentation_generate_messages_lisp.dir/rule:
+	cd /home/faisallab008/catkin_ws/build && $(MAKE) -f CMakeFiles/Makefile2 segmentation/CMakeFiles/segmentation_generate_messages_lisp.dir/rule
+.PHONY : segmentation/CMakeFiles/segmentation_generate_messages_lisp.dir/rule
 
 # Convenience name for target.
-segmentation_genlisp: segmentation/CMakeFiles/segmentation_genlisp.dir/rule
+segmentation_generate_messages_lisp: segmentation/CMakeFiles/segmentation_generate_messages_lisp.dir/rule
 
-.PHONY : segmentation_genlisp
+.PHONY : segmentation_generate_messages_lisp
 
 # fast build rule for target.
-segmentation_genlisp/fast:
-	cd /home/faisallab008/catkin_ws/build && $(MAKE) -f segmentation/CMakeFiles/segmentation_genlisp.dir/build.make segmentation/CMakeFiles/segmentation_genlisp.dir/build
-.PHONY : segmentation_genlisp/fast
+segmentation_generate_messages_lisp/fast:
+	cd /home/faisallab008/catkin_ws/build && $(MAKE) -f segmentation/CMakeFiles/segmentation_generate_messages_lisp.dir/build.make segmentation/CMakeFiles/segmentation_generate_messages_lisp.dir/build
+.PHONY : segmentation_generate_messages_lisp/fast
 
 # Convenience name for target.
 segmentation/CMakeFiles/_segmentation_generate_messages_check_deps_AddTwoInts.dir/rule:
@@ -320,6 +320,21 @@ segmentation_server: segmentation/CMakeFiles/segmentation_server.dir/rule
 segmentation_server/fast:
 	cd /home/faisallab008/catkin_ws/build && $(MAKE) -f segmentation/CMakeFiles/segmentation_server.dir/build.make segmentation/CMakeFiles/segmentation_server.dir/build
 .PHONY : segmentation_server/fast
+
+# Convenience name for target.
+segmentation/CMakeFiles/_segmentation_generate_messages_check_deps_gazePoint.dir/rule:
+	cd /home/faisallab008/catkin_ws/build && $(MAKE) -f CMakeFiles/Makefile2 segmentation/CMakeFiles/_segmentation_generate_messages_check_deps_gazePoint.dir/rule
+.PHONY : segmentation/CMakeFiles/_segmentation_generate_messages_check_deps_gazePoint.dir/rule
+
+# Convenience name for target.
+_segmentation_generate_messages_check_deps_gazePoint: segmentation/CMakeFiles/_segmentation_generate_messages_check_deps_gazePoint.dir/rule
+
+.PHONY : _segmentation_generate_messages_check_deps_gazePoint
+
+# fast build rule for target.
+_segmentation_generate_messages_check_deps_gazePoint/fast:
+	cd /home/faisallab008/catkin_ws/build && $(MAKE) -f segmentation/CMakeFiles/_segmentation_generate_messages_check_deps_gazePoint.dir/build.make segmentation/CMakeFiles/_segmentation_generate_messages_check_deps_gazePoint.dir/build
+.PHONY : _segmentation_generate_messages_check_deps_gazePoint/fast
 
 # Convenience name for target.
 segmentation/CMakeFiles/_segmentation_generate_messages_check_deps_seg.dir/rule:
@@ -425,20 +440,21 @@ help:
 	@echo "... depend"
 	@echo "... install/strip"
 	@echo "... install/local"
-	@echo "... segmentation_generate_messages_lisp"
-	@echo "... rebuild_cache"
 	@echo "... segmentation_gencpp"
 	@echo "... segmentation_generate_messages_py"
+	@echo "... segmentation_genlisp"
 	@echo "... segmentation_generate_messages"
 	@echo "... segmentation_generate_messages_cpp"
 	@echo "... list_install_components"
-	@echo "... segmentation_genlisp"
+	@echo "... segmentation_generate_messages_lisp"
+	@echo "... rebuild_cache"
 	@echo "... install"
 	@echo "... _segmentation_generate_messages_check_deps_AddTwoInts"
 	@echo "... segmentation_genpy"
 	@echo "... segmentation"
 	@echo "... seg2"
 	@echo "... segmentation_server"
+	@echo "... _segmentation_generate_messages_check_deps_gazePoint"
 	@echo "... _segmentation_generate_messages_check_deps_seg"
 	@echo "... edit_cache"
 	@echo "... src/seg2.o"
