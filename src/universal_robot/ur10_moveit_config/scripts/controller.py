@@ -2,7 +2,7 @@
 # import tf
 import rospy
 from sensor_msgs.msg import PointCloud2
-from segmentation import*
+# from segmentation import*
 # import math
 # import sys
 # import copy
@@ -34,6 +34,7 @@ class ExecutionManager(object):
 
   def cloud_callback(self, pointcloud):
       self.pCloud = pointcloud
+      # print(self.pCloud )
       # print(pointcloud)
 
   # Waiting for a gaze point to be sent from the gaze_client
@@ -56,11 +57,12 @@ class ExecutionManager(object):
 
   def request_segmentation(self):
       print("Sending pointcloud to segmentation")
-      rospy.wait_for_service('req_segmentation')
+      rospy.wait_for_service('segmentation_service')
       try:
-          send_gaze = rospy.ServiceProxy('req_segmentation', seg)
-          resp = req_segmentation(self.pCloud)
-          return resp.success
+          segmentation_service = rospy.ServiceProxy('segmentation_service', seg)
+          resp = segmentation_service(self.pCloud)
+          print("Sent")
+          return resp.objects
       except rospy.ServiceException, e:
           print "Service call failed: %s"%e
 
@@ -75,11 +77,13 @@ if __name__ == '__main__':
 
     controller = ExecutionManager()
     # controller.gaze_server_setup()
+    rospy.Subscriber("/camera/depth_registered/points", PointCloud2, controller.cloud_callback, queue_size=1)
+    rospy.sleep(1.0)
+    controller.request_segmentation()
 
-    # controller.request_segmentation()
     # if controller.gaze_sent == 1:
         # controller.request_segmentation()
-    rospy.Subscriber("/camera/depth_registered/points", PointCloud2, controller.cloud_callback, queue_size=1)
+    # rospy.Subscriber("/camera/depth_registered/points", PointCloud2, controller.cloud_callback, queue_size=1)
     print("blah")
 
     rospy.spin()

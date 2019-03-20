@@ -32,23 +32,23 @@ joint_limits:
     max_velocity: 3.2
     has_acceleration_limits: true
     max_acceleration: 0.2
-  # arm_shoulder_1_joint:
-  #   has_velocity_limits: true
-  #   max_velocity: 3.2
-  #   has_acceleration_limits: true
-  #   max_acceleration: 0.2
-  # arm_shoulder_2_joint:
-  #   has_velocity_limits: true
-  #   max_velocity: 3.2
-  #   has_acceleration_limits: true
-  #   max_acceleration: 0.2
-  # arm_elbow_1_joint:
-  #   has_velocity_limits: true
-  #   max_velocity: 3.2
-  #   has_acceleration_limits: true
-  #   max_acceleration: 0.2
-  # arm_forearm_2_joint:
-  #   has_velocity_limits: true
-  #   max_velocity: 3.2
-  #   has_acceleration_limits: true
-  #   max_acceleration: 0.2
+  arm_shoulder_1_joint:
+    has_velocity_limits: true
+    max_velocity: 3.2
+    has_acceleration_limits: true
+    max_acceleration: 0.2
+  arm_shoulder_2_joint:
+    has_velocity_limits: true
+    max_velocity: 3.2
+    has_acceleration_limits: true
+    max_acceleration: 0.2
+  arm_elbow_1_joint:
+    has_velocity_limits: true
+    max_velocity: 3.2
+    has_acceleration_limits: true
+    max_acceleration: 0.2
+  arm_forearm_2_joint:
+    has_velocity_limits: true
+    max_velocity: 3.2
+    has_acceleration_limits: true
+    max_acceleration: 0.2

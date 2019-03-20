@@ -13,7 +13,6 @@ import shape_msgs.msg
 from math import pi
 from std_msgs.msg import String
 from std_msgs.msg import Float32MultiArray
-from visualization_msgs.msg import Marker
 from moveit_commander.conversions import pose_to_list
 
 
@@ -421,32 +420,32 @@ class MoveGroupPythonInterface(object):
     group.set_planning_time(10)
 
      # Create a contraints list and name it
-    constraint = moveit_msgs.msg.Constraints()
-    constraint.name = "fixed wrist orientation"
-    #
+    # constraint = moveit_msgs.msg.Constraints()
+    # constraint.name = "fixed wrist orientation"
+    # #
     # # Create an orientation constraint for the
-    orientation_constraint = moveit_msgs.msg.OrientationConstraint()
-    orientation_constraint.header.frame_id = "world"
-    orientation_constraint.link_name = group.get_end_effector_link()
-    orientation_constraint.orientation.x = 0.00111054358639
-    orientation_constraint.orientation.y = 0.70699483645
-    orientation_constraint.orientation.z = 0.00111089701837
-    orientation_constraint.orientation.w = 0.707216963763
-    orientation_constraint.absolute_x_axis_tolerance = 0.05
-    orientation_constraint.absolute_y_axis_tolerance = 0.05
-    orientation_constraint.absolute_z_axis_tolerance = 0.14
-    orientation_constraint.weight = 1.0
+    # orientation_constraint = moveit_msgs.msg.OrientationConstraint()
+    # orientation_constraint.header.frame_id = "world"
+    # orientation_constraint.link_name = group.get_end_effector_link()
+    # orientation_constraint.orientation.x = 0.00111054358639
+    # orientation_constraint.orientation.y = 0.70699483645
+    # orientation_constraint.orientation.z = 0.00111089701837
+    # orientation_constraint.orientation.w = 0.707216963763
+    # orientation_constraint.absolute_x_axis_tolerance = 0.05
+    # orientation_constraint.absolute_y_axis_tolerance = 0.05
+    # orientation_constraint.absolute_z_axis_tolerance = 0.14
+    # orientation_constraint.weight = 1.0
 
     ## Append the constraint to the list of contraints
-    constraint.orientation_constraints.append(orientation_constraint)
+    # constraint.orientation_constraints.append(orientation_constraint)
 
-    joint_constraint = moveit_msgs.msg.JointConstraint()
+    # joint_constraint = moveit_msgs.msg.JointConstraint()
 
     # group.setMaxVelocityScalingFactor(0.1);
 
 
     # Set the path constraints on the end effector
-    group.set_path_constraints(constraint)
+    # group.set_path_constraints(constraint)
 
 
     pos_x = float(input("Enter x coordinate: "))
@@ -455,10 +454,10 @@ class MoveGroupPythonInterface(object):
 
     pose_goal = geometry_msgs.msg.Pose()
 
-    pose_goal.orientation.x = 0.00111054358639
-    pose_goal.orientation.y = 0.70699483645
-    pose_goal.orientation.z = 0.00111089701837
-    pose_goal.orientation.w = 0.707216963763
+    # pose_goal.orientation.x = 0.00111054358639
+    # pose_goal.orientation.y = 0.70699483645
+    # pose_goal.orientation.z = 0.00111089701837
+    # pose_goal.orientation.w = 0.707216963763
     pose_goal.position.x = pos_x
     pose_goal.position.y = pos_y
     pose_goal.position.z = pos_z

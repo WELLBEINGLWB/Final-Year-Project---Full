@@ -60,6 +60,7 @@ add_service_files(
    AddTwoInts.srv
    seg.srv
    gazePoint.srv
+   gazeOptimiser.srv
 )
 
 ## Generate actions in the 'action' folder
@@ -74,6 +75,7 @@ add_service_files(
    DEPENDENCIES
    std_msgs  # Or other packages containing msgs
    sensor_msgs
+   geometry_msgs
 )
 
 ################################################
