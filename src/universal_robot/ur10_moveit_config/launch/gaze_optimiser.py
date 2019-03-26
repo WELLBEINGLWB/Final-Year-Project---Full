@@ -7,6 +7,14 @@ from std_msgs.msg import Float32MultiArray
 from sensor_msgs.msg import PointCloud2
 from segmentation import*
 
+
+import pylab
+import matplotlib.pyplot
+from mpl_toolkits.mplot3d import axes3d
+import matplotlib.patches as patches
+from mpl_toolkits.mplot3d.art3d import Poly3DCollection
+
+
 def handle_objects(req):
 
 

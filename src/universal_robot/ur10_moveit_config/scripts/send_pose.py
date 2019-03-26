@@ -7,8 +7,10 @@ import copy
 import moveit_commander
 import moveit_python
 import moveit_msgs.msg
+# from moveit_msgs.srv GetPositionFK
 import numpy as np
 import geometry_msgs.msg
+import trajectory_msgs.msg
 import shape_msgs.msg
 from math import pi
 from std_msgs.msg import String
@@ -257,7 +259,7 @@ class MoveGroupPythonInterface(object):
     orientation_constraint.orientation.y = 0.70699483645
     orientation_constraint.orientation.z = 0.00111089701837
     orientation_constraint.orientation.w = 0.707216963763
-    orientation_constraint.absolute_x_axis_tolerance = 0.05
+    orientation_constraint.absolute_x_axis_tolerance = 1.05
     orientation_constraint.absolute_y_axis_tolerance = 0.05
     orientation_constraint.absolute_z_axis_tolerance = 0.14
     orientation_constraint.weight = 1.0
@@ -277,7 +279,8 @@ class MoveGroupPythonInterface(object):
 
 
     # self.target_obj = [0.055,0.055,0.15,0.3,0.7,0.26,"ID"] #dummy0
-    # self.target_obj = [0.055,0.055,0.15,0.4,0.9,0.25,"ID"] #dummy1
+
+    self.target_obj = [0.055,0.055,0.15,0.4,0.9,0.25,"ID"] #dummy1
     ws_margin = 0.05
     # Position constraint that define the workspace of the end effector link
     primitive = shape_msgs.msg.SolidPrimitive()
@@ -298,15 +301,14 @@ class MoveGroupPythonInterface(object):
     # ws_pose.position.y = 0.65
     # ws_pose.position.z = 0.25
     ws_pose.position.x = 0.15 + ws_x/2
-    ws_pose.position.y = -0.2 + ws_y/2
+    ws_pose.position.y = -0.2 + ws_y/2 + 0.5
     ws_pose.position.z = 0.185 + ws_z/2
     # targe_obj is set as such: [xDimension, yDimension, zDimension, xCenter, yCenter, zCenter, objectID]
-    self.objectAdder.addBox("ws", ws_x, ws_y, ws_z, ws_pose.position.x, ws_pose.position.y, ws_pose.position.z)
-    self.objectAdder.setColor("ws", 0.0, 0.0, 0.0, a=0.7)
-    self.objectAdder.sendColors()
-
-    rospy.sleep(4.0)
-    self.objectAdder.removeCollisionObject("ws")
+    # self.objectAdder.addBox("ws", ws_x, ws_y, ws_z, ws_pose.position.x, ws_pose.position.y, ws_pose.position.z)
+    # self.objectAdder.setColor("ws", 0.0, 0.0, 0.0, a=0.7)
+    # self.objectAdder.sendColors()
+    # rospy.sleep(4.0)
+    # self.objectAdder.removeCollisionObject("ws")
     # scene.remove_world_object("ws")
     # table_pose.pose.position.x = 0.30
     # table_pose.pose.position.y = 0.70
@@ -331,23 +333,59 @@ class MoveGroupPythonInterface(object):
     # Set the path constraints on the end effector
     group.set_path_constraints(constraint)
 
-    # pos_x = float(input("Enter x coordinate: "))
-    # pos_y = float(input("Enter y coordinate: "))
-    # pos_z = float(input("Enter z coordinate: "))
+    pos_x = float(input("Enter x coordinate: "))
+    pos_y = float(input("Enter y coordinate: "))
+    pos_z = float(input("Enter z coordinate: "))
     # Tagret pose to where the hand will be sent. The
     offset_x = 0.015
     offset_y = 0.035
-    pos_x = self.target_obj[3] - self.target_obj[0]/2 - offset_x
-    pos_y = self.target_obj[4] - self.target_obj[1]/2 - offset_y
-    pos_z = self.target_obj[5]
+    # pos_x = self.target_obj[3] - self.target_obj[0]/2 - offset_x
+    # pos_y = self.target_obj[4] - self.target_obj[1]/2 - offset_y
+    # pos_z = self.target_obj[5]
     ## Planning to a Pose Goal of the end-effector:
     pose_goal = geometry_msgs.msg.Pose()
     # pose_goal = geometry_msgs.msg.PoseStamped()
     # pose_goal.header.frame_id = group.get_end_effector_link()
-    pose_goal.orientation.x = 0.00111054358639
-    pose_goal.orientation.y = 0.70699483645
-    pose_goal.orientation.z = 0.00111089701837
-    pose_goal.orientation.w = 0.707216963763
+    # pose_goal.orientation.x = 0.00111054358639
+    # pose_goal.orientation.y = 0.70699483645
+    # pose_goal.orientation.z = 0.00111089701837
+    # pose_goal.orientation.w = 0.707216963763
+    # pose_goal.orientation.x = 0.0
+    # pose_goal.orientation.y = 0.7
+    # pose_goal.orientation.z = 0.0
+    # pose_goal.orientation.w = 0.7
+    pose_goal.orientation.x = -0.267023522538
+    pose_goal.orientation.y = 0.653702052828
+    pose_goal.orientation.z = 0.269304381591
+    pose_goal.orientation.w = 0.654864271888
+    # x: -0.267023522538
+    #     y: 0.653702052828
+    #     z: 0.269304381591
+    #     w: 0.654864271888
+
+    orientation_list = [pose_goal.orientation.x, pose_goal.orientation.y,pose_goal.orientation.z, pose_goal.orientation.w]
+    eul = tf.transformations.euler_from_quaternion(orientation_list)
+    # print(eul)
+
+    #
+    # (1.4711348887669473, 1.5676390675265013, 1.4711353885958782)
+    # (0.7105587279368307, 1.5671760841731328, 1.4885120467903026)
+
+    euler = [0.8271760841731328, 1.5671760841731328, 1.4711348887669473]
+    quat = tf.transformations.quaternion_from_euler(euler[0],euler[1],euler[2])
+    # print(quat)
+    pose_goal.orientation.x = quat[0]
+    pose_goal.orientation.y = quat[1]
+    pose_goal.orientation.z = quat[2]
+    pose_goal.orientation.w = quat[3]
+    # x: -0.228603116552
+    #     y: 0.668342268725
+    #     z: 0.230398602104
+    #     w: 0.669309876729
+    # x: -0.264022915886
+    #     y: 0.655028719657
+    #     z: 0.266384321892
+    #     w: 0.655948678909
     pose_goal.position.x = pos_x
     pose_goal.position.y = pos_y
     pose_goal.position.z = pos_z
@@ -391,6 +429,20 @@ class MoveGroupPythonInterface(object):
     # ws = [0.0,0.0,0.0,0.0,0.1,0.1]
     # group.set_workspace(ws)
     group.set_pose_target(pose_goal, group.get_end_effector_link())
+    plan_manipulator = group.plan()
+
+    # print(plan_manipulator)
+    #s = rospy.Service('compute_fk', AddTwoInts, handle_add_two_ints)
+
+    #fkrequest = moveit_msgs.msg.GetPositionFK()
+    # n_points = len(plan_manipulator.joint_trajectory.points)
+    # for n in range(n_points):
+    #    current_pose = group.get_current_pose()
+    #     print("Point %i",n)
+    #     print(plan_manipulator.joint_trajectory.points[n].positions)
+    #     print("---------")
+    # print(plan_manipulator.joint_trajectory.points[0])
+
     # group.execute(plan, wait=True)
     group.plan(pose_goal)
     option=raw_input("Execute? (y/n)")
@@ -1053,7 +1105,7 @@ def main():
     option = True
     #rospy.init_node('send_pose', anonymous="True")
 
-    commander.go_to_initial_state()
+    # commander.go_to_initial_state()
 
     rospy.Subscriber("/objects_array", Float32MultiArray, commander.add_box, queue_size=1)
     rospy.Subscriber("/gaze_point", geometry_msgs.msg.Point, commander.gaze_callback, queue_size=1)
