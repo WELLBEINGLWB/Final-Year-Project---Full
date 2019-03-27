@@ -8,6 +8,9 @@ import moveit_commander
 import moveit_python
 import moveit_msgs.msg
 # from moveit_msgs.srv GetPositionFK
+from moveit_msgs.srv import GetPositionFK
+from moveit_msgs.srv import GetPositionFKRequest
+from moveit_msgs.srv import GetPositionFKResponse
 import numpy as np
 import geometry_msgs.msg
 import trajectory_msgs.msg
@@ -81,14 +84,10 @@ class MoveGroupPythonInterface(object):
     #print "============ Printing robot state"
     #print robot.get_current_state()
 
-    self.objectAdder = moveit_python.PlanningSceneInterface("world")
-    # groupTest.addCube("my_cube", 0.5, 0.7, 0.5, 0.5)
-    # groupTest.addBox("name", size_x, size_y, size_z, x, y, z)
-    # groupTest.addBox("name", 0.1, 0.1, 0.2, 0.4, 0.6, 0.25)
-    # groupTest.setColor("name", 0.2, 1.0, 0.1, a=0.9)
-    # groupTest.sendColors()
+
 
 	# Misc variables
+    self.objectAdder = moveit_python.PlanningSceneInterface("world")
     self.box_name = ''
     self.robot = robot
     self.scene = scene
@@ -97,6 +96,9 @@ class MoveGroupPythonInterface(object):
     self.planning_frame = planning_frame
     self.eef_link = eef_link
     self.group_names = group_names
+
+    self.fk_srv = rospy.ServiceProxy('/compute_fk',GetPositionFK)
+    self.fk_srv.wait_for_service()
     # self.objs = []
 
   def poseCallback(self, pose):
@@ -238,6 +240,29 @@ class MoveGroupPythonInterface(object):
     # current_joints = self.group.get_current_joint_values()
     current_pose = self.group.get_current_pose().pose
     return all_close(initial_pose, current_pose, 0.01)
+
+  def get_fk(self,fk_req):
+
+      #fk_req = GetPositionFKRequest()
+      # print(fk_req)
+      # print(ee_position)
+      #fk_req.header.frame_id = 'world'
+      #fk_req.fk_link_names = ['wrist_3_joint']
+      #fk_req.robot_state.joint_state.position = ee_position
+      #fk_req.robot_state.joint_state.header.frame_id = 'world'
+      #fk_req.header.stamp = rospy.Time()
+      print(fk_req)
+
+      try:
+            resp = self.fk_srv.call(fk_req)
+            return resp
+      except rospy.ServiceException as e:
+            rospy.logerr("Service exception: " + str(e))
+            # resp = GetPositionFKResponse()
+            # resp.error_code = 99999  # Failure
+      return resp
+
+
 
   def go_to_pose_goal(self):
     # Copy class variables to local variables to make the web tutorials more clear.
@@ -434,13 +459,31 @@ class MoveGroupPythonInterface(object):
     # print(plan_manipulator)
     #s = rospy.Service('compute_fk', AddTwoInts, handle_add_two_ints)
 
-    #fkrequest = moveit_msgs.msg.GetPositionFK()
-    # n_points = len(plan_manipulator.joint_trajectory.points)
-    # for n in range(n_points):
-    #    current_pose = group.get_current_pose()
-    #     print("Point %i",n)
-    #     print(plan_manipulator.joint_trajectory.points[n].positions)
-    #     print("---------")
+    # fk_req = GetPositionFK()
+    # fk_req.header.frame_id = 'world'
+    # fk_req.fk_link_names = ['wrist_3_joint']
+    print(rospy.Time())
+    n_points = len(plan_manipulator.joint_trajectory.points)
+    for n in range(n_points):
+       current_pose = group.get_current_pose()
+       print("Point ",n)
+       print(plan_manipulator.joint_trajectory.points[n].positions[5])
+       print("---------")
+       ee_position = plan_manipulator.joint_trajectory.points[n].positions
+       fk_req = GetPositionFKRequest()
+       # print(fk_req)
+       # print(ee_position)
+       fk_req.header.frame_id = 'world'
+       fk_req.fk_link_names = ['wrist_3_joint']
+       fk_req.robot_state.joint_state.position = ee_position
+       #fk_req.robot_state
+       fk_req.robot_state.joint_state.header.frame_id = 'world'
+       fk_req.robot_state.joint_state.name = ['shoulder_pan_joint','shoulder_lift_joint','elbow_joint','wrist_1_joint','wrist_2_joint','wrist_3_joint']
+       fk_req.robot_state.joint_state.header.stamp = rospy.Time()
+       fk_req.header.stamp = rospy.Time()
+       print(fk_req)
+       batch = self.get_fk(fk_req)
+       print(batch)
     # print(plan_manipulator.joint_trajectory.points[0])
 
     # group.execute(plan, wait=True)

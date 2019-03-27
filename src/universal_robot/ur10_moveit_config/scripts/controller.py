@@ -37,7 +37,7 @@ class ExecutionManager(object):
       # print(self.pCloud )
       # print(pointcloud)
 
-  # Waiting for a gaze point to be sent from the gaze_client
+  # Waiting for a gaze point to be sent by the gaze_client
   def gaze_server_setup(self):
       gaze_server = rospy.Service('send_gaze', gazePoint, self.handle_gaze_point)
       print "Ready to send gaze point"
@@ -54,7 +54,6 @@ class ExecutionManager(object):
 
       return gazePointResponse(True)
 
-
   def request_segmentation(self):
       print("Sending pointcloud to segmentation")
       rospy.wait_for_service('segmentation_service')
@@ -64,6 +63,19 @@ class ExecutionManager(object):
           print("Sent")
           # print(resp.objects)
           return resp.objects
+      except rospy.ServiceException, e:
+          print "Service call failed: %s"%e
+
+  def gaze_optimiser_caller(self, objs):
+      print("Send data to gaze optimiser")
+      self.gaze_point.x = 0.4
+      self.gaze_point.y = 0.6
+      self.gaze_point.z = 0.25
+      rospy.wait_for_service('gaze_optimiser_service')
+      try:
+          gaze_optimiser_service = rospy.ServiceProxy('gaze_optimiser_service', gazeOptimiser)
+          data = gaze_optimiser_service(objs,self.gaze_point)
+          return data
       except rospy.ServiceException, e:
           print "Service call failed: %s"%e
 
@@ -80,8 +92,11 @@ if __name__ == '__main__':
     # controller.gaze_server_setup()
     rospy.Subscriber("/camera/depth_registered/points", PointCloud2, controller.cloud_callback, queue_size=1)
     rospy.sleep(1.0)
-    objs = controller.request_segmentation()
-    print(objs)
+    objects = controller.request_segmentation()
+    print(objects)
+
+    bob = controller.gaze_optimiser_caller(objects)
+    print(bob)
     # if controller.gaze_sent == 1:
         # controller.request_segmentation()
     # rospy.Subscriber("/camera/depth_registered/points", PointCloud2, controller.cloud_callback, queue_size=1)
@@ -92,7 +107,6 @@ if __name__ == '__main__':
 
 
 
-# import numpy as np
 # import pylab
 # import matplotlib.pyplot as plt
 # from mpl_toolkits.mplot3d import axes3d
@@ -142,26 +156,26 @@ if __name__ == '__main__':
 # # plotting the data and the input point
 # pylab.plot(center[1,:],center[0,:],'ob',x[1,0],x[0,0],'or')
 # plt.axis([1.7,-0.2, 0.0, 0.6])
-#plt.gca().invert_xaxis()
-#show()
-
+# # plt.gca().invert_xaxis()
+#
+#
 # fig = plt.figure()
 # ax = fig.add_subplot(111, projection='3d')
-#X = np.array([1,4])
-#Y = np.array([3,2])
-#Z = np.array([4,3])
+# X = np.array([1,4])
+# Y = np.array([3,2])
+# Z = np.array([4,3])
 # x = [0,0,0.6,0.6]
 # y = [0,1.7,1.7,0]
 # z = [0.2,0.2,0.2,0.2]
 # verts = [list(zip(y,x,z))]
-# ax.add_collection3d(Poly3DCollection(verts))
+# ax.add_collection3d(Poly3DCollection(verts,facecolors=[0.5, 0.5, 1]))
 #
 # X, Y, Z = [0.5,0.4,0.4,0.2],[-0.2,0.2,0.2,0.5],[0.6,0.35,0.35,0.25]
 # ax.plot3D(X,Y,Z)
 # plt.xlim(-0.3, 1.0)
 # plt.ylim(2.0, -0.2)
-
-# pylab.show()
+#
+# plt.show()
 
 
 # [0.08766677975654602, 0.08212397247552872, 0.19581645727157593, 0.5342333912849426, -0.08212301135063171, 0.0106821209192276, 0.04192066192626953, 0.0972205102443695, 0.11764948815107346, 0.5432109832763672, 0.09034746885299683, -0.008821483701467514]

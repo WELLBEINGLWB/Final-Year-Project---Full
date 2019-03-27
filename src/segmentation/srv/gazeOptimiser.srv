@@ -1,6 +1,6 @@
 std_msgs/Float32MultiArray objects
-geometry_msgs/Point gaze
+geometry_msgs/Point gaze_point
 ---
 std_msgs/Float32MultiArray sorted_objects
-int8 object_id target_id
+int16 target_id
 geometry_msgs/Point grasp_point

@@ -2,10 +2,13 @@
 (cl:in-package :asdf)
 
 (defsystem "segmentation-srv"
-  :depends-on (:roslisp-msg-protocol :roslisp-utils :sensor_msgs-msg
+  :depends-on (:roslisp-msg-protocol :roslisp-utils :geometry_msgs-msg
+               :sensor_msgs-msg
                :std_msgs-msg
 )
   :components ((:file "_package")
+    (:file "gazeOptimiser" :depends-on ("_package_gazeOptimiser"))
+    (:file "_package_gazeOptimiser" :depends-on ("_package"))
     (:file "seg" :depends-on ("_package_seg"))
     (:file "_package_seg" :depends-on ("_package"))
     (:file "gazePoint" :depends-on ("_package_gazePoint"))

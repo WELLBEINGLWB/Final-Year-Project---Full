@@ -1,6 +1,11 @@
 (cl:defpackage segmentation-srv
   (:use )
   (:export
+   "GAZEOPTIMISER"
+   "<GAZEOPTIMISER-REQUEST>"
+   "GAZEOPTIMISER-REQUEST"
+   "<GAZEOPTIMISER-RESPONSE>"
+   "GAZEOPTIMISER-RESPONSE"
    "SEG"
    "<SEG-REQUEST>"
    "SEG-REQUEST"
