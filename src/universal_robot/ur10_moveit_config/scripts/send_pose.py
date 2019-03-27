@@ -7,18 +7,23 @@ import copy
 import moveit_commander
 import moveit_python
 import moveit_msgs.msg
-# from moveit_msgs.srv GetPositionFK
-from moveit_msgs.srv import GetPositionFK
-from moveit_msgs.srv import GetPositionFKRequest
-from moveit_msgs.srv import GetPositionFKResponse
 import numpy as np
 import geometry_msgs.msg
 import trajectory_msgs.msg
 import shape_msgs.msg
 from math import pi
+from moveit_msgs.srv import GetPositionFK
+from moveit_msgs.srv import GetPositionFKRequest
+from moveit_msgs.srv import GetPositionFKResponse
 from std_msgs.msg import String
 from std_msgs.msg import Float32MultiArray
 from moveit_commander.conversions import pose_to_list
+
+import pylab
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import axes3d
+import matplotlib.patches as patches
+from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 
 
 
@@ -262,8 +267,6 @@ class MoveGroupPythonInterface(object):
             resp.error_code = 99999  # Failure
       return resp
 
-
-
   def go_to_pose_goal(self):
     # Copy class variables to local variables to make the web tutorials more clear.
     # In practice, you should use the class variables directly unless you have a good reason not to.
@@ -284,7 +287,7 @@ class MoveGroupPythonInterface(object):
     orientation_constraint.orientation.y = 0.70699483645
     orientation_constraint.orientation.z = 0.00111089701837
     orientation_constraint.orientation.w = 0.707216963763
-    orientation_constraint.absolute_x_axis_tolerance = 1.05
+    orientation_constraint.absolute_x_axis_tolerance = 0.05
     orientation_constraint.absolute_y_axis_tolerance = 0.05
     orientation_constraint.absolute_z_axis_tolerance = 0.14
     orientation_constraint.weight = 1.0
@@ -371,38 +374,38 @@ class MoveGroupPythonInterface(object):
     pose_goal = geometry_msgs.msg.Pose()
     # pose_goal = geometry_msgs.msg.PoseStamped()
     # pose_goal.header.frame_id = group.get_end_effector_link()
-    # pose_goal.orientation.x = 0.00111054358639
-    # pose_goal.orientation.y = 0.70699483645
-    # pose_goal.orientation.z = 0.00111089701837
-    # pose_goal.orientation.w = 0.707216963763
+    pose_goal.orientation.x = 0.00111054358639
+    pose_goal.orientation.y = 0.70699483645
+    pose_goal.orientation.z = 0.00111089701837
+    pose_goal.orientation.w = 0.707216963763
     # pose_goal.orientation.x = 0.0
     # pose_goal.orientation.y = 0.7
     # pose_goal.orientation.z = 0.0
     # pose_goal.orientation.w = 0.7
-    pose_goal.orientation.x = -0.267023522538
-    pose_goal.orientation.y = 0.653702052828
-    pose_goal.orientation.z = 0.269304381591
-    pose_goal.orientation.w = 0.654864271888
+    # pose_goal.orientation.x = -0.267023522538
+    # pose_goal.orientation.y = 0.653702052828
+    # pose_goal.orientation.z = 0.269304381591
+    # pose_goal.orientation.w = 0.654864271888
     # x: -0.267023522538
     #     y: 0.653702052828
     #     z: 0.269304381591
     #     w: 0.654864271888
 
-    orientation_list = [pose_goal.orientation.x, pose_goal.orientation.y,pose_goal.orientation.z, pose_goal.orientation.w]
-    eul = tf.transformations.euler_from_quaternion(orientation_list)
+    # orientation_list = [pose_goal.orientation.x, pose_goal.orientation.y,pose_goal.orientation.z, pose_goal.orientation.w]
+    # eul = tf.transformations.euler_from_quaternion(orientation_list)
     # print(eul)
 
-    #
+
     # (1.4711348887669473, 1.5676390675265013, 1.4711353885958782)
     # (0.7105587279368307, 1.5671760841731328, 1.4885120467903026)
 
-    euler = [0.8271760841731328, 1.5671760841731328, 1.4711348887669473]
-    quat = tf.transformations.quaternion_from_euler(euler[0],euler[1],euler[2])
+    # euler = [0.8271760841731328, 1.5671760841731328, 1.4711348887669473]
+    # quat = tf.transformations.quaternion_from_euler(euler[0],euler[1],euler[2])
     # print(quat)
-    pose_goal.orientation.x = quat[0]
-    pose_goal.orientation.y = quat[1]
-    pose_goal.orientation.z = quat[2]
-    pose_goal.orientation.w = quat[3]
+    # pose_goal.orientation.x = quat[0]
+    # pose_goal.orientation.y = quat[1]
+    # pose_goal.orientation.z = quat[2]
+    # pose_goal.orientation.w = quat[3]
     # x: -0.228603116552
     #     y: 0.668342268725
     #     z: 0.230398602104
@@ -466,8 +469,8 @@ class MoveGroupPythonInterface(object):
     n_points = len(plan_manipulator.joint_trajectory.points)
     for n in range(n_points):
        current_pose = group.get_current_pose()
-       print("Point ",n)
-       print(plan_manipulator.joint_trajectory.points[n].positions[5])
+       print("Point %s" %n)
+       print("Angle: %s" %plan_manipulator.joint_trajectory.points[n].positions[5])
        print("---------")
        ee_position = plan_manipulator.joint_trajectory.points[n].positions
        fk_req = GetPositionFKRequest()
@@ -482,8 +485,8 @@ class MoveGroupPythonInterface(object):
        fk_req.robot_state.joint_state.header.stamp = rospy.Time.now()
        fk_req.header.stamp = rospy.Time.now()
        #print(fk_req)
-       batch = self.get_fk(fk_req)
-       print(batch)
+       fk_resp = self.get_fk(fk_req)
+       print(fk_resp.pose_stamped[0].pose.position)
     # print(plan_manipulator.joint_trajectory.points[0])
 
     # group.execute(plan, wait=True)

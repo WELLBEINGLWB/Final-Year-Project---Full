@@ -4,6 +4,7 @@ import rospy
 import geometry_msgs.msg
 
 import numpy as np
+import math
 from std_msgs.msg import Float32MultiArray
 from sensor_msgs.msg import PointCloud2
 from segmentation.srv import*
@@ -31,6 +32,52 @@ def knn_search(x, D, K):
     # print(idx[:K])
      # return the indexes of K nearest neighbours
      return idx[:K]
+
+def ik_calculator(grasp_point):
+    e_co = geometry_msgs.msg.Point()
+    e_co.z = grasp_point.z
+    sh_co = geometry_msgs.msg.Point()
+    sh_co.x = -0.15
+    sh_co.y = 0.38
+    sh_co.z = 0.54
+    sh_length = 0.40
+    e_length = 0.40
+
+    print("Grasp point before %s" %grasp_point)
+    # grasp_x = grasp_point.x - sh_co.x
+    # grasp_y = grasp_point.y - sh_co.y
+    grasp_point.x = grasp_point.x - sh_co.x
+    grasp_point.y = grasp_point.y - sh_co.y
+    # grasp_point.z =
+    print("Grasp point after %s" %grasp_point)
+
+    # Calculate upper arm projection
+    sh_top = math.sqrt(pow(sh_length,2)-pow((sh_co.z - e_co.z),2))
+    print("Sh_top %s" %sh_top)
+    # Calculate angle of forearm
+    print((pow(grasp_point.x,2) + pow(grasp_point.y,2) - pow(sh_top,2) - pow(e_length,2))/(2*sh_top*e_length))
+    qe_rad = math.acos((pow(grasp_point.x,2) + pow(grasp_point.y,2) - pow(sh_top,2) - pow(e_length,2))/(2*sh_top*e_length))
+    qe = math.degrees(qe_rad)
+    print(qe)
+
+    # Calculate upper arm angle
+    alpha = math.atan(grasp_point.x/grasp_point.y)
+    beta = math.acos((pow(sh_top,2) - pow(e_length,2) + pow(grasp_point.x,2) + pow(grasp_point.y,2))/(2*sh_top*math.sqrt(pow(grasp_point.x,2) + pow(grasp_point.y,2))))
+    qs_rad = alpha - beta
+    qs = math.degrees(qs_rad)
+    print(qs)
+
+    # Obtain elbow joint position
+    e_co.x = math.cos(qs)*sh_top + sh_co.x
+    e_co.y = math.sin(qs)*sh_top + sh_co.y
+    print("Elbow: %s" %e_co)
+
+    grasp_point.x = grasp_point.x + sh_co.x
+    grasp_point.y = grasp_point.y + sh_co.y
+
+    return (e_co, sh_co)
+
+
 
 def handle_objects(req):
 
@@ -105,6 +152,10 @@ def handle_objects(req):
 
 
     fig,ax = plt.subplots(1)
+    # fig.set_size_inches(18.5, 10.5)
+    # pylab.rcParams['figure.figsize'] = 5, 10
+    # plt.subplots_adjust(left=0.1, right=0.9, bottom=0.1, top=0.9)
+
     j = 0
     while j < len(objects):
     #    center[0].append(objects[i+3])
@@ -113,47 +164,50 @@ def handle_objects(req):
         iteration = int(j/6)
         center[0,iteration] = world_objects.data[j+3]
         center[1,iteration] = world_objects.data[j+4]
-        # rect = patches.Rectangle((center[1,iteration],center[0,iteration]),world_objects[j],world_objects[j+1],linewidth=1,edgecolor='r',facecolor='none')
-        # ax.add_patch(rect)
-        print(center)
+        rect = patches.Rectangle((center[1,iteration]-world_objects.data[j+1]/2,center[0,iteration]-world_objects.data[j]/2),world_objects.data[j+1],world_objects.data[j],linewidth=1,edgecolor='r',facecolor='none')
+        ax.add_patch(rect)
+        # print(center)
         j+=6
 
     print(center)
 
-    x = np.array([[.45],[0.5]])
+    x = np.array([[.45],[0.4]])
     neig_idx = knn_search(x,center,1)
-    print(neig_idx)
+    print("Index %s" %neig_idx)
     print("target object xyz:")
     print(world_objects.data[neig_idx*6 + 3])
     print(world_objects.data[neig_idx*6 + 4])
     print(world_objects.data[neig_idx*6 + 5])
     offset_x = 0.015
-    offset_y = 0.035
+    offset_y = 0.015
 
     grasp_point = geometry_msgs.msg.Point()
     grasp_point.x = world_objects.data[neig_idx*6 + 3] - world_objects.data[neig_idx*6]/2 - offset_x
     grasp_point.y = world_objects.data[neig_idx*6 + 4] - world_objects.data[neig_idx*6 + 1]/2 - offset_y
     grasp_point.z = world_objects.data[neig_idx*6 + 5]
 
-    rect = patches.Rectangle((0.5,0.2),0.15,0.1,linewidth=1,edgecolor='r',facecolor='none')
-    ax.add_patch(rect)
+    co_e, co_s = ik_calculator(grasp_point)
+    print("Coord %s" %co_e)
+
+    # rect = patches.Rectangle((0.5,0.2),0.15,0.1,linewidth=1,edgecolor='r',facecolor='none')
+    # ax.add_patch(rect)
 
     # highlighting the neighbours
     pylab.plot(center[1,neig_idx],center[0,neig_idx],'o', markerfacecolor='None',markersize=15,markeredgewidth=1)
     # plotting the data and the input point
     # pylab.plot(center[1,:],center[0,:],'ob',x[1,0],x[0,0],'or')
 
-    plt.axis([-0.2,1.7, 0.0, 0.75])
-    ax.plot(center[1,:],center[0,:],'ob',x[1,0],x[0,0],'or')
+    plt.axis([-0.2,1.7, -0.2, 0.75])
+    ax.plot(center[1,:],center[0,:],'ob',x[1,0],x[0,0],'or',grasp_point.y,grasp_point.x,'og')
     ax.plot(center[1,neig_idx],center[0,neig_idx],'o', markerfacecolor='None',markersize=15,markeredgewidth=1)
-
+    plt.plot([co_s.y,co_e.y,grasp_point.y],[co_s.x,co_e.x,grasp_point.x])
+    # ax.plot(x, x + 4, linestyle='-')
     plt.gca().invert_xaxis()
-    # plt.show()
-    # rospy.sleep(1.0)
-    # plt.close('all')
-    # pylab.close(fig)
+    plt.show(block=False)
+    rospy.sleep(15.0)
+    plt.close('all')
     index = int(neig_idx)
-    print(index)
+    print("Index %s" %index)
 
     # b = Float32MultiArray()
     # b.data = [0]*len(objects)

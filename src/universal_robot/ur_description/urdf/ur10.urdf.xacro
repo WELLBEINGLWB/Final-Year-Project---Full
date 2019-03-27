@@ -271,8 +271,8 @@
         <limit lower="${-2.0 * pi}" upper="${2.0 * pi}" effort="54.0" velocity="3.2"/>
       </xacro:unless>
       <xacro:if value="${joint_limited}">
-      <!--  <limit lower="${wrist_3_lower_limit}" upper="${wrist_3_upper_limit}" effort="54.0" velocity="3.2"/> -->
-        <limit lower="${-pi/2}" upper="${pi/4}" effort="54.0" velocity="3.2"/>
+       <limit lower="${wrist_3_lower_limit}" upper="${wrist_3_upper_limit}" effort="54.0" velocity="3.2"/>
+        <!-- <limit lower="${-pi/2}" upper="${pi/4}" effort="54.0" velocity="3.2"/> -->
       </xacro:if>
       <dynamics damping="0.0" friction="0.0"/>
     </joint>
