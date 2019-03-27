@@ -251,15 +251,15 @@ class MoveGroupPythonInterface(object):
       #fk_req.robot_state.joint_state.position = ee_position
       #fk_req.robot_state.joint_state.header.frame_id = 'world'
       #fk_req.header.stamp = rospy.Time()
-      print(fk_req)
+      #print(fk_req)
 
       try:
-            resp = self.fk_srv.call(fk_req)
+            resp = self.fk_srv(fk_req)
             return resp
       except rospy.ServiceException as e:
             rospy.logerr("Service exception: " + str(e))
-            # resp = GetPositionFKResponse()
-            # resp.error_code = 99999  # Failure
+            resp = GetPositionFKResponse()
+            resp.error_code = 99999  # Failure
       return resp
 
 
@@ -462,7 +462,7 @@ class MoveGroupPythonInterface(object):
     # fk_req = GetPositionFK()
     # fk_req.header.frame_id = 'world'
     # fk_req.fk_link_names = ['wrist_3_joint']
-    print(rospy.Time())
+    #print(rospy.Time())
     n_points = len(plan_manipulator.joint_trajectory.points)
     for n in range(n_points):
        current_pose = group.get_current_pose()
@@ -474,14 +474,14 @@ class MoveGroupPythonInterface(object):
        # print(fk_req)
        # print(ee_position)
        fk_req.header.frame_id = 'world'
-       fk_req.fk_link_names = ['wrist_3_joint']
+       fk_req.fk_link_names = ['fake_hand_link']
        fk_req.robot_state.joint_state.position = ee_position
        #fk_req.robot_state
        fk_req.robot_state.joint_state.header.frame_id = 'world'
        fk_req.robot_state.joint_state.name = ['shoulder_pan_joint','shoulder_lift_joint','elbow_joint','wrist_1_joint','wrist_2_joint','wrist_3_joint']
-       fk_req.robot_state.joint_state.header.stamp = rospy.Time()
-       fk_req.header.stamp = rospy.Time()
-       print(fk_req)
+       fk_req.robot_state.joint_state.header.stamp = rospy.Time.now()
+       fk_req.header.stamp = rospy.Time.now()
+       #print(fk_req)
        batch = self.get_fk(fk_req)
        print(batch)
     # print(plan_manipulator.joint_trajectory.points[0])
