@@ -855,7 +855,7 @@ class MoveGroupPythonInterface(object):
     ## Adding Objects to the Planning Scene
     objects = msg.data
     world_objects = []
-    # print(objects)
+    print(objects)
 
     # Number of objects in the array (each has 6 dimensions)
     num_objects = len(objects)/6

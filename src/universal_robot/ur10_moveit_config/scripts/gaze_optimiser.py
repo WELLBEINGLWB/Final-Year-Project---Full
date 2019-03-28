@@ -33,6 +33,17 @@ def knn_search(x, D, K):
      # return the indexes of K nearest neighbours
      return idx[:K]
 
+def circular_ik (grasp_point):
+    e_co = geometry_msgs.msg.Point()
+    e_co.z = grasp_point.z
+
+    sh_co = geometry_msgs.msg.Point()
+    sh_co.x = -0.15
+    sh_co.y = 0.38
+    sh_co.z = 0.54
+    sh_length = 0.36
+    e_length = 0.32
+
 def ik_calculator(grasp_point):
     e_co = geometry_msgs.msg.Point()
     e_co.z = grasp_point.z
@@ -43,6 +54,13 @@ def ik_calculator(grasp_point):
     sh_length = 0.40
     e_length = 0.40
 
+    # Euclidean distance from shoulder joint to wrist joint
+    dist_ws = math.sqrt(pow(sh_co.x - grasp_point.x,2) + pow(sh_co.y - grasp_point.y,2) + pow(sh_co.z - grasp_point.z,2))
+    print("Euclidean distance: %s" %dist_ws)
+
+    gamma_rad = math.acos((dist_ws**2-sh_length**2-e_length**2)/(2*sh_length*e_length))
+    gamma = math.degrees(gamma_rad)
+    print("Gamma: %s" %gamma)
     print("Grasp point before %s" %grasp_point)
     # grasp_x = grasp_point.x - sh_co.x
     # grasp_y = grasp_point.y - sh_co.y
@@ -203,8 +221,8 @@ def handle_objects(req):
     plt.plot([co_s.y,co_e.y,grasp_point.y],[co_s.x,co_e.x,grasp_point.x])
     # ax.plot(x, x + 4, linestyle='-')
     plt.gca().invert_xaxis()
-    plt.show(block=False)
-    rospy.sleep(15.0)
+    plt.show()
+    # rospy.sleep(15.0)
     plt.close('all')
     index = int(neig_idx)
     print("Index %s" %index)
@@ -219,11 +237,175 @@ def handle_objects(req):
     srv_response.grasp_point = grasp_point
     return srv_response
 
+def sim(req):
+    transformer = tf.TransformListener()
+
+    # Iterating through the array from the segmentation noe and adding object with the respective center point coordinates and dimensions
+    # The array is structurer as follows: [xDim, yDim, zDim, xCenter, yCenter, zCenter]
+
+    objects = req
+    # gaze = req.gaze_point
+    print(objects)
+    print("--------------")
+    # print(gaze)
+    num_objects = int(len(objects)/6) # number of object
+
+    world_objects = Float32MultiArray()
+    world_objects.data = [0]*len(objects)
+    center = np.empty([2, num_objects]) # array that will contain the x,y center of the objects
+
+    i = 0
+    while i < len(objects):
+
+        # Transform the center point of the object from cameraLink frame to world frame
+        transformer.waitForTransform("camera_link", "world", rospy.Time(0),rospy.Duration(4.0))
+        pointstamp = geometry_msgs.msg.PointStamped()
+        pointstamp.header.frame_id = "camera_link"
+        pointstamp.header.stamp = rospy.Time()
+        pointstamp.point.x = objects[i+3]
+        pointstamp.point.y = objects[i+4]
+        pointstamp.point.z = objects[i+5]
+
+        # Converting the center point if the object to /world frame
+        p_tr = transformer.transformPoint("world", pointstamp)
+
+        height_to_table = 0.185 - (p_tr.point.z - (objects[i+2]/2))
+
+        # box_pose = geometry_msgs.msg.PoseStamped()
+        # box_pose.header.frame_id = "world"
+        # box_pose.pose.position.x = p_tr.point.x
+        # box_pose.pose.position.y = p_tr.point.y
+        # box_pose.pose.position.z = p_tr.point.z  # - height_to_table
+
+        box_z = 0.185 + (objects[i+2]/2)
+        box_z = box_z + (p_tr.point.z - box_z)/2
+        # world_objects[i+2] = objects[i+2] + (p_tr.point.z - box_pose.pose.position.z)
+
+        # world_objects.insert(i, objects[i])
+        # world_objects.insert(i+1, objects[i+1])
+        # world_objects.insert(i+2, objects[i+2] + (p_tr.point.z - box_z))
+        # world_objects.insert(i+3, p_tr.point.x)
+        # world_objects.insert(i+4, p_tr.point.y)
+        # world_objects.insert(i+5, box_z)
+
+        world_objects.data[i] = objects[i]
+        world_objects.data[i+1] = objects[i+1]
+        world_objects.data[i+2] = objects[i+2] + + (p_tr.point.z - box_z)
+        world_objects.data[i+3] = p_tr.point.x
+        world_objects.data[i+4] = p_tr.point.y
+        world_objects.data[i+5] = box_z
+        # print(world_objects)
+        object_id = str(i/6)
+
+        print("x,y,z = ")
+        print(world_objects.data[i+3])
+        print(world_objects.data[i+4])
+        print(world_objects.data[i+5])
+        print("------")
+
+        i+=6
+
+        # target_obj = ['0', 0.11087217926979065, 0.3403069078922272, 0.11774600305213856, 0.48992229410969163, 0.49934569425808273, 0.27480948858513754]
+
+
+    fig,ax = plt.subplots(1)
+    # fig3 = plt.figure(2)
+    # ax3 = fig3.gca(projection='3d')
+    # fig.set_size_inches(18.5, 10.5)
+    # pylab.rcParams['figure.figsize'] = 5, 10
+    # plt.subplots_adjust(left=0.1, right=0.9, bottom=0.1, top=0.9)
+
+    j = 0
+    while j < len(objects):
+    #    center[0].append(objects[i+3])
+    #    center[1].append(objects[i+4])
+    #    np.append(center,[objects[i+3]])
+        iteration = int(j/6)
+        center[0,iteration] = world_objects.data[j+3]
+        center[1,iteration] = world_objects.data[j+4]
+        rect = patches.Rectangle((center[1,iteration]-world_objects.data[j+1]/2,center[0,iteration]-world_objects.data[j]/2),world_objects.data[j+1],world_objects.data[j],linewidth=1,edgecolor='r',facecolor='none')
+        ax.add_patch(rect)
+        # print(center)
+        j+=6
+
+    print(center)
+
+    x = np.array([[.45],[0.4]])
+    neig_idx = knn_search(x,center,1)
+    print("Index %s" %neig_idx)
+    print("target object xyz:")
+    print(world_objects.data[neig_idx*6 + 3])
+    print(world_objects.data[neig_idx*6 + 4])
+    print(world_objects.data[neig_idx*6 + 5])
+    offset_x = 0.015
+    offset_y = 0.015
+
+    grasp_point = geometry_msgs.msg.Point()
+    grasp_point.x = world_objects.data[neig_idx*6 + 3] - world_objects.data[neig_idx*6]/2 - offset_x
+    grasp_point.y = world_objects.data[neig_idx*6 + 4] - world_objects.data[neig_idx*6 + 1]/2 - offset_y
+    grasp_point.z = world_objects.data[neig_idx*6 + 5]
+
+    co_e, co_s = ik_calculator(grasp_point)
+    print("Coord %s" %co_e)
+
+    # rect = patches.Rectangle((0.5,0.2),0.15,0.1,linewidth=1,edgecolor='r',facecolor='none')
+    # ax.add_patch(rect)
+
+    # highlighting the neighbours
+    pylab.plot(center[1,neig_idx],center[0,neig_idx],'o', markerfacecolor='None',markersize=15,markeredgewidth=1)
+    # plotting the data and the input point
+    # pylab.plot(center[1,:],center[0,:],'ob',x[1,0],x[0,0],'or')
+    # ax3.scatter([0], [0], [0], color="g", s=100)
+    # plt.plot([co_s.y,co_e.y,grasp_point.y],[co_s.x,co_e.x,grasp_point.x],[co_s.z,co_e.z,grasp_point.z])
+
+    plt.axis([-0.2,1.7, -0.2, 0.75])
+    # ax.axis([-0.2,1.7, -0.2, 0.75])
+    ax.plot(center[1,:],center[0,:],'ob',x[1,0],x[0,0],'or',grasp_point.y,grasp_point.x,'og')
+    ax.plot(center[1,neig_idx],center[0,neig_idx],'o', markerfacecolor='None',markersize=15,markeredgewidth=1)
+    ax.plot([co_s.y,co_e.y,grasp_point.y],[co_s.x,co_e.x,grasp_point.x])
+    plt.gca().invert_xaxis()
+
+    # draw sphere
+    # u, v = np.mgrid[0:2*np.pi:20j, 0:np.pi:10j]
+    # x = np.cos(u)*np.sin(v)
+    # y = np.sin(u)*np.sin(v)
+    # z = np.cos(v)
+    # ax3.plot_wireframe(x, y, z, color="r")
+
+    # plt.gca().invert_xaxis()
+    plt.show(block=False)
+    # plt.show()
+    rospy.sleep(10.0)
+    plt.close('all')
+    index = int(neig_idx)
+    print("Index %s" %index)
+
+
+
+
+
+    # b = Float32MultiArray()
+    # b.data = [0]*len(objects)
+    # print(b)
+
+    # srv_response = gazeOptimiserResponse()
+    # srv_response.sorted_objects = world_objects
+    # srv_response.target_id = index
+    # srv_response.grasp_point = grasp_point
+    # return srv_response
+
 if __name__ == '__main__':
     rospy.init_node('gaze_optimiser', anonymous=True)
     # req =  [0.09238377213478088, 0.07335389405488968, 0.1415911614894867, 0.43495261669158936, -0.11511331796646118, -0.0012646578252315521, 0.08798286318778992, 0.07133589684963226, 0.18319405615329742, 0.5219529271125793, 0.02710883319377899, 0.08386678248643875, 0.0326995849609375, 0.06856178492307663, 0.05430290102958679, 0.45429980754852295, 0.14136792719364166, -0.02174977958202362]
 
-    gaze_optimiser_server()
-
+    # gaze_optimiser_server()
+    # req = [0.08420228958129883, 0.0866108238697052, 0.16340254247188568, 0.5440202951431274, 0.07170078903436661, 0.11486805230379105, 0.044422149658203125, 0.054751671850681305, 0.11145603656768799, 0.4410666823387146, -0.08078508079051971, 0.02292603999376297, 0.03234878182411194, 0.03743894398212433, 0.046912916004657745, 0.45620059967041016, 0.2094809114933014, 0.030203916132450104]
+    req = [0.10357585549354553, 0.07956766337156296, 0.1900981366634369, 0.3480975031852722, 0.038999784737825394, 0.025573041290044785, 0.09558302164077759, 0.06678294390439987, 0.1394098997116089, 0.3654365837574005, -0.11884936690330505, -0.04283341020345688, 0.02408367395401001, 0.07848946005105972, 0.06253930926322937, 0.5783331394195557, -0.037476059049367905, 0.04785224795341492]
+    sim(req)
     # handle_objects(req)
     rospy.spin()
+
+
+
+# (0.08420228958129883, 0.0866108238697052, 0.16340254247188568, 0.5440202951431274, 0.07170078903436661, 0.11486805230379105, 0.044422149658203125, 0.054751671850681305, 0.11145603656768799, 0.4410666823387146, -0.08078508079051971, 0.02292603999376297, 0.03234878182411194, 0.03743894398212433, 0.046912916004657745, 0.45620059967041016, 0.2094809114933014, 0.030203916132450104)
+# (0.10357585549354553, 0.07956766337156296, 0.1900981366634369, 0.3480975031852722, 0.038999784737825394, 0.025573041290044785, 0.09558302164077759, 0.06678294390439987, 0.1394098997116089, 0.3654365837574005, -0.11884936690330505, -0.04283341020345688, 0.02408367395401001, 0.07848946005105972, 0.06253930926322937, 0.5783331394195557, -0.037476059049367905, 0.04785224795341492)
