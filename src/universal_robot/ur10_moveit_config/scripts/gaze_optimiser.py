@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+
+
 import tf
 import rospy
 import geometry_msgs.msg
@@ -43,6 +45,27 @@ def circular_ik (grasp_point):
     sh_co.z = 0.54
     sh_length = 0.36
     e_length = 0.32
+
+def angle_ik(grasp_point):
+    e_co = geometry_msgs.msg.Point()
+    e_co.z = grasp_point.z
+
+    sh_co = geometry_msgs.msg.Point()
+    sh_co.x = -0.15
+    sh_co.y = 0.38
+    sh_co.z = 0.54
+    u_length = 0.36
+    f_length = 0.3
+
+    wrist_0_x = sh_co.x + f_length
+    elbow_angle = math.degrees(math.tan((grasp_point.y - sh_co.y)/(grasp_point.x - sh_co.x)))
+    e_angle = math.tan((grasp_point.y - sh_co.y)/(grasp_point.x - sh_co.x))
+    print("Elbow angle: %s" %elbow_angle)
+
+    e_co.x = grasp_point.x - f_length*math.cos(e_angle)
+    e_co.y = grasp_point.y - f_length*math.sin(e_angle)
+
+    return (e_co, sh_co)
 
 def ik_calculator(grasp_point):
     e_co = geometry_msgs.msg.Point()
@@ -95,7 +118,36 @@ def ik_calculator(grasp_point):
 
     return (e_co, sh_co)
 
+def line_collision(x1,y1,x2,y2,x3,y3,x4,y4):
+    uA = ((x4-x3)*(y1-y3) - (y4-y3)*(x1-x3)) / ((y4-y3)*(x2-x1) - (x4-x3)*(y2-y1))
+    uB = ((x2-x1)*(y1-y3) - (y2-y1)*(x1-x3)) / ((y4-y3)*(x2-x1) - (x4-x3)*(y2-y1))
+    print(uA)
+    print(uB)
+    if( 0<= uA <= 1 and 0<= uB <= 1):
+        intersectionX = x1 + (uA*(x2-x1))
+        intersectionY = y1 + (uB*(y2-y1))
+        print(intersectionX)
+        print(intersectionY)
+        return True
+    return False
 
+def object_collision(e_co, grasp_point, objects_array):
+    i = 0
+    num_collisions = 0
+    while i < len(objects_array):
+        bottom = line_collision(e_co.x, e_co.y, grasp_point.x, grasp_point.y,objects_array[i+3]-objects_array[i+0]/2,objects_array[i+4]-objects_array[i+1]/2,objects_array[i+3]-objects_array[i+0]/2, objects_array[i+4]+objects_array[i+1]/2)
+        top = line_collision(e_co.x, e_co.y, grasp_point.x, grasp_point.y,objects_array[i+3]+objects_array[i+0]/2,objects_array[i+4]-objects_array[i+1]/2,objects_array[i+3]+objects_array[i+0]/2, objects_array[i+4]+objects_array[i+1]/2)
+        left = line_collision(e_co.x, e_co.y, grasp_point.x, grasp_point.y,objects_array[i+3]-objects_array[i+0]/2,objects_array[i+4]+objects_array[i+1]/2,objects_array[i+3]+objects_array[i+0]/2, objects_array[i+4]+objects_array[i+1]/2)
+        right = line_collision(e_co.x, e_co.y, grasp_point.x, grasp_point.y,objects_array[i+3]-objects_array[i+0]/2,objects_array[i+4]-objects_array[i+1]/2,objects_array[i+3]+objects_array[i+0]/2, objects_array[i+4]-objects_array[i+1]/2)
+        if(bottom == True or top == True or left == True or right == True):
+            num_collisions+=1
+        i+=6
+
+    print("number of collisions in state: %s" %num_collisions)
+    if(num_collisions > 0):
+        return True # There is at least one collision
+    else:
+        return False # There are no collisions
 
 def handle_objects(req):
 
@@ -330,7 +382,7 @@ def sim(req):
 
     print(center)
 
-    x = np.array([[.45],[0.4]])
+    x = np.array([[.65],[0.8]])
     neig_idx = knn_search(x,center,1)
     print("Index %s" %neig_idx)
     print("target object xyz:")
@@ -344,15 +396,20 @@ def sim(req):
     grasp_point.x = world_objects.data[neig_idx*6 + 3] - world_objects.data[neig_idx*6]/2 - offset_x
     grasp_point.y = world_objects.data[neig_idx*6 + 4] - world_objects.data[neig_idx*6 + 1]/2 - offset_y
     grasp_point.z = world_objects.data[neig_idx*6 + 5]
-
-    co_e, co_s = ik_calculator(grasp_point)
-    print("Coord %s" %co_e)
-
+    objects_array = world_objects.data
+    # co_e, co_s = ik_calculator(grasp_point)
+    co_e, co_s = angle_ik(grasp_point)
+    print("Elbow point: %s" %co_e)
+    print("Grasp point: %s" %grasp_point)
     # rect = patches.Rectangle((0.5,0.2),0.15,0.1,linewidth=1,edgecolor='r',facecolor='none')
     # ax.add_patch(rect)
+    collision = object_collision(co_e,grasp_point, objects_array)
+    print("Bot: %s" %bot)
 
     # highlighting the neighbours
     pylab.plot(center[1,neig_idx],center[0,neig_idx],'o', markerfacecolor='None',markersize=15,markeredgewidth=1)
+
+
     # plotting the data and the input point
     # pylab.plot(center[1,:],center[0,:],'ob',x[1,0],x[0,0],'or')
     # ax3.scatter([0], [0], [0], color="g", s=100)
@@ -360,7 +417,10 @@ def sim(req):
 
     plt.axis([-0.2,1.7, -0.2, 0.75])
     # ax.axis([-0.2,1.7, -0.2, 0.75])
-    ax.plot(center[1,:],center[0,:],'ob',x[1,0],x[0,0],'or',grasp_point.y,grasp_point.x,'og')
+    # Plot center of objects, grasp point and elbow joint
+    ax.plot(center[1,:],center[0,:],'ob',x[1,0],x[0,0],'or',grasp_point.y,grasp_point.x,'og',co_e.y,co_e.x,'ok')
+    # ax.plot(0.525,0.380,'oy')
+    # Mark target object
     ax.plot(center[1,neig_idx],center[0,neig_idx],'o', markerfacecolor='None',markersize=15,markeredgewidth=1)
     ax.plot([co_s.y,co_e.y,grasp_point.y],[co_s.x,co_e.x,grasp_point.x])
     plt.gca().invert_xaxis()
@@ -373,14 +433,13 @@ def sim(req):
     # ax3.plot_wireframe(x, y, z, color="r")
 
     # plt.gca().invert_xaxis()
-    plt.show(block=False)
+    # plt.figure(size=(5,6))
+    plt.show(block=True)
     # plt.show()
     rospy.sleep(10.0)
     plt.close('all')
     index = int(neig_idx)
     print("Index %s" %index)
-
-
 
 
 
@@ -396,10 +455,10 @@ def sim(req):
 
 if __name__ == '__main__':
     rospy.init_node('gaze_optimiser', anonymous=True)
-    # req =  [0.09238377213478088, 0.07335389405488968, 0.1415911614894867, 0.43495261669158936, -0.11511331796646118, -0.0012646578252315521, 0.08798286318778992, 0.07133589684963226, 0.18319405615329742, 0.5219529271125793, 0.02710883319377899, 0.08386678248643875, 0.0326995849609375, 0.06856178492307663, 0.05430290102958679, 0.45429980754852295, 0.14136792719364166, -0.02174977958202362]
+    #req =  [0.09238377213478088, 0.07335389405488968, 0.1415911614894867, 0.43495261669158936, -0.11511331796646118, -0.0012646578252315521, 0.08798286318778992, 0.07133589684963226, 0.18319405615329742, 0.5219529271125793, 0.02710883319377899, 0.08386678248643875, 0.0326995849609375, 0.06856178492307663, 0.05430290102958679, 0.45429980754852295, 0.14136792719364166, -0.02174977958202362]
 
     # gaze_optimiser_server()
-    # req = [0.08420228958129883, 0.0866108238697052, 0.16340254247188568, 0.5440202951431274, 0.07170078903436661, 0.11486805230379105, 0.044422149658203125, 0.054751671850681305, 0.11145603656768799, 0.4410666823387146, -0.08078508079051971, 0.02292603999376297, 0.03234878182411194, 0.03743894398212433, 0.046912916004657745, 0.45620059967041016, 0.2094809114933014, 0.030203916132450104]
+    req = [0.08420228958129883, 0.0866108238697052, 0.16340254247188568, 0.5440202951431274, 0.07170078903436661, 0.11486805230379105, 0.044422149658203125, 0.054751671850681305, 0.11145603656768799, 0.4410666823387146, -0.08078508079051971, 0.02292603999376297, 0.03234878182411194, 0.03743894398212433, 0.046912916004657745, 0.45620059967041016, 0.2094809114933014, 0.030203916132450104]
     req = [0.10357585549354553, 0.07956766337156296, 0.1900981366634369, 0.3480975031852722, 0.038999784737825394, 0.025573041290044785, 0.09558302164077759, 0.06678294390439987, 0.1394098997116089, 0.3654365837574005, -0.11884936690330505, -0.04283341020345688, 0.02408367395401001, 0.07848946005105972, 0.06253930926322937, 0.5783331394195557, -0.037476059049367905, 0.04785224795341492]
     sim(req)
     # handle_objects(req)
