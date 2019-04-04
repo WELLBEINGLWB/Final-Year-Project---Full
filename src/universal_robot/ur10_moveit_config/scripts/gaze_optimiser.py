@@ -162,7 +162,7 @@ def angle_ik(grasp_point):
     wrist_0_x = sh_co.x + f_length
     elbow_angle = math.degrees(math.tan((grasp_point.y - sh_co.y)/(grasp_point.x - sh_co.x)))
     e_angle = math.tan((grasp_point.y - sh_co.y)/(grasp_point.x - sh_co.x))
-    print("Elbow angle: %s" %elbow_angle)
+    #print("Elbow angle: %s" %elbow_angle)
 
     e_co.x = grasp_point.x - f_length*math.cos(e_angle)
     e_co.y = grasp_point.y - f_length*math.sin(e_angle)
@@ -245,7 +245,7 @@ def object_collision(e_co, grasp_point, objects_array):
             num_collisions+=1
         i+=6
 
-    print("number of collisions in state: %s" %num_collisions)
+    #print("number of collisions in state: %s" %num_collisions)
     if(num_collisions > 0):
         return True # There is at least one collision
     else:
@@ -399,8 +399,8 @@ def sim(req):
 
     objects = req
     # gaze = req.gaze_point
-    print(objects)
-    print("--------------")
+    # print(objects)
+    # print("--------------")
     # print(gaze)
     num_objects = int(len(objects)/6) # number of object
 
@@ -435,13 +435,6 @@ def sim(req):
         box_z = box_z + (p_tr.point.z - box_z)/2
         # world_objects[i+2] = objects[i+2] + (p_tr.point.z - box_pose.pose.position.z)
 
-        # world_objects.insert(i, objects[i])
-        # world_objects.insert(i+1, objects[i+1])
-        # world_objects.insert(i+2, objects[i+2] + (p_tr.point.z - box_z))
-        # world_objects.insert(i+3, p_tr.point.x)
-        # world_objects.insert(i+4, p_tr.point.y)
-        # world_objects.insert(i+5, box_z)
-
         world_objects.data[i] = objects[i]
         world_objects.data[i+1] = objects[i+1]
         world_objects.data[i+2] = objects[i+2] + + (p_tr.point.z - box_z)
@@ -451,18 +444,19 @@ def sim(req):
         # print(world_objects)
         object_id = str(i/6)
 
-        print("x,y,z = ")
-        print(world_objects.data[i+3])
-        print(world_objects.data[i+4])
-        print(world_objects.data[i+5])
-        print("------")
+        # print("x,y,z = ")
+        # print(world_objects.data[i+3])
+        # print(world_objects.data[i+4])
+        # print(world_objects.data[i+5])
+        # print("------")
 
         i+=6
 
         # target_obj = ['0', 0.11087217926979065, 0.3403069078922272, 0.11774600305213856, 0.48992229410969163, 0.49934569425808273, 0.27480948858513754]
 
 
-    fig,ax = plt.subplots(1)
+    fig = plt.figure(figsize=(10,10/(1.7/0.8)))
+    ax = fig.add_subplot(111)
 #    plt.figure(figsize=(10,10/(1.7/0.7)))
     # fig3 = plt.figure(2)
     # ax3 = fig3.gca(projection='3d')
@@ -483,7 +477,7 @@ def sim(req):
         # print(center)
         j+=6
 
-    print(center)
+    # print(center)
     ##########~~~~~~~~~~~~~~~~~~~~~
     # Gaze point xy
     x = np.array([[.39],[0.84]])
@@ -493,11 +487,11 @@ def sim(req):
     print(world_objects.data[neig_idx*6 + 3])
     print(world_objects.data[neig_idx*6 + 4])
     print(world_objects.data[neig_idx*6 + 5])
-    offset_x = 0.015
+    offset_x = 0.01
     offset_y = 0.015
 
     grasp_point = geometry_msgs.msg.Point()
-    grasp_point.x = world_objects.data[neig_idx*6 + 3] - world_objects.data[neig_idx*6]/2 - offset_x
+    grasp_point.x = world_objects.data[neig_idx*6 + 3]  - offset_x # - world_objects.data[neig_idx*6]/2
     grasp_point.y = world_objects.data[neig_idx*6 + 4] - world_objects.data[neig_idx*6 + 1]/2 - offset_y
     grasp_point.z = world_objects.data[neig_idx*6 + 5]
     objects_array = world_objects.data
@@ -521,7 +515,7 @@ def sim(req):
     Xresolution = 0.7/cols
     # target=[0.22,0.534]
     # target_index = [round(target[0]/Xresolution),round(target[1]/Yresolution)]
-    target_x = world_objects.data[neig_idx*6 + 3] - world_objects.data[neig_idx*6]/2 - offset_x
+    target_x = world_objects.data[neig_idx*6 + 3] - offset_x # - world_objects.data[neig_idx*6]/2
     target_y = world_objects.data[neig_idx*6 + 4] - world_objects.data[neig_idx*6 + 1]/2 - offset_y
     target_index = [round(target_x/Xresolution)-1,round(target_y/Yresolution)-1]
     start = (8, 20)
@@ -538,34 +532,35 @@ def sim(req):
 
     if data[end[0]][end[1]] != 1:
         path = astar(data, start, end)
-        print(path)
+        path_xy =  [[0]*2 for k in range(len(path))]
+        # print(path)
         for j in range(len(path)):
                 r = path[j][0]
                 c = path[j][1]
 #                print(r,c)
                 data[r][c]= 4
+                path_xy[j][0]=Xresolution*r
+                path_xy[j][1]=Yresolution*c
+        # print(path_xy)
     data[end[0]][end[1]]=2
     data[start[0]][start[1]]=3
     data = np.array(data)
     data.shape
-    fig2 = plt.figure(figsize=(10,10/ratio))
+    # fig2 = plt.figure(figsize=(10,10/ratio))
     cmap = colors.ListedColormap(['white','red','green','#0060ff','#aaaaaa'])
-    plt.figure(figsize=(10,10/ratio))
-    plt.pcolor(data[::1],cmap=cmap,edgecolors='k', linewidths=1)
-    fig2.gca().invert_xaxis()
-    fig2.show()
+    # plt.figure(figsize=(10,10/ratio))
+    # plt.pcolor(data[::1],cmap=cmap,edgecolors='k', linewidths=1)
+    # fig2.gca().invert_xaxis()
+    # fig2.show()
     # rospy.sleep(10.0)
     # plt.close('all')
-
-
-
 
 
     # plotting the data and the input point
     # pylab.plot(center[1,:],center[0,:],'ob',x[1,0],x[0,0],'or')
     # ax3.scatter([0], [0], [0], color="g", s=100)
     # plt.plot([co_s.y,co_e.y,grasp_point.y],[co_s.x,co_e.x,grasp_point.x],[co_s.z,co_e.z,grasp_point.z])
-
+    plt.ion()
     ax.axis([-0.2,1.7, -0.2, 0.75])
     # ax.axis([-0.2,1.7, -0.2, 0.75])
     # Plot center of objects, grasp point and elbow joint
@@ -582,23 +577,41 @@ def sim(req):
     ax.plot([co_s.y,co_e.y,grasp_point.y],[co_s.x,co_e.x,grasp_point.x])
     plt.gca().invert_xaxis()
 
-    # draw sphere
-    # u, v = np.mgrid[0:2*np.pi:20j, 0:np.pi:10j]
-    # x = np.cos(u)*np.sin(v)
-    # y = np.sin(u)*np.sin(v)
-    # z = np.cos(v)
-    # ax3.plot_wireframe(x, y, z, color="r")
-
     # plt.gca().invert_xaxis()
     # plt.figure(size=(5,6))
-    plt.show(block=True)
+    # plt.show(block=False)
     # plt.show()
-    rospy.sleep(10.0)
-    plt.close('all')
+    # rospy.sleep(10.0)
+    # plt.close('all')
     index = int(neig_idx)
     print("Index %s" %index)
 
+    for i in range(len(path_xy)):
+        plt.cla()
+        ax.axis([-0.2,1.7, -0.2, 0.75])
+        plt.gca().invert_xaxis()
+        ax.add_patch(rect)
 
+        grasp_point.x = path_xy[i][0]
+        grasp_point.y = path_xy[i][1]
+        co_e, co_s = angle_ik(grasp_point)
+        ax.plot(center[1,:],center[0,:],'ob',x[1,0],x[0,0],'or',grasp_point.y,grasp_point.x,'og',co_e.y,co_e.x,'ok')
+        ax.plot(center[1,neig_idx],center[0,neig_idx],'o', markerfacecolor='None',markersize=15,markeredgewidth=1)
+        ax.plot([co_s.y,co_e.y,grasp_point.y],[co_s.x,co_e.x,grasp_point.x])
+        j = 0
+        while j < len(objects):
+            iteration = int(j/6)
+            center[0,iteration] = world_objects.data[j+3]
+            center[1,iteration] = world_objects.data[j+4]
+            rect = patches.Rectangle((center[1,iteration]-world_objects.data[j+1]/2,center[0,iteration]-world_objects.data[j]/2),world_objects.data[j+1],world_objects.data[j],linewidth=1,edgecolor='r',facecolor='none')
+            ax.add_patch(rect)
+
+            j+=6
+        plt.draw()
+        plt.pause(0.05)
+
+        # plt.cla()
+        i+=1
 
     # b = Float32MultiArray()
     # b.data = [0]*len(objects)
