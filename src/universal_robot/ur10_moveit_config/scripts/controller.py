@@ -51,7 +51,7 @@ class ExecutionManager(object):
       self.gaze_point.z = req.gaze_z
       # self.debug_printer()
       self.gaze_sent = 1
-      
+
       return gazePointResponse(True)
 
   def request_segmentation(self):
@@ -73,8 +73,9 @@ class ExecutionManager(object):
       self.gaze_point.z = 0.25
       rospy.wait_for_service('gaze_optimiser_service')
       try:
-          gaze_optimiser_service = rospy.ServiceProxy('gaze_optimiser_service', gazeOptimiser)
+          gaze_optimiser_service = rospy.ServiceProxy('gaze_optimiser_service', gazeOptimiser,  persistent=True)
           data = gaze_optimiser_service(objs,self.gaze_point)
+          # self.request_segmentation()
           return data
       except rospy.ServiceException, e:
           print "Service call failed: %s"%e
@@ -92,13 +93,13 @@ if __name__ == '__main__':
     # controller.gaze_server_setup()
     rospy.Subscriber("/camera/depth_registered/points", PointCloud2, controller.cloud_callback, queue_size=1)
     rospy.sleep(1.0)
-    objects = controller.request_segmentation()
-    #objects = Float32MultiArray()
-    #objects.data = [0.08766677975654602, 0.08212397247552872, 0.19581645727157593, 0.5342333912849426, -0.08212301135063171, 0.0106821209192276, 0.04192066192626953, 0.0972205102443695, 0.11764948815107346, 0.5432109832763672, 0.09034746885299683, -0.008821483701467514]
-    print(objects)
+    #objects = controller.request_segmentation()
+    objects = Float32MultiArray()
+    objects.data = [0.08766677975654602, 0.08212397247552872, 0.19581645727157593, 0.5342333912849426, -0.08212301135063171, 0.0106821209192276, 0.04192066192626953, 0.0972205102443695, 0.11764948815107346, 0.5432109832763672, 0.09034746885299683, -0.008821483701467514]
+    #print(objects)
 
-    bob = controller.gaze_optimiser_caller(objects)
-    print(bob)
+    optimiser_output = controller.gaze_optimiser_caller(objects)
+    print(optimiser_output)
     # if controller.gaze_sent == 1:
         # controller.request_segmentation()
     # rospy.Subscriber("/camera/depth_registered/points", PointCloud2, controller.cloud_callback, queue_size=1)

@@ -531,7 +531,7 @@ int main (int argc, char** argv)
     //   sleep(3);
     // }
 
-  ROS_INFO("Ready to add segment pointcloud.");
+  ROS_INFO("Ready to segment pointcloud.");
   ros::spin();
 
 

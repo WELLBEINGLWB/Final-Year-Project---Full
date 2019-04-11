@@ -27,6 +27,7 @@ def gaze_optimiser_server():
     s = rospy.Service('gaze_optimiser_service', gazeOptimiser, handle_objects)
     print "Ready to receive objects."
     rospy.spin()
+    print("Not get here")
 
 
 class Node():
@@ -164,7 +165,7 @@ def angle_ik(grasp_point):
     # elbow_angle = math.degrees(math.atan((grasp_point.y - sh_co.y)/(grasp_point.x - sh_co.x)))
     e_angle = math.atan((grasp_point.y - sh_co.y)/(grasp_point.x - sh_co.x - 0.29))
     elbow_angle = math.degrees(e_angle)
-    print("Elbow angle: %s" %elbow_angle)
+    # print("Elbow angle: %s" %elbow_angle)
 
     e_co.x = grasp_point.x - f_length*math.cos(e_angle)
     e_co.y = grasp_point.y - f_length*math.sin(e_angle)
@@ -351,7 +352,7 @@ def handle_objects(req):
         # target_obj = ['0', 0.11087217926979065, 0.3403069078922272, 0.11774600305213856, 0.48992229410969163, 0.49934569425808273, 0.27480948858513754]
 
 
-    fig,ax = plt.subplots(1)
+    # fig,ax = plt.subplots(1)
     # fig.set_size_inches(18.5, 10.5)
     # pylab.rcParams['figure.figsize'] = 5, 10
     # plt.subplots_adjust(left=0.1, right=0.9, bottom=0.1, top=0.9)
@@ -364,8 +365,8 @@ def handle_objects(req):
         iteration = int(j/6)
         center[0,iteration] = world_objects.data[j+3]
         center[1,iteration] = world_objects.data[j+4]
-        rect = patches.Rectangle((center[1,iteration]-world_objects.data[j+1]/2,center[0,iteration]-world_objects.data[j]/2),world_objects.data[j+1],world_objects.data[j],linewidth=1,edgecolor='r',facecolor='none')
-        ax.add_patch(rect)
+        # rect = patches.Rectangle((center[1,iteration]-world_objects.data[j+1]/2,center[0,iteration]-world_objects.data[j]/2),world_objects.data[j+1],world_objects.data[j],linewidth=1,edgecolor='r',facecolor='none')
+        # ax.add_patch(rect)
         # print(center)
         j+=6
 
@@ -392,20 +393,18 @@ def handle_objects(req):
     # rect = patches.Rectangle((0.5,0.2),0.15,0.1,linewidth=1,edgecolor='r',facecolor='none')
     # ax.add_patch(rect)
 
-    # highlighting the neighbours
-    pylab.plot(center[1,neig_idx],center[0,neig_idx],'o', markerfacecolor='None',markersize=15,markeredgewidth=1)
-    # plotting the data and the input point
-    # pylab.plot(center[1,:],center[0,:],'ob',x[1,0],x[0,0],'or')
+    # highlighting the target object center
+    # pylab.plot(center[1,neig_idx],center[0,neig_idx],'o', markerfacecolor='None',markersize=15,markeredgewidth=1)
+    # plt.axis([-0.2,1.7, -0.2, 0.75])
+    # ax.plot(center[1,:],center[0,:],'ob',x[1,0],x[0,0],'or',grasp_point.y,grasp_point.x,'og')
+    # ax.plot(center[1,neig_idx],center[0,neig_idx],'o', markerfacecolor='None',markersize=15,markeredgewidth=1)
+    # plt.plot([co_s.y,co_e.y,grasp_point.y],[co_s.x,co_e.x,grasp_point.x])
+    # plt.gca().invert_xaxis()
+    # plt.show(block=False)
+    # rospy.sleep(5.0)
+    # plt.close('all')
 
-    plt.axis([-0.2,1.7, -0.2, 0.75])
-    ax.plot(center[1,:],center[0,:],'ob',x[1,0],x[0,0],'or',grasp_point.y,grasp_point.x,'og')
-    ax.plot(center[1,neig_idx],center[0,neig_idx],'o', markerfacecolor='None',markersize=15,markeredgewidth=1)
-    plt.plot([co_s.y,co_e.y,grasp_point.y],[co_s.x,co_e.x,grasp_point.x])
-    # ax.plot(x, x + 4, linestyle='-')
-    plt.gca().invert_xaxis()
-    plt.show()
-    # rospy.sleep(15.0)
-    plt.close('all')
+
     index = int(neig_idx)
     print("Index %s" %index)
 
@@ -417,6 +416,7 @@ def handle_objects(req):
     srv_response.sorted_objects = world_objects
     srv_response.target_id = index
     srv_response.grasp_point = grasp_point
+
     return srv_response
 
 def sim(req):
@@ -487,7 +487,7 @@ def sim(req):
 
     fig = plt.figure(figsize=(10,10/(1.7/0.8)))
     ax = fig.add_subplot(111)
-#    plt.figure(figsize=(10,10/(1.7/0.7)))
+    #    plt.figure(figsize=(10,10/(1.7/0.7)))
     # fig3 = plt.figure(2)
     # ax3 = fig3.gca(projection='3d')
     # fig.set_size_inches(18.5, 10.5)
@@ -576,7 +576,7 @@ def sim(req):
         for j in range(len(path)):
                 r = path[j][0]
                 c = path[j][1]
-#                print(r,c)
+    #                print(r,c)
                 data[r][c]= 4
                 path_xy[j][0]=Xresolution*r
                 path_xy[j][1]=Yresolution*c
@@ -672,14 +672,15 @@ if __name__ == '__main__':
     rospy.init_node('gaze_optimiser', anonymous=True)
     req =  [0.09238377213478088, 0.07335389405488968, 0.1415911614894867, 0.43495261669158936, -0.11511331796646118, -0.0012646578252315521, 0.08798286318778992, 0.07133589684963226, 0.18319405615329742, 0.5219529271125793, 0.02710883319377899, 0.08386678248643875, 0.0326995849609375, 0.06856178492307663, 0.05430290102958679, 0.45429980754852295, 0.14136792719364166, -0.02174977958202362]
 
-    #gaze_optimiser_server()
+    gaze_optimiser_server()
+    print ("Ready to receive objects.")
     #req = [0.08420228958129883, 0.0866108238697052, 0.16340254247188568, 0.5440202951431274, 0.07170078903436661, 0.11486805230379105, 0.044422149658203125, 0.054751671850681305, 0.11145603656768799, 0.4410666823387146, -0.08078508079051971, 0.02292603999376297, 0.03234878182411194, 0.03743894398212433, 0.046912916004657745, 0.45620059967041016, 0.2094809114933014, 0.030203916132450104]
     #req = [0.10357585549354553, 0.07956766337156296, 0.1900981366634369, 0.3480975031852722, 0.038999784737825394, 0.025573041290044785, 0.09558302164077759, 0.06678294390439987, 0.1394098997116089, 0.3654365837574005, -0.11884936690330505, -0.04283341020345688, 0.02408367395401001, 0.07848946005105972, 0.06253930926322937, 0.5783331394195557, -0.037476059049367905, 0.04785224795341492]
-    sim(req)
+    #sim(req)
     # handle_objects(req)
     # path_plan_response = gaze_optimiser_server()
     # if path_plan_response != False
-    rospy.spin()
+    #rospy.spin()
 
 
 
