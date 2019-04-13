@@ -18,6 +18,7 @@ from moveit_msgs.srv import GetPositionFKResponse
 from std_msgs.msg import String
 from std_msgs.msg import Float32MultiArray
 from moveit_commander.conversions import pose_to_list
+from segmentation.srv import*
 
 import pylab
 import matplotlib.pyplot as plt
@@ -50,7 +51,19 @@ def all_close(goal, actual, tolerance):
   return True
 
 
+class Node():
+    """A node class for A* Pathfinding"""
 
+    def __init__(self, parent=None, position=None):
+        self.parent = parent
+        self.position = position
+
+        self.g = 0
+        self.h = 0
+        self.f = 0
+
+    def __eq__(self, other):
+        return self.position == other.position
 
 class MoveGroupPythonInterface(object):
   """MoveGroupPythonInterface"""
@@ -61,7 +74,7 @@ class MoveGroupPythonInterface(object):
     ##
     ## First initialize `moveit_commander`_ and a `rospy`_ node:
     moveit_commander.roscpp_initialize(sys.argv)
-    rospy.init_node('move_group_python_interface', anonymous=True)
+    rospy.init_node('path_planner', anonymous=True)
 
     ## Instantiate a `RobotCommander`_ object. This object is the outer-level interface to the robot:
     robot = moveit_commander.RobotCommander()
@@ -77,7 +90,7 @@ class MoveGroupPythonInterface(object):
     display_trajectory_publisher = rospy.Publisher('/move_group/display_planned_path', moveit_msgs.msg.DisplayTrajectory, queue_size=20)
 
 	## Getting Basic Information
-    # Get the name of the reference frame for the robot:
+    # Get name of the reference frame for the robot:
     planning_frame = group.get_planning_frame()
 
     # Print the name of the end-effector link for this group:
@@ -246,6 +259,19 @@ class MoveGroupPythonInterface(object):
     # current_joints = self.group.get_current_joint_values()
     current_pose = self.group.get_current_pose().pose
     return all_close(initial_pose, current_pose, 0.01)
+
+  def path_planner_server(self):
+      # Initialize server proxy for path_planner_service
+      s = rospy.Service('path_planner_service', pathPlanner, self.temp)
+      print "Ready to plan."
+      rospy.spin()
+      # print("Not get here")
+
+  def temp(self,request):
+      print(request)
+
+      return False
+
 
   def get_fk(self,fk_req):
 
@@ -1110,6 +1136,28 @@ def object_collision(e_co, grasp_point, objects_array, neig_idx):
     else:
         return False # There are no collisions
 
+def angle_ik(grasp_point):
+    e_co = geometry_msgs.msg.Point()
+    e_co.z = grasp_point.z
+
+    sh_co = geometry_msgs.msg.Point()
+    sh_co.x = -0.15
+    sh_co.y = 0.38
+    sh_co.z = 0.54
+    u_length = 0.36
+    f_length = 0.3
+    #print("Grasp point: %s" %grasp_point)
+    wrist_0_x = sh_co.x + f_length
+    # elbow_angle = math.degrees(math.atan((grasp_point.y - sh_co.y)/(grasp_point.x - sh_co.x)))
+    e_angle = math.atan((grasp_point.y - sh_co.y)/(grasp_point.x - sh_co.x - 0.29))
+    elbow_angle = math.degrees(e_angle)
+    # print("Elbow angle: %s" %elbow_angle)
+
+    e_co.x = grasp_point.x - f_length*math.cos(e_angle)
+    e_co.y = grasp_point.y - f_length*math.sin(e_angle)
+
+    return (e_co, sh_co)
+
 def main():
 
     commander = MoveGroupPythonInterface()
@@ -1178,4 +1226,10 @@ def main():
 
 
 if __name__ == '__main__':
-	main()
+	#main()
+    commander = MoveGroupPythonInterface()
+    commander.path_planner_server()
+    # commander.go_to_initial_state()
+    # print(commander.robot.get_current_state())
+    # commander.go_to_initial_state()
+    # commander.add_table()

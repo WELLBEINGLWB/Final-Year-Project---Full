@@ -43,6 +43,7 @@ if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_
     "/home/faisallab008/catkin_ws/src/segmentation/srv/seg.srv"
     "/home/faisallab008/catkin_ws/src/segmentation/srv/gazePoint.srv"
     "/home/faisallab008/catkin_ws/src/segmentation/srv/gazeOptimiser.srv"
+    "/home/faisallab008/catkin_ws/src/segmentation/srv/pathPlanner.srv"
     )
 endif()
 

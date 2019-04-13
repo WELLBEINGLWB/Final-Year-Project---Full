@@ -44,7 +44,6 @@ class Node():
     def __eq__(self, other):
         return self.position == other.position
 
-
 def astar(maze, start, end):
     """Returns a list of tuples as a path from the given start to the given end point"""
 
@@ -387,7 +386,7 @@ def handle_objects(req):
     grasp_point.y = world_objects.data[neig_idx*6 + 4] - world_objects.data[neig_idx*6 + 1]/2 - offset_y
     grasp_point.z = world_objects.data[neig_idx*6 + 5]
 
-    co_e, co_s = ik_calculator(grasp_point)
+    co_e, co_s = angle_ik(grasp_point)
     print("Coord %s" %co_e)
 
     # rect = patches.Rectangle((0.5,0.2),0.15,0.1,linewidth=1,edgecolor='r',facecolor='none')
@@ -670,7 +669,7 @@ def sim(req):
 
 if __name__ == '__main__':
     rospy.init_node('gaze_optimiser', anonymous=True)
-    req =  [0.09238377213478088, 0.07335389405488968, 0.1415911614894867, 0.43495261669158936, -0.11511331796646118, -0.0012646578252315521, 0.08798286318778992, 0.07133589684963226, 0.18319405615329742, 0.5219529271125793, 0.02710883319377899, 0.08386678248643875, 0.0326995849609375, 0.06856178492307663, 0.05430290102958679, 0.45429980754852295, 0.14136792719364166, -0.02174977958202362]
+    # req =  [0.09238377213478088, 0.07335389405488968, 0.1415911614894867, 0.43495261669158936, -0.11511331796646118, -0.0012646578252315521, 0.08798286318778992, 0.07133589684963226, 0.18319405615329742, 0.5219529271125793, 0.02710883319377899, 0.08386678248643875, 0.0326995849609375, 0.06856178492307663, 0.05430290102958679, 0.45429980754852295, 0.14136792719364166, -0.02174977958202362]
 
     gaze_optimiser_server()
     print ("Ready to receive objects.")

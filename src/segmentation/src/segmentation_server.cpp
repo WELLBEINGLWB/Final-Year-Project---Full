@@ -508,7 +508,7 @@ bool service_callback (segmentation::seg::Request  &req, segmentation::seg::Resp
 int main (int argc, char** argv)
 {
 
-  ros::init(argc, argv, "segmentation");
+  ros::init(argc, argv, "segmentation_node");
   ros::NodeHandle nh;
 
   // sub = nh.subscribe ("/depth/points", 1, cloud_callback);
