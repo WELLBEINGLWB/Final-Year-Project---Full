@@ -268,10 +268,106 @@ class MoveGroupPythonInterface(object):
       # print("Not get here")
 
   def temp(self,request):
-      print(request)
+      # print(request)
+      objects = request.sorted_objects.data
+      optimal_grasp_point = request.grasp_point
+      grasp_point = geometry_msgs.msg.Point()
+      target_id = request.target_id
+      # Add object bounding boxes to planning scene
+      self.add_box(objects, target_id)
+
+      ratio = 1.7/0.7
+      rows = 80
+      cols = int(rows/ratio) + 1
+      print("num cols: %s" %cols)
+      data = [[0 for _ in range(rows)] for _ in range(cols)]
+      data[20][26]=1
+      data[20][25]=1
+      data[19][28]=1
+      Yresolution = 1.7/rows
+      Xresolution = 0.7/cols
+
+      target_x = optimal_grasp_point.x  # - world_objects.data[neig_idx*6]/2
+      target_y = optimal_grasp_point.y
+      target_index = [round(target_x/Xresolution)-1,round(target_y/Yresolution)-1]
+
+      start_point = [0.15,0.38]
+      start = (int(round(start_point[0]/Xresolution)-1), int(round(start_point[1]/Yresolution)-1))
+      end = (int(target_index[0]), int(target_index[1]))
+
+      for i in range(rows):
+          for j in range(cols):
+              #target = [Xresolution*(j+1),Yresolution*(i+1)]
+              grasp_point.x = Xresolution*(j+1)
+              grasp_point.y = Yresolution*(i+1)
+              co_e, co_s = angle_ik(grasp_point)
+              collision_state = object_collision(co_e,grasp_point, objects, target_id)
+              if(collision_state == True):
+                  data[j][i] = 1
+
+      if data[end[0]][end[1]] != 1:
+          path = astar(data, start, end)
+          path_xy =  [[0]*2 for k in range(len(path))]
+          # print(path)
+          for j in range(len(path)):
+                  r = path[j][0]
+                  c = path[j][1]
+      #                print(r,c)
+                  data[r][c]= 4
+                  path_xy[j][0]=Xresolution*r
+                  path_xy[j][1]=Yresolution*c
+
+      data[end[0]][end[1]]=2
+      data[start[0]][start[1]]=3
+      data = np.array(data)
+      data.shape
+
+      grasp_point.x = optimal_grasp_point.x
+      grasp_point.y = optimal_grasp_point.y
+      # grasp_point.x = 0.15
+      # grasp_point.y = 0.38
+      co_e, co_s = angle_ik(grasp_point)
+      print(grasp_point)
+
+      print(path_xy)
+
+      self.point_planner(path_xy)
 
       return False
 
+
+  def point_planner(self, path_xy):
+      group = self.group
+      scene = self.scene
+      group.set_planning_time(15)
+
+      pose_goal = geometry_msgs.msg.Pose()
+      pose_goal.orientation.x = 0.00111054358639
+      pose_goal.orientation.y = 0.70699483645
+      pose_goal.orientation.z = 0.00111089701837
+      pose_goal.orientation.w = 0.707216963763
+
+      waypoints = []
+      wpose = group.get_current_pose().pose
+
+      for i in range(len(path_xy)):
+          wpose.position.x = path_xy[i][0]
+          wpose.position.y = path_xy[i][1]
+          waypoints.append(copy.deepcopy(wpose))
+
+      (plan, fraction) = group.compute_cartesian_path(
+                                         waypoints,   # waypoints to follow
+                                         0.01,        # eef_step
+                                         0.0, True)         # jump_threshold
+
+      group.execute(plan, wait=True)
+      group.stop()
+      # Clear  targets after planning with poses.
+      group.clear_pose_targets()
+
+      current_pose = self.group.get_current_pose().pose
+      # group.set_start_state_to_current_state()
+      return plan, fraction
 
   def get_fk(self,fk_req):
 
@@ -858,7 +954,7 @@ class MoveGroupPythonInterface(object):
     # print(scene.get_known_object_names())
     return self.wait_for_state_update(box_is_known=True, timeout=4)
 
-  def add_box(self, msg):
+  def add_box(self, objects, target_id):
 
     # box_name = self.box_name
     scene = self.scene
@@ -876,137 +972,151 @@ class MoveGroupPythonInterface(object):
 
     # print(msg.data)
     ## Adding Objects to the Planning Scene
-    objects = msg.data
-    world_objects = []
-    print(objects)
+    # objects = msg.data
+    world_objects = objects
+    print(world_objects)
 
     # Number of objects in the array (each has 6 dimensions)
-    num_objects = len(objects)/6
+    num_objects = len(world_objects)/6
     # print("Number of objects: ")
     # print(num_objects)
     # obj_name={}
     # for n in range(1,10):
     #     obj_name["object{0}".format(n)]="Hello"
 
-
-
     # Extra margin to add to the bounding boxes and to find gaze point within one object(in meters)
     margin = 0.0
-
-    transformer = tf.TransformListener()
-
     i = 0
-    while i < len(objects):
-
-        # Transform the center point of the object from cameraLink frame to world frame
-        transformer.waitForTransform("camera_link", "world", rospy.Time(0),rospy.Duration(4.0))
-        pointstamp = geometry_msgs.msg.PointStamped()
-        pointstamp.header.frame_id = "camera_link"
-        pointstamp.header.stamp = rospy.Time()
-        pointstamp.point.x = objects[i+3]
-        pointstamp.point.y = objects[i+4]
-        pointstamp.point.z = objects[i+5]
-
-        # print("Before: ")
-        # print(pointstamp.point.x)
-        # print(pointstamp.point.y)
-        # print(pointstamp.point.z)
-        # transformer.waitForTransform("camera_link", "world", rospy.Time(0),rospy.Duration(4.0))
-
-        # Converting the center point if the object to /world frame
-        p_tr = transformer.transformPoint("world", pointstamp)
-
-        # world_objects[i+3] = p_tr.point.x
-        # world_objects[i+4] = p_tr.point.y
-        # world_objects[i+5] = p_tr.point.z
-        # print("After: ")
-        # print(p_tr.point.x)
-        # print(p_tr.point.y)
-        # print(p_tr.point.z)
-
-        height_to_table = 0.185 - (p_tr.point.z - (objects[i+2]/2))
-        # print("Object height: ")
-        # print(objects[i+2])
-        # print("Height to table: ")
-        # print(height_to_table)
-        # print("------- ")
-
-        box_name = self.box_name
-        box_pose = geometry_msgs.msg.PoseStamped()
-        box_pose.header.frame_id = "world"
-        box_pose.pose.position.x = p_tr.point.x
-        box_pose.pose.position.y = p_tr.point.y
-        # box_pose.pose.position.z = p_tr.point.z  # - height_to_table
-
-        box_pose.pose.position.z = 0.185 + (objects[i+2]/2)
-        box_pose.pose.position.z = box_pose.pose.position.z + (p_tr.point.z - box_pose.pose.position.z)/2
-        # world_objects[i+2] = objects[i+2] + (p_tr.point.z - box_pose.pose.position.z)
-
-        world_objects.insert(i, objects[i])
-        world_objects.insert(i+1, objects[i+1])
-        world_objects.insert(i+2, objects[i+2] + (p_tr.point.z - box_pose.pose.position.z))
-        world_objects.insert(i+3, p_tr.point.x)
-        world_objects.insert(i+4, p_tr.point.y)
-        world_objects.insert(i+5, box_pose.pose.position.z)
-        # print(world_objects)
+    while i < len(world_objects):
         object_id = str(i/6)
-        # self.objectAdder.addBox(object_id, world_objects[i] + margin, world_objects[i+1] + margin, world_objects[i+2] , world_objects[i+3], world_objects[i+4], world_objects[i+5])
-        # self.objectAdder.addBox(object_id, world_objects[i] + margin, world_objects[i+1] + margin, world_objects[i+2], world_objects[i+3], world_objects[i+4], world_objects[i+5])
-        # scene.add_box(object_id, box_pose, size=(objects[i] + margin, objects[i+1] + margin, objects[i+2] + (p_tr.point.z - box_pose.pose.position.z)))
-        # self.objectAdder.setColor(object_id, 0.1, 0.4, 1.0, a=0.9)
-        # self.objectAdder.sendColors()
 
-        ## Gaze integration
-        margin = 0.0 #0.042
-        gaze_margin = 0.05
-        # self.gaze_point = geometry_msgs.msg.Point()
-        # self.gaze_point.x = 0.4
-        # self.gaze_point.y = 0.6
-        # self.gaze_point.z = 0.2
-        print("x,y,z = ")
-        print(world_objects[i+3])
-        print(world_objects[i+4])
-        print(world_objects[i+5])
-        print("------")
-
-        #Adding the objects to the world
-        ## If the gaze point is within the object, that is the target object
-        if (((world_objects[i+3] - (world_objects[i]/2) - gaze_margin) <= self.gaze_point.x <= (world_objects[i+3] + (world_objects[i]/2) + gaze_margin))
-              and ((world_objects[i+4] - (world_objects[i+1]/2) - gaze_margin) <= self.gaze_point.y <= (world_objects[i+4] + (world_objects[i+1]/2) + gaze_margin))
-              and ((world_objects[i+5] - (world_objects[i+2]/2) - gaze_margin) <= self.gaze_point.z <= (world_objects[i+5] + (world_objects[i+2]/2) + gaze_margin))):
-
-                # self.target_obj_name = object_id
-                self.target_obj = []
-                self.target_obj.insert(0, world_objects[i])
-                self.target_obj.insert(1, world_objects[i+1])
-                self.target_obj.insert(2, world_objects[i+2])
-                self.target_obj.insert(3, world_objects[i+3])
-                self.target_obj.insert(4, world_objects[i+4])
-                self.target_obj.insert(5, world_objects[i+5])
-                self.target_obj.insert(6, object_id)
-                print(self.target_obj)
-                # targe_obj is set as such: [xDimension, yDimension, zDimension, xCenter, yCenter, zCenter, objectID]
-
-                # self.target_obj_x = world_objects[i+3]
-                # self.target_obj_y = world_objects[i+4]
-                # self.target_obj_z = world_objects[i+5]
-                self.objectAdder.addBox(object_id, world_objects[i] + margin, world_objects[i+1] + margin, world_objects[i+2], world_objects[i+3], world_objects[i+4], world_objects[i+5])
-                ## remove target object from world_objects???
-                self.objectAdder.setColor(object_id, 1.0, 0.2, 0.2, a=1.0)
-                ## Target object will have a different colour
-
+        self.objectAdder.addBox(object_id, world_objects[i] + margin, world_objects[i+1] + margin, world_objects[i+2], world_objects[i+3], world_objects[i+4], world_objects[i+5])
+        if(object_id == target_id):
+            self.objectAdder.setColor(object_id, 1.0, 0.2, 0.2, a=1.0)
+            ## Target object will have a different colour
         else:
-                self.objectAdder.addBox(object_id, world_objects[i] + margin, world_objects[i+1] + margin, world_objects[i+2], world_objects[i+3], world_objects[i+4], world_objects[i+5])
-                self.objectAdder.setColor(object_id, 0.1, 0.4, 1.0, a=1.0)
-                # All obstacles have the same colour
+            self.objectAdder.setColor(object_id, 0.1, 0.4, 1.0, a=1.0)
+            # All obstacles have the same colour
         # All the colours are set at the same time
         self.objectAdder.sendColors()
         i+=6
 
+
+
+    # transformer = tf.TransformListener()
+
+    # i = 0
+    # while i < len(objects):
+    #
+    #     # Transform the center point of the object from cameraLink frame to world frame
+    #     transformer.waitForTransform("camera_link", "world", rospy.Time(0),rospy.Duration(4.0))
+    #     pointstamp = geometry_msgs.msg.PointStamped()
+    #     pointstamp.header.frame_id = "camera_link"
+    #     pointstamp.header.stamp = rospy.Time()
+    #     pointstamp.point.x = objects[i+3]
+    #     pointstamp.point.y = objects[i+4]
+    #     pointstamp.point.z = objects[i+5]
+    #
+    #     # print("Before: ")
+    #     # print(pointstamp.point.x)
+    #     # print(pointstamp.point.y)
+    #     # print(pointstamp.point.z)
+    #     # transformer.waitForTransform("camera_link", "world", rospy.Time(0),rospy.Duration(4.0))
+    #
+    #     # Converting the center point if the object to /world frame
+    #     p_tr = transformer.transformPoint("world", pointstamp)
+    #
+    #     # world_objects[i+3] = p_tr.point.x
+    #     # world_objects[i+4] = p_tr.point.y
+    #     # world_objects[i+5] = p_tr.point.z
+    #     # print("After: ")
+    #     # print(p_tr.point.x)
+    #     # print(p_tr.point.y)
+    #     # print(p_tr.point.z)
+    #
+    #     height_to_table = 0.185 - (p_tr.point.z - (objects[i+2]/2))
+    #     # print("Object height: ")
+    #     # print(objects[i+2])
+    #     # print("Height to table: ")
+    #     # print(height_to_table)
+    #     # print("------- ")
+    #
+    #     box_name = self.box_name
+    #     box_pose = geometry_msgs.msg.PoseStamped()
+    #     box_pose.header.frame_id = "world"
+    #     box_pose.pose.position.x = p_tr.point.x
+    #     box_pose.pose.position.y = p_tr.point.y
+    #     # box_pose.pose.position.z = p_tr.point.z  # - height_to_table
+    #
+    #     box_pose.pose.position.z = 0.185 + (objects[i+2]/2)
+    #     box_pose.pose.position.z = box_pose.pose.position.z + (p_tr.point.z - box_pose.pose.position.z)/2
+    #     # world_objects[i+2] = objects[i+2] + (p_tr.point.z - box_pose.pose.position.z)
+    #
+    #     world_objects.insert(i, objects[i])
+    #     world_objects.insert(i+1, objects[i+1])
+    #     world_objects.insert(i+2, objects[i+2] + (p_tr.point.z - box_pose.pose.position.z))
+    #     world_objects.insert(i+3, p_tr.point.x)
+    #     world_objects.insert(i+4, p_tr.point.y)
+    #     world_objects.insert(i+5, box_pose.pose.position.z)
+    #     # print(world_objects)
+    #     object_id = str(i/6)
+    #     # self.objectAdder.addBox(object_id, world_objects[i] + margin, world_objects[i+1] + margin, world_objects[i+2] , world_objects[i+3], world_objects[i+4], world_objects[i+5])
+    #     # self.objectAdder.addBox(object_id, world_objects[i] + margin, world_objects[i+1] + margin, world_objects[i+2], world_objects[i+3], world_objects[i+4], world_objects[i+5])
+    #     # scene.add_box(object_id, box_pose, size=(objects[i] + margin, objects[i+1] + margin, objects[i+2] + (p_tr.point.z - box_pose.pose.position.z)))
+    #     # self.objectAdder.setColor(object_id, 0.1, 0.4, 1.0, a=0.9)
+    #     # self.objectAdder.sendColors()
+    #
+    #     ## Gaze integration
+    #     margin = 0.0 #0.042
+    #     gaze_margin = 0.05
+    #     # self.gaze_point = geometry_msgs.msg.Point()
+    #     # self.gaze_point.x = 0.4
+    #     # self.gaze_point.y = 0.6
+    #     # self.gaze_point.z = 0.2
+    #     print("x,y,z = ")
+    #     print(world_objects[i+3])
+    #     print(world_objects[i+4])
+    #     print(world_objects[i+5])
+    #     print("------")
+    #
+    #     #Adding the objects to the world
+    #     ## If the gaze point is within the object, that is the target object
+    #     if (((world_objects[i+3] - (world_objects[i]/2) - gaze_margin) <= self.gaze_point.x <= (world_objects[i+3] + (world_objects[i]/2) + gaze_margin))
+    #           and ((world_objects[i+4] - (world_objects[i+1]/2) - gaze_margin) <= self.gaze_point.y <= (world_objects[i+4] + (world_objects[i+1]/2) + gaze_margin))
+    #           and ((world_objects[i+5] - (world_objects[i+2]/2) - gaze_margin) <= self.gaze_point.z <= (world_objects[i+5] + (world_objects[i+2]/2) + gaze_margin))):
+    #
+    #             # self.target_obj_name = object_id
+    #             self.target_obj = []
+    #             self.target_obj.insert(0, world_objects[i])
+    #             self.target_obj.insert(1, world_objects[i+1])
+    #             self.target_obj.insert(2, world_objects[i+2])
+    #             self.target_obj.insert(3, world_objects[i+3])
+    #             self.target_obj.insert(4, world_objects[i+4])
+    #             self.target_obj.insert(5, world_objects[i+5])
+    #             self.target_obj.insert(6, object_id)
+    #             print(self.target_obj)
+    #             # targe_obj is set as such: [xDimension, yDimension, zDimension, xCenter, yCenter, zCenter, objectID]
+    #
+    #             # self.target_obj_x = world_objects[i+3]
+    #             # self.target_obj_y = world_objects[i+4]
+    #             # self.target_obj_z = world_objects[i+5]
+    #             self.objectAdder.addBox(object_id, world_objects[i] + margin, world_objects[i+1] + margin, world_objects[i+2], world_objects[i+3], world_objects[i+4], world_objects[i+5])
+    #             ## remove target object from world_objects???
+    #             self.objectAdder.setColor(object_id, 1.0, 0.2, 0.2, a=1.0)
+    #             ## Target object will have a different colour
+    #
+    #     else:
+    #             self.objectAdder.addBox(object_id, world_objects[i] + margin, world_objects[i+1] + margin, world_objects[i+2], world_objects[i+3], world_objects[i+4], world_objects[i+5])
+    #             self.objectAdder.setColor(object_id, 0.1, 0.4, 1.0, a=1.0)
+    #             # All obstacles have the same colour
+    #     # All the colours are set at the same time
+    #     self.objectAdder.sendColors()
+    #     i+=6
+
         # target_obj = ['0', 0.11087217926979065, 0.3403069078922272, 0.11774600305213856, 0.48992229410969163, 0.49934569425808273, 0.27480948858513754]
 
 
-    j = 0
+    # j = 0
     # while j < len(world_objects):
     #     if(world_objects[j]- <= self.target_obj)
     #
@@ -1026,7 +1136,7 @@ class MoveGroupPythonInterface(object):
     # scene.add_mesh("mesh_test", box_pose, self.leg_mesh)
 
 
-    self.box_name=box_name
+    #self.box_name=box_name
     # print(scene.get_known_object_names())
     return self.wait_for_state_update(box_is_known=True, timeout=4)
 
@@ -1088,18 +1198,6 @@ class MoveGroupPythonInterface(object):
     # Wait for the planning scene to update.
     return self.wait_for_state_update(box_is_attached=False, box_is_known=False, timeout=timeout)
 
-def knn_search(x, D, K):
-     # find nearest bounding box to gaze point
-     ndata = D.shape[1]
-
-     K = K if K < ndata else ndata
-     # euclidean distances from the other points
-     sqd = np.sqrt(((D - x[:,:ndata])**2).sum(axis=0))
-     idx = np.argsort(sqd) # sorting
-    # print(idx[:K])
-     # return the indexes of K nearest neighbours
-     return idx[:K]
-
 def line_collision(x1,y1,x2,y2,x3,y3,x4,y4):
     uA = ((x4-x3)*(y1-y3) - (y4-y3)*(x1-x3)) / ((y4-y3)*(x2-x1) - (x4-x3)*(y2-y1))
     uB = ((x2-x1)*(y1-y3) - (y2-y1)*(x1-x3)) / ((y4-y3)*(x2-x1) - (x4-x3)*(y2-y1))
@@ -1158,14 +1256,96 @@ def angle_ik(grasp_point):
 
     return (e_co, sh_co)
 
+def astar(maze, start, end):
+    """Returns a list of tuples as a path from the given start to the given end point"""
+
+    # Create start and end node
+    start_node = Node(None, start)
+    start_node.g = start_node.h = start_node.f = 0
+    end_node = Node(None, end)
+    end_node.g = end_node.h = end_node.f = 0
+
+    # Initialize open and closed list
+    open_list = []
+    closed_list = []
+
+    # Add the start node
+    open_list.append(start_node)
+
+    # Loop until you find the end
+    while len(open_list) > 0:
+
+        # Get the current node
+        current_node = open_list[0]
+        current_index = 0
+        for index, item in enumerate(open_list):
+            if item.f < current_node.f:
+                current_node = item
+                current_index = index
+
+        # Pop current off open list, add to closed list
+        open_list.pop(current_index)
+        closed_list.append(current_node)
+
+        # Found the goal
+        if current_node == end_node:
+            path = []
+            current = current_node
+            while current is not None:
+                path.append(current.position)
+                current = current.parent
+            return path[::-1] # Return reversed path
+
+        # Generate children
+        children = []
+        for new_position in [(0, -1), (0, 1), (-1, 0), (1, 0), (-1, -1), (-1, 1), (1, -1), (1, 1)]: # Adjacent squares
+
+            # Get node position
+            node_position = (current_node.position[0] + new_position[0], current_node.position[1] + new_position[1])
+
+            # Make sure within range
+            if node_position[0] > (len(maze) - 1) or node_position[0] < 0 or node_position[1] > (len(maze[len(maze)-1]) -1) or node_position[1] < 0:
+                continue
+
+            # Make sure walkable terrain
+            if maze[node_position[0]][node_position[1]] != 0:
+                continue
+
+            # Create new node
+            new_node = Node(current_node, node_position)
+
+            # Append
+            children.append(new_node)
+
+        # Loop through children
+        for child in children:
+
+            # Child is on the closed list
+            for closed_child in closed_list:
+                if child == closed_child:
+                    continue
+
+            # Create the f, g, and h values
+            child.g = current_node.g + 1
+            child.h = ((child.position[0] - end_node.position[0]) ** 2) + ((child.position[1] - end_node.position[1]) ** 2)
+            child.f = child.g + child.h
+
+            # Child is already in the open list
+            for open_node in open_list:
+                if child == open_node and child.g > open_node.g:
+                    continue
+
+            # Add the child to the open list
+            open_list.append(child)
+
 def main():
 
     commander = MoveGroupPythonInterface()
     #option = True
     #rospy.init_node('send_pose', anonymous="True")
 
-    # commander.go_to_initial_state()
-    # commander.add_table()
+    commander.go_to_initial_state()
+    commander.add_table()
 
 
     # rospy.Subscriber("/objects_array", Float32MultiArray, commander.add_box, queue_size=1)
@@ -1228,6 +1408,8 @@ def main():
 if __name__ == '__main__':
 	#main()
     commander = MoveGroupPythonInterface()
+    commander.go_to_initial_state()
+    commander.add_table()
     commander.path_planner_server()
     # commander.go_to_initial_state()
     # print(commander.robot.get_current_state())

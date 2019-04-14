@@ -351,7 +351,7 @@ def handle_objects(req):
         # target_obj = ['0', 0.11087217926979065, 0.3403069078922272, 0.11774600305213856, 0.48992229410969163, 0.49934569425808273, 0.27480948858513754]
 
 
-    # fig,ax = plt.subplots(1)
+    fig,ax = plt.subplots(1)
     # fig.set_size_inches(18.5, 10.5)
     # pylab.rcParams['figure.figsize'] = 5, 10
     # plt.subplots_adjust(left=0.1, right=0.9, bottom=0.1, top=0.9)
@@ -364,8 +364,8 @@ def handle_objects(req):
         iteration = int(j/6)
         center[0,iteration] = world_objects.data[j+3]
         center[1,iteration] = world_objects.data[j+4]
-        # rect = patches.Rectangle((center[1,iteration]-world_objects.data[j+1]/2,center[0,iteration]-world_objects.data[j]/2),world_objects.data[j+1],world_objects.data[j],linewidth=1,edgecolor='r',facecolor='none')
-        # ax.add_patch(rect)
+        rect = patches.Rectangle((center[1,iteration]-world_objects.data[j+1]/2,center[0,iteration]-world_objects.data[j]/2),world_objects.data[j+1],world_objects.data[j],linewidth=1,edgecolor='r',facecolor='none')
+        ax.add_patch(rect)
         # print(center)
         j+=6
 
@@ -378,11 +378,11 @@ def handle_objects(req):
     print(world_objects.data[neig_idx*6 + 3])
     print(world_objects.data[neig_idx*6 + 4])
     print(world_objects.data[neig_idx*6 + 5])
-    offset_x = 0.015
-    offset_y = 0.015
+    offset_x = 0.01
+    offset_y = 0.02
 
     grasp_point = geometry_msgs.msg.Point()
-    grasp_point.x = world_objects.data[neig_idx*6 + 3] - world_objects.data[neig_idx*6]/2 - offset_x
+    grasp_point.x = world_objects.data[neig_idx*6 + 3] - offset_x # - world_objects.data[neig_idx*6]/2
     grasp_point.y = world_objects.data[neig_idx*6 + 4] - world_objects.data[neig_idx*6 + 1]/2 - offset_y
     grasp_point.z = world_objects.data[neig_idx*6 + 5]
 
@@ -393,15 +393,15 @@ def handle_objects(req):
     # ax.add_patch(rect)
 
     # highlighting the target object center
-    # pylab.plot(center[1,neig_idx],center[0,neig_idx],'o', markerfacecolor='None',markersize=15,markeredgewidth=1)
-    # plt.axis([-0.2,1.7, -0.2, 0.75])
-    # ax.plot(center[1,:],center[0,:],'ob',x[1,0],x[0,0],'or',grasp_point.y,grasp_point.x,'og')
-    # ax.plot(center[1,neig_idx],center[0,neig_idx],'o', markerfacecolor='None',markersize=15,markeredgewidth=1)
-    # plt.plot([co_s.y,co_e.y,grasp_point.y],[co_s.x,co_e.x,grasp_point.x])
-    # plt.gca().invert_xaxis()
-    # plt.show(block=False)
-    # rospy.sleep(5.0)
-    # plt.close('all')
+    pylab.plot(center[1,neig_idx],center[0,neig_idx],'o', markerfacecolor='None',markersize=15,markeredgewidth=1)
+    plt.axis([-0.2,1.7, -0.2, 0.75])
+    ax.plot(center[1,:],center[0,:],'ob',x[1,0],x[0,0],'or',grasp_point.y,grasp_point.x,'og')
+    ax.plot(center[1,neig_idx],center[0,neig_idx],'o', markerfacecolor='None',markersize=15,markeredgewidth=1)
+    plt.plot([co_s.y,co_e.y,grasp_point.y],[co_s.x,co_e.x,grasp_point.x])
+    plt.gca().invert_xaxis()
+    plt.show(block=False)
+    rospy.sleep(5.0)
+    plt.close('all')
 
 
     index = int(neig_idx)
