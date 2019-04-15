@@ -62,6 +62,7 @@ add_service_files(
    gazePoint.srv
    gazeOptimiser.srv
    pathPlanner.srv
+   executionOrder.srv
 )
 
 ## Generate actions in the 'action' folder

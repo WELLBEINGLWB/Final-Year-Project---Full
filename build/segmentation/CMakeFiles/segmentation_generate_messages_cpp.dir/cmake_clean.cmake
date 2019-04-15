@@ -1,10 +1,11 @@
 file(REMOVE_RECURSE
   "CMakeFiles/segmentation_generate_messages_cpp"
+  "/home/faisallab008/catkin_ws/devel/include/segmentation/executionOrder.h"
+  "/home/faisallab008/catkin_ws/devel/include/segmentation/gazePoint.h"
+  "/home/faisallab008/catkin_ws/devel/include/segmentation/AddTwoInts.h"
   "/home/faisallab008/catkin_ws/devel/include/segmentation/seg.h"
   "/home/faisallab008/catkin_ws/devel/include/segmentation/gazeOptimiser.h"
   "/home/faisallab008/catkin_ws/devel/include/segmentation/pathPlanner.h"
-  "/home/faisallab008/catkin_ws/devel/include/segmentation/gazePoint.h"
-  "/home/faisallab008/catkin_ws/devel/include/segmentation/AddTwoInts.h"
 )
 
 # Per-language clean rules from dependency scanning.

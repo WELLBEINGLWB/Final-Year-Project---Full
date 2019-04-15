@@ -1,6 +1,6 @@
 # generated from genmsg/cmake/pkg-genmsg.cmake.em
 
-message(STATUS "segmentation: 0 messages, 5 services")
+message(STATUS "segmentation: 0 messages, 6 services")
 
 set(MSG_I_FLAGS "-Istd_msgs:/opt/ros/indigo/share/std_msgs/cmake/../msg;-Isensor_msgs:/opt/ros/indigo/share/sensor_msgs/cmake/../msg;-Igeometry_msgs:/opt/ros/indigo/share/geometry_msgs/cmake/../msg")
 
@@ -15,6 +15,21 @@ add_custom_target(segmentation_generate_messages ALL)
 
 
 
+get_filename_component(_filename "/home/faisallab008/catkin_ws/src/segmentation/srv/executionOrder.srv" NAME_WE)
+add_custom_target(_segmentation_generate_messages_check_deps_${_filename}
+  COMMAND ${CATKIN_ENV} ${PYTHON_EXECUTABLE} ${GENMSG_CHECK_DEPS_SCRIPT} "segmentation" "/home/faisallab008/catkin_ws/src/segmentation/srv/executionOrder.srv" ""
+)
+
+get_filename_component(_filename "/home/faisallab008/catkin_ws/src/segmentation/srv/gazePoint.srv" NAME_WE)
+add_custom_target(_segmentation_generate_messages_check_deps_${_filename}
+  COMMAND ${CATKIN_ENV} ${PYTHON_EXECUTABLE} ${GENMSG_CHECK_DEPS_SCRIPT} "segmentation" "/home/faisallab008/catkin_ws/src/segmentation/srv/gazePoint.srv" ""
+)
+
+get_filename_component(_filename "/home/faisallab008/catkin_ws/src/segmentation/srv/AddTwoInts.srv" NAME_WE)
+add_custom_target(_segmentation_generate_messages_check_deps_${_filename}
+  COMMAND ${CATKIN_ENV} ${PYTHON_EXECUTABLE} ${GENMSG_CHECK_DEPS_SCRIPT} "segmentation" "/home/faisallab008/catkin_ws/src/segmentation/srv/AddTwoInts.srv" ""
+)
+
 get_filename_component(_filename "/home/faisallab008/catkin_ws/src/segmentation/srv/seg.srv" NAME_WE)
 add_custom_target(_segmentation_generate_messages_check_deps_${_filename}
   COMMAND ${CATKIN_ENV} ${PYTHON_EXECUTABLE} ${GENMSG_CHECK_DEPS_SCRIPT} "segmentation" "/home/faisallab008/catkin_ws/src/segmentation/srv/seg.srv" "sensor_msgs/PointField:std_msgs/MultiArrayLayout:sensor_msgs/PointCloud2:std_msgs/Header:std_msgs/Float32MultiArray:std_msgs/MultiArrayDimension"
@@ -23,16 +38,6 @@ add_custom_target(_segmentation_generate_messages_check_deps_${_filename}
 get_filename_component(_filename "/home/faisallab008/catkin_ws/src/segmentation/srv/gazeOptimiser.srv" NAME_WE)
 add_custom_target(_segmentation_generate_messages_check_deps_${_filename}
   COMMAND ${CATKIN_ENV} ${PYTHON_EXECUTABLE} ${GENMSG_CHECK_DEPS_SCRIPT} "segmentation" "/home/faisallab008/catkin_ws/src/segmentation/srv/gazeOptimiser.srv" "std_msgs/Float32MultiArray:std_msgs/MultiArrayDimension:geometry_msgs/Point:std_msgs/MultiArrayLayout"
-)
-
-get_filename_component(_filename "/home/faisallab008/catkin_ws/src/segmentation/srv/AddTwoInts.srv" NAME_WE)
-add_custom_target(_segmentation_generate_messages_check_deps_${_filename}
-  COMMAND ${CATKIN_ENV} ${PYTHON_EXECUTABLE} ${GENMSG_CHECK_DEPS_SCRIPT} "segmentation" "/home/faisallab008/catkin_ws/src/segmentation/srv/AddTwoInts.srv" ""
-)
-
-get_filename_component(_filename "/home/faisallab008/catkin_ws/src/segmentation/srv/gazePoint.srv" NAME_WE)
-add_custom_target(_segmentation_generate_messages_check_deps_${_filename}
-  COMMAND ${CATKIN_ENV} ${PYTHON_EXECUTABLE} ${GENMSG_CHECK_DEPS_SCRIPT} "segmentation" "/home/faisallab008/catkin_ws/src/segmentation/srv/gazePoint.srv" ""
 )
 
 get_filename_component(_filename "/home/faisallab008/catkin_ws/src/segmentation/srv/pathPlanner.srv" NAME_WE)
@@ -49,6 +54,24 @@ add_custom_target(_segmentation_generate_messages_check_deps_${_filename}
 
 ### Generating Services
 _generate_srv_cpp(segmentation
+  "/home/faisallab008/catkin_ws/src/segmentation/srv/executionOrder.srv"
+  "${MSG_I_FLAGS}"
+  ""
+  ${CATKIN_DEVEL_PREFIX}/${gencpp_INSTALL_DIR}/segmentation
+)
+_generate_srv_cpp(segmentation
+  "/home/faisallab008/catkin_ws/src/segmentation/srv/gazePoint.srv"
+  "${MSG_I_FLAGS}"
+  ""
+  ${CATKIN_DEVEL_PREFIX}/${gencpp_INSTALL_DIR}/segmentation
+)
+_generate_srv_cpp(segmentation
+  "/home/faisallab008/catkin_ws/src/segmentation/srv/AddTwoInts.srv"
+  "${MSG_I_FLAGS}"
+  ""
+  ${CATKIN_DEVEL_PREFIX}/${gencpp_INSTALL_DIR}/segmentation
+)
+_generate_srv_cpp(segmentation
   "/home/faisallab008/catkin_ws/src/segmentation/srv/seg.srv"
   "${MSG_I_FLAGS}"
   "/opt/ros/indigo/share/sensor_msgs/cmake/../msg/PointField.msg;/opt/ros/indigo/share/std_msgs/cmake/../msg/MultiArrayLayout.msg;/opt/ros/indigo/share/sensor_msgs/cmake/../msg/PointCloud2.msg;/opt/ros/indigo/share/std_msgs/cmake/../msg/Header.msg;/opt/ros/indigo/share/std_msgs/cmake/../msg/Float32MultiArray.msg;/opt/ros/indigo/share/std_msgs/cmake/../msg/MultiArrayDimension.msg"
@@ -66,18 +89,6 @@ _generate_srv_cpp(segmentation
   "/opt/ros/indigo/share/std_msgs/cmake/../msg/Float32MultiArray.msg;/opt/ros/indigo/share/std_msgs/cmake/../msg/MultiArrayDimension.msg;/opt/ros/indigo/share/geometry_msgs/cmake/../msg/Point.msg;/opt/ros/indigo/share/std_msgs/cmake/../msg/MultiArrayLayout.msg"
   ${CATKIN_DEVEL_PREFIX}/${gencpp_INSTALL_DIR}/segmentation
 )
-_generate_srv_cpp(segmentation
-  "/home/faisallab008/catkin_ws/src/segmentation/srv/gazePoint.srv"
-  "${MSG_I_FLAGS}"
-  ""
-  ${CATKIN_DEVEL_PREFIX}/${gencpp_INSTALL_DIR}/segmentation
-)
-_generate_srv_cpp(segmentation
-  "/home/faisallab008/catkin_ws/src/segmentation/srv/AddTwoInts.srv"
-  "${MSG_I_FLAGS}"
-  ""
-  ${CATKIN_DEVEL_PREFIX}/${gencpp_INSTALL_DIR}/segmentation
-)
 
 ### Generating Module File
 _generate_module_cpp(segmentation
@@ -91,13 +102,15 @@ add_custom_target(segmentation_generate_messages_cpp
 add_dependencies(segmentation_generate_messages segmentation_generate_messages_cpp)
 
 # add dependencies to all check dependencies targets
-get_filename_component(_filename "/home/faisallab008/catkin_ws/src/segmentation/srv/seg.srv" NAME_WE)
+get_filename_component(_filename "/home/faisallab008/catkin_ws/src/segmentation/srv/executionOrder.srv" NAME_WE)
 add_dependencies(segmentation_generate_messages_cpp _segmentation_generate_messages_check_deps_${_filename})
-get_filename_component(_filename "/home/faisallab008/catkin_ws/src/segmentation/srv/gazeOptimiser.srv" NAME_WE)
+get_filename_component(_filename "/home/faisallab008/catkin_ws/src/segmentation/srv/gazePoint.srv" NAME_WE)
 add_dependencies(segmentation_generate_messages_cpp _segmentation_generate_messages_check_deps_${_filename})
 get_filename_component(_filename "/home/faisallab008/catkin_ws/src/segmentation/srv/AddTwoInts.srv" NAME_WE)
 add_dependencies(segmentation_generate_messages_cpp _segmentation_generate_messages_check_deps_${_filename})
-get_filename_component(_filename "/home/faisallab008/catkin_ws/src/segmentation/srv/gazePoint.srv" NAME_WE)
+get_filename_component(_filename "/home/faisallab008/catkin_ws/src/segmentation/srv/seg.srv" NAME_WE)
+add_dependencies(segmentation_generate_messages_cpp _segmentation_generate_messages_check_deps_${_filename})
+get_filename_component(_filename "/home/faisallab008/catkin_ws/src/segmentation/srv/gazeOptimiser.srv" NAME_WE)
 add_dependencies(segmentation_generate_messages_cpp _segmentation_generate_messages_check_deps_${_filename})
 get_filename_component(_filename "/home/faisallab008/catkin_ws/src/segmentation/srv/pathPlanner.srv" NAME_WE)
 add_dependencies(segmentation_generate_messages_cpp _segmentation_generate_messages_check_deps_${_filename})
@@ -114,6 +127,24 @@ list(APPEND ${PROJECT_NAME}_EXPORTED_TARGETS segmentation_generate_messages_cpp)
 
 ### Generating Services
 _generate_srv_lisp(segmentation
+  "/home/faisallab008/catkin_ws/src/segmentation/srv/executionOrder.srv"
+  "${MSG_I_FLAGS}"
+  ""
+  ${CATKIN_DEVEL_PREFIX}/${genlisp_INSTALL_DIR}/segmentation
+)
+_generate_srv_lisp(segmentation
+  "/home/faisallab008/catkin_ws/src/segmentation/srv/gazePoint.srv"
+  "${MSG_I_FLAGS}"
+  ""
+  ${CATKIN_DEVEL_PREFIX}/${genlisp_INSTALL_DIR}/segmentation
+)
+_generate_srv_lisp(segmentation
+  "/home/faisallab008/catkin_ws/src/segmentation/srv/AddTwoInts.srv"
+  "${MSG_I_FLAGS}"
+  ""
+  ${CATKIN_DEVEL_PREFIX}/${genlisp_INSTALL_DIR}/segmentation
+)
+_generate_srv_lisp(segmentation
   "/home/faisallab008/catkin_ws/src/segmentation/srv/seg.srv"
   "${MSG_I_FLAGS}"
   "/opt/ros/indigo/share/sensor_msgs/cmake/../msg/PointField.msg;/opt/ros/indigo/share/std_msgs/cmake/../msg/MultiArrayLayout.msg;/opt/ros/indigo/share/sensor_msgs/cmake/../msg/PointCloud2.msg;/opt/ros/indigo/share/std_msgs/cmake/../msg/Header.msg;/opt/ros/indigo/share/std_msgs/cmake/../msg/Float32MultiArray.msg;/opt/ros/indigo/share/std_msgs/cmake/../msg/MultiArrayDimension.msg"
@@ -131,18 +162,6 @@ _generate_srv_lisp(segmentation
   "/opt/ros/indigo/share/std_msgs/cmake/../msg/Float32MultiArray.msg;/opt/ros/indigo/share/std_msgs/cmake/../msg/MultiArrayDimension.msg;/opt/ros/indigo/share/geometry_msgs/cmake/../msg/Point.msg;/opt/ros/indigo/share/std_msgs/cmake/../msg/MultiArrayLayout.msg"
   ${CATKIN_DEVEL_PREFIX}/${genlisp_INSTALL_DIR}/segmentation
 )
-_generate_srv_lisp(segmentation
-  "/home/faisallab008/catkin_ws/src/segmentation/srv/gazePoint.srv"
-  "${MSG_I_FLAGS}"
-  ""
-  ${CATKIN_DEVEL_PREFIX}/${genlisp_INSTALL_DIR}/segmentation
-)
-_generate_srv_lisp(segmentation
-  "/home/faisallab008/catkin_ws/src/segmentation/srv/AddTwoInts.srv"
-  "${MSG_I_FLAGS}"
-  ""
-  ${CATKIN_DEVEL_PREFIX}/${genlisp_INSTALL_DIR}/segmentation
-)
 
 ### Generating Module File
 _generate_module_lisp(segmentation
@@ -156,13 +175,15 @@ add_custom_target(segmentation_generate_messages_lisp
 add_dependencies(segmentation_generate_messages segmentation_generate_messages_lisp)
 
 # add dependencies to all check dependencies targets
-get_filename_component(_filename "/home/faisallab008/catkin_ws/src/segmentation/srv/seg.srv" NAME_WE)
+get_filename_component(_filename "/home/faisallab008/catkin_ws/src/segmentation/srv/executionOrder.srv" NAME_WE)
 add_dependencies(segmentation_generate_messages_lisp _segmentation_generate_messages_check_deps_${_filename})
-get_filename_component(_filename "/home/faisallab008/catkin_ws/src/segmentation/srv/gazeOptimiser.srv" NAME_WE)
+get_filename_component(_filename "/home/faisallab008/catkin_ws/src/segmentation/srv/gazePoint.srv" NAME_WE)
 add_dependencies(segmentation_generate_messages_lisp _segmentation_generate_messages_check_deps_${_filename})
 get_filename_component(_filename "/home/faisallab008/catkin_ws/src/segmentation/srv/AddTwoInts.srv" NAME_WE)
 add_dependencies(segmentation_generate_messages_lisp _segmentation_generate_messages_check_deps_${_filename})
-get_filename_component(_filename "/home/faisallab008/catkin_ws/src/segmentation/srv/gazePoint.srv" NAME_WE)
+get_filename_component(_filename "/home/faisallab008/catkin_ws/src/segmentation/srv/seg.srv" NAME_WE)
+add_dependencies(segmentation_generate_messages_lisp _segmentation_generate_messages_check_deps_${_filename})
+get_filename_component(_filename "/home/faisallab008/catkin_ws/src/segmentation/srv/gazeOptimiser.srv" NAME_WE)
 add_dependencies(segmentation_generate_messages_lisp _segmentation_generate_messages_check_deps_${_filename})
 get_filename_component(_filename "/home/faisallab008/catkin_ws/src/segmentation/srv/pathPlanner.srv" NAME_WE)
 add_dependencies(segmentation_generate_messages_lisp _segmentation_generate_messages_check_deps_${_filename})
@@ -179,6 +200,24 @@ list(APPEND ${PROJECT_NAME}_EXPORTED_TARGETS segmentation_generate_messages_lisp
 
 ### Generating Services
 _generate_srv_py(segmentation
+  "/home/faisallab008/catkin_ws/src/segmentation/srv/executionOrder.srv"
+  "${MSG_I_FLAGS}"
+  ""
+  ${CATKIN_DEVEL_PREFIX}/${genpy_INSTALL_DIR}/segmentation
+)
+_generate_srv_py(segmentation
+  "/home/faisallab008/catkin_ws/src/segmentation/srv/gazePoint.srv"
+  "${MSG_I_FLAGS}"
+  ""
+  ${CATKIN_DEVEL_PREFIX}/${genpy_INSTALL_DIR}/segmentation
+)
+_generate_srv_py(segmentation
+  "/home/faisallab008/catkin_ws/src/segmentation/srv/AddTwoInts.srv"
+  "${MSG_I_FLAGS}"
+  ""
+  ${CATKIN_DEVEL_PREFIX}/${genpy_INSTALL_DIR}/segmentation
+)
+_generate_srv_py(segmentation
   "/home/faisallab008/catkin_ws/src/segmentation/srv/seg.srv"
   "${MSG_I_FLAGS}"
   "/opt/ros/indigo/share/sensor_msgs/cmake/../msg/PointField.msg;/opt/ros/indigo/share/std_msgs/cmake/../msg/MultiArrayLayout.msg;/opt/ros/indigo/share/sensor_msgs/cmake/../msg/PointCloud2.msg;/opt/ros/indigo/share/std_msgs/cmake/../msg/Header.msg;/opt/ros/indigo/share/std_msgs/cmake/../msg/Float32MultiArray.msg;/opt/ros/indigo/share/std_msgs/cmake/../msg/MultiArrayDimension.msg"
@@ -196,18 +235,6 @@ _generate_srv_py(segmentation
   "/opt/ros/indigo/share/std_msgs/cmake/../msg/Float32MultiArray.msg;/opt/ros/indigo/share/std_msgs/cmake/../msg/MultiArrayDimension.msg;/opt/ros/indigo/share/geometry_msgs/cmake/../msg/Point.msg;/opt/ros/indigo/share/std_msgs/cmake/../msg/MultiArrayLayout.msg"
   ${CATKIN_DEVEL_PREFIX}/${genpy_INSTALL_DIR}/segmentation
 )
-_generate_srv_py(segmentation
-  "/home/faisallab008/catkin_ws/src/segmentation/srv/gazePoint.srv"
-  "${MSG_I_FLAGS}"
-  ""
-  ${CATKIN_DEVEL_PREFIX}/${genpy_INSTALL_DIR}/segmentation
-)
-_generate_srv_py(segmentation
-  "/home/faisallab008/catkin_ws/src/segmentation/srv/AddTwoInts.srv"
-  "${MSG_I_FLAGS}"
-  ""
-  ${CATKIN_DEVEL_PREFIX}/${genpy_INSTALL_DIR}/segmentation
-)
 
 ### Generating Module File
 _generate_module_py(segmentation
@@ -221,13 +248,15 @@ add_custom_target(segmentation_generate_messages_py
 add_dependencies(segmentation_generate_messages segmentation_generate_messages_py)
 
 # add dependencies to all check dependencies targets
-get_filename_component(_filename "/home/faisallab008/catkin_ws/src/segmentation/srv/seg.srv" NAME_WE)
+get_filename_component(_filename "/home/faisallab008/catkin_ws/src/segmentation/srv/executionOrder.srv" NAME_WE)
 add_dependencies(segmentation_generate_messages_py _segmentation_generate_messages_check_deps_${_filename})
-get_filename_component(_filename "/home/faisallab008/catkin_ws/src/segmentation/srv/gazeOptimiser.srv" NAME_WE)
+get_filename_component(_filename "/home/faisallab008/catkin_ws/src/segmentation/srv/gazePoint.srv" NAME_WE)
 add_dependencies(segmentation_generate_messages_py _segmentation_generate_messages_check_deps_${_filename})
 get_filename_component(_filename "/home/faisallab008/catkin_ws/src/segmentation/srv/AddTwoInts.srv" NAME_WE)
 add_dependencies(segmentation_generate_messages_py _segmentation_generate_messages_check_deps_${_filename})
-get_filename_component(_filename "/home/faisallab008/catkin_ws/src/segmentation/srv/gazePoint.srv" NAME_WE)
+get_filename_component(_filename "/home/faisallab008/catkin_ws/src/segmentation/srv/seg.srv" NAME_WE)
+add_dependencies(segmentation_generate_messages_py _segmentation_generate_messages_check_deps_${_filename})
+get_filename_component(_filename "/home/faisallab008/catkin_ws/src/segmentation/srv/gazeOptimiser.srv" NAME_WE)
 add_dependencies(segmentation_generate_messages_py _segmentation_generate_messages_check_deps_${_filename})
 get_filename_component(_filename "/home/faisallab008/catkin_ws/src/segmentation/srv/pathPlanner.srv" NAME_WE)
 add_dependencies(segmentation_generate_messages_py _segmentation_generate_messages_check_deps_${_filename})

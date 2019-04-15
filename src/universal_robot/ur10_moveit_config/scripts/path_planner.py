@@ -262,12 +262,19 @@ class MoveGroupPythonInterface(object):
 
   def path_planner_server(self):
       # Initialize server proxy for path_planner_service
-      s = rospy.Service('path_planner_service', pathPlanner, self.temp)
+      s = rospy.Service('path_planner_service', pathPlanner, self.planner)
       print "Ready to plan."
       rospy.spin()
       # print("Not get here")
 
-  def temp(self,request):
+  def path_executer_server(self):
+      # Initialize server proxy for path_planner_service
+      s = rospy.Service('path_executer_service', executionOrder, self.path_executer)
+      print "Ready to execute path."
+      #rospy.spin()
+      # print("Not get here")
+
+  def planner(self,request):
       # print(request)
       objects = request.sorted_objects.data
       optimal_grasp_point = request.grasp_point
@@ -316,24 +323,29 @@ class MoveGroupPythonInterface(object):
                   data[r][c]= 4
                   path_xy[j][0]=Xresolution*r
                   path_xy[j][1]=Yresolution*c
+          data[end[0]][end[1]]=2
+          data[start[0]][start[1]]=3
+          data = np.array(data)
+          data.shape
 
-      data[end[0]][end[1]]=2
-      data[start[0]][start[1]]=3
-      data = np.array(data)
-      data.shape
+          grasp_point.x = optimal_grasp_point.x
+          grasp_point.y = optimal_grasp_point.y
+          # grasp_point.x = 0.15
+          # grasp_point.y = 0.38
+          co_e, co_s = angle_ik(grasp_point)
+          print(grasp_point)
 
-      grasp_point.x = optimal_grasp_point.x
-      grasp_point.y = optimal_grasp_point.y
-      # grasp_point.x = 0.15
-      # grasp_point.y = 0.38
-      co_e, co_s = angle_ik(grasp_point)
-      print(grasp_point)
+          print(path_xy)
 
-      print(path_xy)
+          self.point_planner(path_xy)
 
-      self.point_planner(path_xy)
 
-      return False
+          return True
+
+      elif data[end[0]][end[1]] == 1:
+          print("The target state is in collision")
+          return False
+
 
 
   def point_planner(self, path_xy):
@@ -353,22 +365,38 @@ class MoveGroupPythonInterface(object):
       for i in range(len(path_xy)):
           wpose.position.x = path_xy[i][0]
           wpose.position.y = path_xy[i][1]
-          wpose.position.z = 0.25
+          wpose.position.z = 0.25 ##################################################################
           waypoints.append(copy.deepcopy(wpose))
 
-      (plan, fraction) = group.compute_cartesian_path(
+      (self.plan, fraction) = group.compute_cartesian_path(
                                          waypoints,   # waypoints to follow
                                          0.01,        # eef_step
                                          0.0, True)         # jump_threshold
 
-      group.execute(plan, wait=True)
-      group.stop()
+      #success = group.execute(plan, wait=True)
+      #print(success)
+      # group.stop()
       # Clear  targets after planning with poses.
-      group.clear_pose_targets()
-
+      # group.clear_pose_targets()
+      #self.path_executer()
       current_pose = self.group.get_current_pose().pose
       # group.set_start_state_to_current_state()
-      return plan, fraction
+      return self.plan, fraction
+
+  def path_executer(self,request):
+      if request.execute_order == True:
+          success = self.group.execute(self.plan, wait = True)
+          print(success)
+          self.group.stop()
+          self.group.clear_pose_targets()
+          if success == True:
+              return True
+          elif success == False:
+              return False
+      elif request.execute_order == False:
+          print("Why the hell did I bother planning this?!")
+          # self.group.stop()
+          self.group.clear_pose_targets()
 
   def get_fk(self,fk_req):
 
@@ -1411,7 +1439,10 @@ if __name__ == '__main__':
     commander = MoveGroupPythonInterface()
     commander.go_to_initial_state()
     commander.add_table()
+    commander.path_executer_server()
     commander.path_planner_server()
+
+
     # commander.go_to_initial_state()
     # print(commander.robot.get_current_state())
     # commander.go_to_initial_state()
