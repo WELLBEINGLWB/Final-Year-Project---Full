@@ -51,7 +51,9 @@ class ExecutionManager(object):
       self.gaze_point.z = req.gaze_z
       # self.debug_printer()
       self.gaze_sent = 1
-
+      objects = Float32MultiArray()
+      objects.data = [0.09238377213478088, 0.07335389405488968, 0.1415911614894867, 0.43495261669158936, -0.11511331796646118, -0.0012646578252315521, 0.08798286318778992, 0.07133589684963226, 0.18319405615329742, 0.5219529271125793, 0.02710883319377899, 0.08386678248643875, 0.0326995849609375, 0.06856178492307663, 0.05430290102958679, 0.45429980754852295, 0.14136792719364166, -0.02174977958202362]
+      self.gaze_optimiser_caller(objects)
       return gazePointResponse(True)
 
   def request_segmentation(self):
@@ -70,9 +72,9 @@ class ExecutionManager(object):
 
   def gaze_optimiser_caller(self, objs):
       print("Sent data to gaze optimiser")
-      self.gaze_point.x = 0.4
-      self.gaze_point.y = 0.6
-      self.gaze_point.z = 0.25
+      #self.gaze_point.x = 0.4
+      #self.gaze_point.y = 0.9
+      #self.gaze_point.z = 0.25
       rospy.wait_for_service('gaze_optimiser_service')
       try:
           gaze_optimiser_service = rospy.ServiceProxy('gaze_optimiser_service', gazeOptimiser)
@@ -80,7 +82,7 @@ class ExecutionManager(object):
           # if(data==None):
           # self.request_segmentation()
           print(data)
-          #self.path_planner_caller(data)
+          self.path_planner_caller(data)
           return data
       except rospy.ServiceException, e:
           print "Service call failed: %s"%e
@@ -112,22 +114,22 @@ class ExecutionManager(object):
 if __name__ == '__main__':
 
     controller = ExecutionManager()
-    # controller.gaze_server_setup()
     rospy.Subscriber("/camera/depth_registered/points", PointCloud2, controller.cloud_callback, queue_size=1)
     rospy.sleep(1.0)
+    controller.gaze_server_setup()
     #objects = controller.request_segmentation()
-    objects = Float32MultiArray()
-    objects.data = [0.08766677975654602, 0.08212397247552872, 0.19581645727157593, 0.5342333912849426, -0.08212301135063171, 0.0106821209192276, 0.04192066192626953, 0.0972205102443695, 0.11764948815107346, 0.5432109832763672, 0.09034746885299683, -0.008821483701467514]
+    # objects = Float32MultiArray()
+    # objects.data = [0.08766677975654602, 0.08212397247552872, 0.19581645727157593, 0.5342333912849426, -0.08212301135063171, 0.0106821209192276, 0.04192066192626953, 0.0972205102443695, 0.11764948815107346, 0.5432109832763672, 0.09034746885299683, -0.008821483701467514]
     #print(objects)
-
-    optimiser_output = controller.gaze_optimiser_caller(objects)
-    print(optimiser_output)
+    # objects.data = [0.09238377213478088, 0.07335389405488968, 0.1415911614894867, 0.43495261669158936, -0.11511331796646118, -0.0012646578252315521, 0.08798286318778992, 0.07133589684963226, 0.18319405615329742, 0.5219529271125793, 0.02710883319377899, 0.08386678248643875, 0.0326995849609375, 0.06856178492307663, 0.05430290102958679, 0.45429980754852295, 0.14136792719364166, -0.02174977958202362]
+    # optimiser_output = controller.gaze_optimiser_caller(objects)
+    # print(optimiser_output)
     # if controller.gaze_sent == 1:
         # controller.request_segmentation()
     # rospy.Subscriber("/camera/depth_registered/points", PointCloud2, controller.cloud_callback, queue_size=1)
     print("blah")
-    p = controller.path_planner_caller(optimiser_output)
-    print(p)
+    # p = controller.path_planner_caller(optimiser_output)
+    # print(p)
     rospy.spin()
 
 

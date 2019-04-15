@@ -353,6 +353,7 @@ class MoveGroupPythonInterface(object):
       for i in range(len(path_xy)):
           wpose.position.x = path_xy[i][0]
           wpose.position.y = path_xy[i][1]
+          wpose.position.z = 0.25
           waypoints.append(copy.deepcopy(wpose))
 
       (plan, fraction) = group.compute_cartesian_path(
@@ -1216,7 +1217,7 @@ def object_collision(e_co, grasp_point, objects_array, neig_idx):
     num_collisions = 0
     target_index = neig_idx
     # Add margin to avoid the objects with a safer distance
-    margin = 0.0
+    margin = 0.05
     while i < len(objects_array):
         if(i/6 != neig_idx):
             bottom = line_collision(e_co.x, e_co.y, grasp_point.x, grasp_point.y,objects_array[i+3]-objects_array[i+0]/2 - margin,objects_array[i+4]-objects_array[i+1]/2 - margin,objects_array[i+3]-objects_array[i+0]/2 - margin, objects_array[i+4]+objects_array[i+1]/2 + margin)

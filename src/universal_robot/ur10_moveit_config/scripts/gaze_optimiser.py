@@ -371,7 +371,7 @@ def handle_objects(req):
 
     print(center)
 
-    x = np.array([[.45],[0.4]])
+    x = np.array([[gaze.x],[gaze.y]])
     neig_idx = knn_search(x,center,1)
     print("Index %s" %neig_idx)
     print("target object xyz:")
