@@ -25,7 +25,7 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import axes3d
 import matplotlib.patches as patches
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
-
+from matplotlib import colors
 
 
 def all_close(goal, actual, tolerance):
@@ -241,8 +241,8 @@ class MoveGroupPythonInterface(object):
     initial_pose.orientation.y = 0.70699483645
     initial_pose.orientation.z = 0.00111089701837
     initial_pose.orientation.w = 0.707216963763
-    initial_pose.position.x = 0.297788083223
-    initial_pose.position.y = 0.373332917389
+    initial_pose.position.x = 0.2#0.297788083223
+    initial_pose.position.y = 0.4#0.373332917389
     initial_pose.position.z = 0.3
 
     group.set_pose_target(initial_pose, group.get_end_effector_link())
@@ -284,7 +284,7 @@ class MoveGroupPythonInterface(object):
       self.add_box(objects, target_id)
 
       ratio = 1.7/0.7
-      rows = 80
+      rows = 169
       cols = int(rows/ratio) + 1
       print("num cols: %s" %cols)
       data = [[0 for _ in range(rows)] for _ in range(cols)]
@@ -293,15 +293,19 @@ class MoveGroupPythonInterface(object):
       data[19][28]=1
       Yresolution = 1.7/rows
       Xresolution = 0.7/cols
-
+      print(optimal_grasp_point)
       target_x = optimal_grasp_point.x  # - world_objects.data[neig_idx*6]/2
       target_y = optimal_grasp_point.y
-      target_index = [round(target_x/Xresolution)-1,round(target_y/Yresolution)-1]
+      target_index = [round(target_x/Xresolution)-1,round(target_y/Yresolution)-2]
+      print(target_index)
+      #start_point = [0.15,0.38]
 
-      start_point = [0.15,0.38]
+      start_point = [self.group.get_current_pose().pose.position.x,self.group.get_current_pose().pose.position.y]
+      print("start_point:", start_point)
       start = (int(round(start_point[0]/Xresolution)-1), int(round(start_point[1]/Yresolution)-1))
       end = (int(target_index[0]), int(target_index[1]))
-
+      print("start:", start)
+      print("end:", end)
       for i in range(rows):
           for j in range(cols):
               #target = [Xresolution*(j+1),Yresolution*(i+1)]
@@ -312,8 +316,25 @@ class MoveGroupPythonInterface(object):
               if(collision_state == True):
                   data[j][i] = 1
 
+      #data[end[0]][end[1]]=2
+      #data[start[0]][start[1]]=3
+
+      test_data = np.array(data)
+      test_data.shape
+      # Plot collision state grid
+      # fig2 = plt.figure(figsize=(10,10/ratio))
+      cmap = colors.ListedColormap(['white','red','green','#0060ff','#aaaaaa'])
+      plt.figure(figsize=(20,20/ratio))
+      plt.pcolor(test_data[::1],cmap=cmap,edgecolors='k', linewidths=1)
+      plt.gca().invert_xaxis()
+      plt.show(block=False)
+      rospy.sleep(10.0)
+      plt.close('all')
+
       if data[end[0]][end[1]] != 1:
+          print("A star working...")
           path = astar(data, start, end)
+          print("A star done")
           path_xy =  [[0]*2 for k in range(len(path))]
           # print(path)
           for j in range(len(path)):
@@ -327,6 +348,15 @@ class MoveGroupPythonInterface(object):
           data[start[0]][start[1]]=3
           data = np.array(data)
           data.shape
+          # Plot collision state grid
+          # fig2 = plt.figure(figsize=(10,10/ratio))
+          cmap = colors.ListedColormap(['white','red','green','#0060ff','#aaaaaa'])
+          plt.figure(figsize=(15,15/ratio))
+          plt.pcolor(data[::1],cmap=cmap,edgecolors='k', linewidths=1)
+          plt.gca().invert_xaxis()
+          plt.show(block=False)
+          rospy.sleep(10.0)
+          plt.close('all')
 
           grasp_point.x = optimal_grasp_point.x
           grasp_point.y = optimal_grasp_point.y
@@ -339,13 +369,12 @@ class MoveGroupPythonInterface(object):
 
           self.point_planner(path_xy)
 
-
+          self.go_to_initial_state()
           return True
 
       elif data[end[0]][end[1]] == 1:
           print("The target state is in collision")
           return False
-
 
 
   def point_planner(self, path_xy):
@@ -361,6 +390,7 @@ class MoveGroupPythonInterface(object):
 
       waypoints = []
       wpose = group.get_current_pose().pose
+      print("Initial pose: %s" %wpose)
 
       for i in range(len(path_xy)):
           wpose.position.x = path_xy[i][0]
@@ -397,6 +427,8 @@ class MoveGroupPythonInterface(object):
           print("Why the hell did I bother planning this?!")
           # self.group.stop()
           self.group.clear_pose_targets()
+
+
 
   def get_fk(self,fk_req):
 
@@ -1003,7 +1035,7 @@ class MoveGroupPythonInterface(object):
     ## Adding Objects to the Planning Scene
     # objects = msg.data
     world_objects = objects
-    print(world_objects)
+    # print(world_objects)
 
     # Number of objects in the array (each has 6 dimensions)
     num_objects = len(world_objects)/6
@@ -1293,7 +1325,8 @@ def astar(maze, start, end):
     start_node.g = start_node.h = start_node.f = 0
     end_node = Node(None, end)
     end_node.g = end_node.h = end_node.f = 0
-
+    print(start_node.position)
+    print(end_node.position)
     # Initialize open and closed list
     open_list = []
     closed_list = []
@@ -1322,6 +1355,7 @@ def astar(maze, start, end):
             current = current_node
             while current is not None:
                 path.append(current.position)
+                print(path[::-1])
                 current = current.parent
             return path[::-1] # Return reversed path
 
@@ -1366,6 +1400,7 @@ def astar(maze, start, end):
 
             # Add the child to the open list
             open_list.append(child)
+            print(child.position)
 
 def main():
 
