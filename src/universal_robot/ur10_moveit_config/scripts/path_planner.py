@@ -27,6 +27,8 @@ import matplotlib.patches as patches
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 from matplotlib import colors
 
+from heapq import *
+
 
 def all_close(goal, actual, tolerance):
   """
@@ -284,7 +286,7 @@ class MoveGroupPythonInterface(object):
       self.add_box(objects, target_id)
 
       ratio = 1.7/0.7
-      rows = 169
+      rows = 100
       cols = int(rows/ratio) + 1
       print("num cols: %s" %cols)
       data = [[0 for _ in range(rows)] for _ in range(cols)]
@@ -298,9 +300,9 @@ class MoveGroupPythonInterface(object):
       target_y = optimal_grasp_point.y
       target_index = [round(target_x/Xresolution)-1,round(target_y/Yresolution)-2]
       print(target_index)
-      #start_point = [0.15,0.38]
+      start_point = [0.15,0.38]
 
-      start_point = [self.group.get_current_pose().pose.position.x,self.group.get_current_pose().pose.position.y]
+      #start_point = [self.group.get_current_pose().pose.position.x,self.group.get_current_pose().pose.position.y]
       print("start_point:", start_point)
       start = (int(round(start_point[0]/Xresolution)-1), int(round(start_point[1]/Yresolution)-1))
       end = (int(target_index[0]), int(target_index[1]))
@@ -323,17 +325,21 @@ class MoveGroupPythonInterface(object):
       test_data.shape
       # Plot collision state grid
       # fig2 = plt.figure(figsize=(10,10/ratio))
-      cmap = colors.ListedColormap(['white','red','green','#0060ff','#aaaaaa'])
-      plt.figure(figsize=(20,20/ratio))
-      plt.pcolor(test_data[::1],cmap=cmap,edgecolors='k', linewidths=1)
-      plt.gca().invert_xaxis()
-      plt.show(block=False)
-      rospy.sleep(10.0)
-      plt.close('all')
+      # cmap = colors.ListedColormap(['white','red','green','#0060ff','#aaaaaa'])
+      # plt.figure(figsize=(20,20/ratio))
+      # plt.pcolor(test_data[::1],cmap=cmap,edgecolors='k', linewidths=1)
+      # plt.gca().invert_xaxis()
+      # plt.show(block=False)
+      # rospy.sleep(10.0)
+      # plt.close('all')
+
+
+      #print astar(nmap, (0,0), (10,13))
 
       if data[end[0]][end[1]] != 1:
           print("A star working...")
-          path = astar(data, start, end)
+          #path = astar(data, start, end)
+          path = astar2(np.array(data), start, end)
           print("A star done")
           path_xy =  [[0]*2 for k in range(len(path))]
           # print(path)
@@ -367,9 +373,45 @@ class MoveGroupPythonInterface(object):
 
           print(path_xy)
 
+
+          # Animation of the arm trajectory
+          fig = plt.figure(figsize=(10,10/(1.7/0.8)))
+          ax = fig.add_subplot(111)
+          center = np.empty([2, int(len(objects)/6)])
+          for i in range(len(path_xy)):
+              plt.cla()
+              ax.axis([-0.2,1.7, -0.2, 0.75])
+              plt.gca().invert_xaxis()
+              #ax.add_patch(rect)
+
+              j = 0
+              while j < len(objects):
+                  iteration = int(j/6)
+                  center[0,iteration] = objects[j+3]
+                  center[1,iteration] = objects[j+4]
+                  rect = patches.Rectangle((center[1,iteration]-objects[j+1]/2,center[0,iteration]-objects[j]/2),objects[j+1],objects[j],linewidth=1,edgecolor='r',facecolor='none')
+                  ax.add_patch(rect)
+
+                  j+=6
+
+              grasp_point.x = path_xy[i][0]
+              grasp_point.y = path_xy[i][1]
+              co_e, co_s = angle_ik(grasp_point)
+              ax.plot(center[1,:],center[0,:],'ob',grasp_point.y,grasp_point.x,'og',co_e.y,co_e.x,'ok',0.38,-0.15,'oy')
+              ax.plot(center[1,target_id],center[0,target_id],'o', markerfacecolor='None',markersize=15,markeredgewidth=1)
+              ax.plot([co_s.y,co_e.y,grasp_point.y],[co_s.x,co_e.x,grasp_point.x])
+
+              plt.draw()
+              plt.pause(0.01)
+
+              # plt.cla()
+              i+=1
+
+
+
           self.point_planner(path_xy)
 
-          self.go_to_initial_state()
+          #self.go_to_initial_state()
           return True
 
       elif data[end[0]][end[1]] == 1:
@@ -1401,6 +1443,65 @@ def astar(maze, start, end):
             # Add the child to the open list
             open_list.append(child)
             print(child.position)
+
+
+def heuristic(a, b):
+    return (b[0] - a[0]) ** 2 + (b[1] - a[1]) ** 2
+
+def astar2(array, start, goal):
+
+    neighbors = [(0,1),(0,-1),(1,0),(-1,0),(1,1),(1,-1),(-1,1),(-1,-1)]
+
+    close_set = set()
+    came_from = {}
+    gscore = {start:0}
+    fscore = {start:heuristic(start, goal)}
+    oheap = []
+
+    heappush(oheap, (fscore[start], start))
+
+    while oheap:
+
+        current = heappop(oheap)[1]
+
+        if current == goal:
+            data = []
+            while current in came_from:
+                data.append(current)
+                current = came_from[current]
+            return data[::-1] # Return reversed path
+
+        close_set.add(current)
+        for i, j in neighbors:
+            neighbor = current[0] + i, current[1] + j
+            tentative_g_score = gscore[current] + heuristic(current, neighbor)
+            if 0 <= neighbor[0] < array.shape[0]:
+                if 0 <= neighbor[1] < array.shape[1]:
+                    if array[neighbor[0]][neighbor[1]] == 1:
+                        continue
+                else:
+                    # array bound y walls
+                    continue
+            else:
+                # array bound x walls
+                continue
+
+            if neighbor in close_set and tentative_g_score >= gscore.get(neighbor, 0):
+                continue
+
+            if  tentative_g_score < gscore.get(neighbor, 0) or neighbor not in [i[1]for i in oheap]:
+                came_from[neighbor] = current
+                gscore[neighbor] = tentative_g_score
+                fscore[neighbor] = tentative_g_score + heuristic(neighbor, goal)
+                heappush(oheap, (fscore[neighbor], neighbor))
+
+    return False
+
+'''Here is an example of using my algo with a numpy array,
+   astar(array, start, destination)
+   astar function returns a list of points (shortest path)'''
+
+
 
 def main():
 
