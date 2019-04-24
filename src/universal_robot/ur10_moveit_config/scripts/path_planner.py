@@ -140,38 +140,6 @@ class MoveGroupPythonInterface(object):
       # print(self.gaze_point.y)
       # print("Point z: ")
       # print(self.gaze_point.z)
-# delete
-  def go_to_joint_state(self):
-      # most likely to be deleted
-    group = self.group
-    group.set_planning_time(10)
-    elbow_joint = float(input("Enter angle for elbow_joint: "))
-    shoulder_lift_joint = float(input("Enter angle for shoulder_lift_joint: "))
-    shoulder_pan_joint = float(input("Enter angle for shoulder_pan_joint: "))
-    wrist_1_joint = float(input("Enter angle for wrist_1_joint: "))
-    wrist_2_joint = float(input("Enter angle for wrist_2_joint: "))
-    wrist_3_joint = float(input("Enter angle for wrist_3_joint: "))
-
-    joint_goal = group.get_current_joint_values()
-    joint_goal[0] = elbow_joint # elbow_joint
-    joint_goal[1] = shoulder_lift_joint # shoulder_lift_joint
-    joint_goal[2] = shoulder_pan_joint # shoulder_pan_joint
-    joint_goal[3] = wrist_1_joint # wrist_1_joint
-    joint_goal[4] = wrist_2_joint # wrist_2_joint
-    joint_goal[5] = wrist_3_joint # wrist_3_joint
-
-    # The go command can be called with joint values, poses, or without any
-    # parameters if you have already set the pose or joint target for the group
-    group.go(joint_goal, wait=True)
-
-    # Calling ``stop()`` ensures that there is no residual movement
-    group.stop()
-
-    # For testing:
-    # Note that since this section of code will not be included in the tutorials
-    # we use the class variable rather than the copied state variable
-    current_joints = self.group.get_current_joint_values()
-    return all_close(joint_goal, current_joints, 0.01)
 
   def go_to_initial_state(self):
     group = self.group
@@ -308,12 +276,19 @@ class MoveGroupPythonInterface(object):
       end = (int(target_index[0]), int(target_index[1]))
       print("start:", start)
       print("end:", end)
+
+      # Initial position of the robot/wrist
+      wrist_co = geometry_msgs.msg.Point()
+      wrist_co = self.group.get_current_pose().pose.position
+
+
       for i in range(rows):
           for j in range(cols):
               #target = [Xresolution*(j+1),Yresolution*(i+1)]
               grasp_point.x = Xresolution*(j+1)
               grasp_point.y = Yresolution*(i+1)
-              co_e, co_s = angle_ik(grasp_point)
+              co_e, co_s = self.ik_calculator(grasp_point,wrist_co)
+              # co_e, co_s = angle_ik(grasp_point)
               collision_state = object_collision(co_e,grasp_point, objects, target_id)
               if(collision_state == True):
                   data[j][i] = 1
@@ -361,14 +336,15 @@ class MoveGroupPythonInterface(object):
           plt.pcolor(data[::1],cmap=cmap,edgecolors='k', linewidths=1)
           plt.gca().invert_xaxis()
           plt.show(block=False)
-          rospy.sleep(10.0)
+          rospy.sleep(5.0)
           plt.close('all')
 
           grasp_point.x = optimal_grasp_point.x
           grasp_point.y = optimal_grasp_point.y
           # grasp_point.x = 0.15
           # grasp_point.y = 0.38
-          co_e, co_s = angle_ik(grasp_point)
+          # co_e, co_s = angle_ik(grasp_point)
+          co_e, co_s = self.ik_calculator(grasp_point,wrist_co)
           print(grasp_point)
 
           print(path_xy)
@@ -396,18 +372,21 @@ class MoveGroupPythonInterface(object):
 
               grasp_point.x = path_xy[i][0]
               grasp_point.y = path_xy[i][1]
-              co_e, co_s = angle_ik(grasp_point)
+              co_e, co_s = self.ik_calculator(grasp_point,wrist_co)
+              # co_e, co_s = angle_ik(grasp_point)
               ax.plot(center[1,:],center[0,:],'ob',grasp_point.y,grasp_point.x,'og',co_e.y,co_e.x,'ok',0.38,-0.15,'oy')
               ax.plot(center[1,target_id],center[0,target_id],'o', markerfacecolor='None',markersize=15,markeredgewidth=1)
               ax.plot([co_s.y,co_e.y,grasp_point.y],[co_s.x,co_e.x,grasp_point.x])
 
               plt.draw()
-              plt.pause(0.01)
+              plt.pause(0.5)
 
               # plt.cla()
               i+=1
 
-
+          # plt.show(block=False)
+          rospy.sleep(10.0)
+          plt.close('all')
 
           self.point_planner(path_xy)
 
@@ -418,6 +397,32 @@ class MoveGroupPythonInterface(object):
           print("The target state is in collision")
           return False
 
+  def ik_calculator(self, grasp_point, wrist_co):
+
+      e_co = geometry_msgs.msg.Point()
+      sh_co = geometry_msgs.msg.Point()
+      # wrist_co = geometry_msgs.msg.Point()
+      # wrist_co = self.group.get_current_pose().pose.position
+      e_co.z = grasp_point.z
+
+      sh_co.x = -0.15
+      sh_co.y = 0.42
+      sh_co.z = 0.54
+      u_length = 0.36 # upepr arm length
+      f_length = 0.30 # forearm length
+
+      #print("Grasp point: %s" %grasp_point)
+      # wrist_0_x = .x - f_length
+      # elbow_angle = math.degrees(math.atan((grasp_point.y - sh_co.y)/(grasp_point.x - sh_co.x)))
+      # e_angle = math.atan((grasp_point.y - sh_co.y)/(grasp_point.x - sh_co.x - 0.29))
+      e_angle = math.atan((grasp_point.y - wrist_co.y)/(grasp_point.x - wrist_co.x + f_length))
+      elbow_angle = math.degrees(e_angle)
+      print("Elbow angle: %s" %elbow_angle)
+
+      e_co.x = grasp_point.x - f_length*math.cos(e_angle)
+      e_co.y = grasp_point.y - f_length*math.sin(e_angle)
+
+      return (e_co, sh_co)
 
   def point_planner(self, path_xy):
       group = self.group
@@ -470,8 +475,6 @@ class MoveGroupPythonInterface(object):
           # self.group.stop()
           self.group.clear_pose_targets()
 
-
-
   def get_fk(self,fk_req):
 
       #fk_req = GetPositionFKRequest()
@@ -494,8 +497,6 @@ class MoveGroupPythonInterface(object):
       return resp
 
   def go_to_pose_goal(self):
-    # Copy class variables to local variables to make the web tutorials more clear.
-    # In practice, you should use the class variables directly unless you have a good reason not to.
     group = self.group
     scene = self.scene
     group.set_planning_time(15)
@@ -830,7 +831,7 @@ class MoveGroupPythonInterface(object):
 
     # current_pose = self.group.get_current_pose().pose
     # return all_close(pose_goal, current_pose, 0.01)
-
+  ##DELETE
   def plan_cartesian_path(self, scale=1):
     # Copy class variables to local variables to make the web tutorials more clear.
     # In practice, you should use the class variables directly unless you have a good reason not to.
@@ -863,7 +864,7 @@ class MoveGroupPythonInterface(object):
 
     # Note: We are just planning, not asking move_group to actually move the robot yet:
     return plan, fraction
-
+  ##DELETE
   def display_trajectory(self, plan):
     # Copy class variables to local variables to make the web tutorials more clear.
     # In practice, you should use the class variables directly unless you have a good
@@ -1058,7 +1059,7 @@ class MoveGroupPythonInterface(object):
     return self.wait_for_state_update(box_is_known=True, timeout=4)
 
   def add_box(self, objects, target_id):
-
+    # Add the bounding boxes of the objects to the planning scene
     # box_name = self.box_name
     scene = self.scene
 
@@ -1444,7 +1445,6 @@ def astar(maze, start, end):
             open_list.append(child)
             print(child.position)
 
-
 def heuristic(a, b):
     return (b[0] - a[0]) ** 2 + (b[1] - a[1]) ** 2
 
@@ -1496,78 +1496,6 @@ def astar2(array, start, goal):
                 heappush(oheap, (fscore[neighbor], neighbor))
 
     return False
-
-'''Here is an example of using my algo with a numpy array,
-   astar(array, start, destination)
-   astar function returns a list of points (shortest path)'''
-
-
-
-def main():
-
-    commander = MoveGroupPythonInterface()
-    #option = True
-    #rospy.init_node('send_pose', anonymous="True")
-
-    commander.go_to_initial_state()
-    commander.add_table()
-
-
-    # rospy.Subscriber("/objects_array", Float32MultiArray, commander.add_box, queue_size=1)
-    # rospy.Subscriber("/gaze_point", geometry_msgs.msg.Point, commander.gaze_callback, queue_size=1)
-    # rospy.Subscriber("/mocap/rigid_bodies/RigidBody1/pose", geometry_msgs.msg.PoseStamped, commander.poseCallback, queue_size=1)
-
-    # rospy.sleep(0.5)
-    # commander.add_table()
-    # objects = Float32MultiArray()
-    # objects.data = [0.1,0.1,0.2,0.35,0.65,0.25]
-    # while option:
-    #     print("""
-    #     1) Go to joint state
-    #     2) Go to pose goal
-    #     3) Add table
-    #     4) Remove Objects
-    #     5) Go to initial state
-    #     6) Attach object
-    #     7) Plan pose Goal
-    #     8) Display trajectory
-    #     9) Go to planned trajectory
-    #     10) Exit
-    #     """)
-    #
-    #     option=raw_input("Choose an option ")
-    #     if option=="1":
-    #       print("\n ")
-    #       commander.go_to_joint_state()
-    #     elif option=="2":
-    #       print("\n ")
-    #       commander.go_to_pose_goal()
-    #     elif option=="3":
-    #       print("\n ")
-    #       commander.add_table()
-    #     elif option=="4":
-    #       print("\n ")
-    #       commander.remove_box()
-    #     elif option=="5":
-    #         print("\n ")
-    #         commander.go_to_initial_state()
-    #     elif option=="6":
-    #         print("\n ")
-    #         commander.attach_box()
-    #     elif option=="7":
-    #       print("\n Plan pose")
-    #       commander.plan_pose_goal()
-    #     elif option=="8":
-    #       print("\n Plan pose")
-    #       commander.add_box()
-    #     elif option=="9":
-    #       print("\n Plan pose")
-    #       commander.execute_plan(commander.pose_goal)
-    #     elif option=="10":
-    #       print("\n Exit")
-    #       break
-    #     elif option !="":
-    #       print("\n Invalid input, try again")
 
 
 if __name__ == '__main__':
