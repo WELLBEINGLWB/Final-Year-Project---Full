@@ -11,7 +11,6 @@ import numpy as np
 import geometry_msgs.msg
 import trajectory_msgs.msg
 import shape_msgs.msg
-from math import pi
 from moveit_msgs.srv import GetPositionFK
 from moveit_msgs.srv import GetPositionFKRequest
 from moveit_msgs.srv import GetPositionFKResponse
@@ -246,6 +245,9 @@ class MoveGroupPythonInterface(object):
 
   def planner(self,request):
       # print(request)
+
+      plot_request = 0 # 0 for no plots, 1 for plots
+
       objects = request.sorted_objects.data
       optimal_grasp_point = request.grasp_point
       grasp_point = geometry_msgs.msg.Point()
@@ -254,13 +256,10 @@ class MoveGroupPythonInterface(object):
       self.add_box(objects, target_id)
 
       ratio = 1.7/0.7
-      rows = 100
+      rows = 169
       cols = int(rows/ratio) + 1
       print("num cols: %s" %cols)
       data = [[0 for _ in range(rows)] for _ in range(cols)]
-      data[20][26]=1
-      data[20][25]=1
-      data[19][28]=1
       Yresolution = 1.7/rows
       Xresolution = 0.7/cols
       print(optimal_grasp_point)
@@ -268,18 +267,22 @@ class MoveGroupPythonInterface(object):
       target_y = optimal_grasp_point.y
       target_index = [round(target_x/Xresolution)-1,round(target_y/Yresolution)-2]
       print(target_index)
-      start_point = [0.15,0.38]
 
-      #start_point = [self.group.get_current_pose().pose.position.x,self.group.get_current_pose().pose.position.y]
+      # Initial position of the robot/wrist
+      wrist_co = geometry_msgs.msg.Point()
+      wrist_co = self.group.get_current_pose().pose.position
+
+      elbow_angle = 0
+
+      # start_point = [0.15,0.38]
+      start_point = [wrist_co.x,wrist_co.y]
       print("start_point:", start_point)
       start = (int(round(start_point[0]/Xresolution)-1), int(round(start_point[1]/Yresolution)-1))
       end = (int(target_index[0]), int(target_index[1]))
       print("start:", start)
       print("end:", end)
 
-      # Initial position of the robot/wrist
-      wrist_co = geometry_msgs.msg.Point()
-      wrist_co = self.group.get_current_pose().pose.position
+
 
 
       for i in range(rows):
@@ -287,7 +290,7 @@ class MoveGroupPythonInterface(object):
               #target = [Xresolution*(j+1),Yresolution*(i+1)]
               grasp_point.x = Xresolution*(j+1)
               grasp_point.y = Yresolution*(i+1)
-              co_e, co_s = self.ik_calculator(grasp_point,wrist_co)
+              co_e, co_s, elbow_angle = self.ik_calculator(grasp_point,wrist_co)
               # co_e, co_s = angle_ik(grasp_point)
               collision_state = object_collision(co_e,grasp_point, objects, target_id)
               if(collision_state == True):
@@ -316,7 +319,7 @@ class MoveGroupPythonInterface(object):
           #path = astar(data, start, end)
           path = astar2(np.array(data), start, end)
           print("A star done")
-          path_xy =  [[0]*2 for k in range(len(path))]
+          path_xy =  [[0]*3 for k in range(len(path))]
           # print(path)
           for j in range(len(path)):
                   r = path[j][0]
@@ -325,39 +328,47 @@ class MoveGroupPythonInterface(object):
                   data[r][c]= 4
                   path_xy[j][0]=Xresolution*r
                   path_xy[j][1]=Yresolution*c
+                  grasp_point.x = path_xy[j][0]
+                  grasp_point.y = path_xy[j][1]
+                  co_e, co_s, elbow_angle = self.ik_calculator(grasp_point,wrist_co)
+                  path_xy[j][2] = elbow_angle
           data[end[0]][end[1]]=2
           data[start[0]][start[1]]=3
           data = np.array(data)
           data.shape
           # Plot collision state grid
           # fig2 = plt.figure(figsize=(10,10/ratio))
-          cmap = colors.ListedColormap(['white','red','green','#0060ff','#aaaaaa'])
-          plt.figure(figsize=(15,15/ratio))
-          plt.pcolor(data[::1],cmap=cmap,edgecolors='k', linewidths=1)
-          plt.gca().invert_xaxis()
-          plt.show(block=False)
-          rospy.sleep(5.0)
-          plt.close('all')
+          if(plot_request==1):
+              cmap = colors.ListedColormap(['white','red','green','#0060ff','#aaaaaa'])
+              plt.figure(figsize=(15,15/ratio))
+              plt.pcolor(data[::1],cmap=cmap,edgecolors='k', linewidths=1)
+              plt.gca().invert_xaxis()
+              plt.show(block=False)
+              rospy.sleep(5.0)
+              plt.close('all')
 
           grasp_point.x = optimal_grasp_point.x
           grasp_point.y = optimal_grasp_point.y
           # grasp_point.x = 0.15
           # grasp_point.y = 0.38
           # co_e, co_s = angle_ik(grasp_point)
-          co_e, co_s = self.ik_calculator(grasp_point,wrist_co)
+          co_e, co_s, elbow_angle = self.ik_calculator(grasp_point,wrist_co)
           print(grasp_point)
 
           print(path_xy)
 
 
           # Animation of the arm trajectory
-          fig = plt.figure(figsize=(10,10/(1.7/0.8)))
-          ax = fig.add_subplot(111)
+          if(plot_request==1):
+              fig = plt.figure(figsize=(10,10/(1.7/0.8)))
+              ax = fig.add_subplot(111)
+
           center = np.empty([2, int(len(objects)/6)])
           for i in range(len(path_xy)):
-              plt.cla()
-              ax.axis([-0.2,1.7, -0.2, 0.75])
-              plt.gca().invert_xaxis()
+              if(plot_request==1):
+                  plt.cla()
+                  ax.axis([-0.2,1.7, -0.2, 0.75])
+                  plt.gca().invert_xaxis()
               #ax.add_patch(rect)
 
               j = 0
@@ -365,30 +376,30 @@ class MoveGroupPythonInterface(object):
                   iteration = int(j/6)
                   center[0,iteration] = objects[j+3]
                   center[1,iteration] = objects[j+4]
-                  rect = patches.Rectangle((center[1,iteration]-objects[j+1]/2,center[0,iteration]-objects[j]/2),objects[j+1],objects[j],linewidth=1,edgecolor='r',facecolor='none')
-                  ax.add_patch(rect)
+                  if(plot_request==1):
+                      rect = patches.Rectangle((center[1,iteration]-objects[j+1]/2,center[0,iteration]-objects[j]/2),objects[j+1],objects[j],linewidth=1,edgecolor='r',facecolor='none')
+                      ax.add_patch(rect)
 
                   j+=6
 
               grasp_point.x = path_xy[i][0]
               grasp_point.y = path_xy[i][1]
-              co_e, co_s = self.ik_calculator(grasp_point,wrist_co)
+              co_e, co_s, elbow_angle = self.ik_calculator(grasp_point,wrist_co)
               # co_e, co_s = angle_ik(grasp_point)
-              ax.plot(center[1,:],center[0,:],'ob',grasp_point.y,grasp_point.x,'og',co_e.y,co_e.x,'ok',0.38,-0.15,'oy')
-              ax.plot(center[1,target_id],center[0,target_id],'o', markerfacecolor='None',markersize=15,markeredgewidth=1)
-              ax.plot([co_s.y,co_e.y,grasp_point.y],[co_s.x,co_e.x,grasp_point.x])
-
-              plt.draw()
-              plt.pause(0.5)
+              if(plot_request==1):
+                  ax.plot(center[1,:],center[0,:],'ob',grasp_point.y,grasp_point.x,'og',co_e.y,co_e.x,'ok',0.38,-0.15,'oy')
+                  ax.plot(center[1,target_id],center[0,target_id],'o', markerfacecolor='None',markersize=15,markeredgewidth=1)
+                  ax.plot([co_s.y,co_e.y,grasp_point.y],[co_s.x,co_e.x,grasp_point.x])
+                  plt.draw()
+                  plt.pause(0.01)
 
               # plt.cla()
               i+=1
+          if(plot_request==1):
+              rospy.sleep(5.0)
+              plt.close('all')
 
-          # plt.show(block=False)
-          rospy.sleep(10.0)
-          plt.close('all')
-
-          self.point_planner(path_xy)
+          self.point_planner(path_xy, optimal_grasp_point)
 
           #self.go_to_initial_state()
           return True
@@ -417,46 +428,87 @@ class MoveGroupPythonInterface(object):
       # e_angle = math.atan((grasp_point.y - sh_co.y)/(grasp_point.x - sh_co.x - 0.29))
       e_angle = math.atan((grasp_point.y - wrist_co.y)/(grasp_point.x - wrist_co.x + f_length))
       elbow_angle = math.degrees(e_angle)
-      print("Elbow angle: %s" %elbow_angle)
+      # print("Elbow angle: %s" %elbow_angle)
 
       e_co.x = grasp_point.x - f_length*math.cos(e_angle)
       e_co.y = grasp_point.y - f_length*math.sin(e_angle)
 
-      return (e_co, sh_co)
+      return (e_co, sh_co, e_angle)
 
-  def point_planner(self, path_xy):
+  def point_planner(self, path_xy, optimal_grasp_point):
       group = self.group
       scene = self.scene
       group.set_planning_time(15)
 
-      pose_goal = geometry_msgs.msg.Pose()
-      pose_goal.orientation.x = 0.00111054358639
-      pose_goal.orientation.y = 0.70699483645
-      pose_goal.orientation.z = 0.00111089701837
-      pose_goal.orientation.w = 0.707216963763
+      # pose_goal = geometry_msgs.msg.Pose()
+      # pose_goal.orientation.x = 0.00111054358639
+      # pose_goal.orientation.y = 0.70699483645
+      # pose_goal.orientation.z = 0.00111089701837
+      # pose_goal.orientation.w = 0.707216963763
 
       waypoints = []
       wpose = group.get_current_pose().pose
       print("Initial pose: %s" %wpose)
+      waypoints_number = len(path_xy)
+      print("Number of waypoints: %s" %waypoints_number)
+      print("Object center points: %s" %optimal_grasp_point.z)
+      z_increment = (wpose.position.z - optimal_grasp_point.z)/waypoints_number
 
+      # distance from star point to target point
+      dist_target = math.sqrt((optimal_grasp_point.y - wpose.position.y)**2 + (optimal_grasp_point.x - wpose.position.x)**2)
+      print("Distance to target: %s" %dist_target)
+      angle_z = math.asin((optimal_grasp_point.z-wpose.position.z)/dist_target)
+      z_angle_increment = angle_z/waypoints_number
+      angle_z = math.degrees(angle_z)
+      print("Z angle: %s" %angle_z)
+
+      ## Convert arm trajectory to waypoints:
+      z_rot = 1.5707
       for i in range(len(path_xy)):
           wpose.position.x = path_xy[i][0]
           wpose.position.y = path_xy[i][1]
-          wpose.position.z = 0.25 ##################################################################
-          waypoints.append(copy.deepcopy(wpose))
+          ################################################################## CHECK height limit
+          if(optimal_grasp_point.z >=0.22):
+              wpose.position.z = wpose.position.z - z_increment
+          else:
+              wpose.position.z = 0.22
 
+
+          # euler = [1.571212121212, 1.5711348887669473,1.5711348887669473]
+
+          # euler = [0, 1.5707, path_xy[i][2]]
+          euler = [0, z_rot, path_xy[i][2]]
+          quat = tf.transformations.quaternion_from_euler(euler[0],euler[1],euler[2])
+          # print(quat)
+          # print(path_xy[i][2])
+          wpose.orientation.x = quat[0]
+          wpose.orientation.y = quat[1]
+          wpose.orientation.z = quat[2]
+          wpose.orientation.w = quat[3]
+
+          waypoints.append(copy.deepcopy(wpose))
+          z_rot = z_rot - z_angle_increment
+      # waypoints_number = len(waypoints)
+      # print("Number of waypoints: %s" %waypoints_number)
       (self.plan, fraction) = group.compute_cartesian_path(
                                          waypoints,   # waypoints to follow
                                          0.01,        # eef_step
                                          0.0, True)         # jump_threshold
 
+
+      print("Fraction: %s" %fraction)
+      successful_points = int(fraction * waypoints_number)
+      print("Number of successful points: %s" %successful_points)
+      if(fraction < 1):
+          # failure_point = successful_points + 1
+          print("Point at which it failed: %s" %(successful_points+1))
+      current_pose = self.group.get_current_pose().pose
       #success = group.execute(plan, wait=True)
       #print(success)
       # group.stop()
       # Clear  targets after planning with poses.
       # group.clear_pose_targets()
       #self.path_executer()
-      current_pose = self.group.get_current_pose().pose
       # group.set_start_state_to_current_state()
       return self.plan, fraction
 
@@ -1095,7 +1147,7 @@ class MoveGroupPythonInterface(object):
         object_id = str(i/6)
 
         self.objectAdder.addBox(object_id, world_objects[i] + margin, world_objects[i+1] + margin, world_objects[i+2], world_objects[i+3], world_objects[i+4], world_objects[i+5])
-        if(object_id == target_id):
+        if(object_id == str(target_id)):
             self.objectAdder.setColor(object_id, 1.0, 0.2, 0.2, a=1.0)
             ## Target object will have a different colour
         else:
@@ -1320,7 +1372,7 @@ def object_collision(e_co, grasp_point, objects_array, neig_idx):
     num_collisions = 0
     target_index = neig_idx
     # Add margin to avoid the objects with a safer distance
-    margin = 0.05
+    margin = 0.06
     while i < len(objects_array):
         if(i/6 != neig_idx):
             bottom = line_collision(e_co.x, e_co.y, grasp_point.x, grasp_point.y,objects_array[i+3]-objects_array[i+0]/2 - margin,objects_array[i+4]-objects_array[i+1]/2 - margin,objects_array[i+3]-objects_array[i+0]/2 - margin, objects_array[i+4]+objects_array[i+1]/2 + margin)
@@ -1502,7 +1554,7 @@ if __name__ == '__main__':
 	#main()
     commander = MoveGroupPythonInterface()
     commander.go_to_initial_state()
-    commander.add_table()
+    # commander.add_table()
     commander.path_executer_server()
     commander.path_planner_server()
 

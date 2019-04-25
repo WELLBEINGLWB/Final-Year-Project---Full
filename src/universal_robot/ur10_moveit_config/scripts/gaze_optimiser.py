@@ -379,7 +379,7 @@ def handle_objects(req):
     print(world_objects.data[neig_idx*6 + 4])
     print(world_objects.data[neig_idx*6 + 5])
     offset_x = 0.03
-    offset_y = 0.02
+    offset_y = 0.025
 
     grasp_point = geometry_msgs.msg.Point()
     grasp_point.x = world_objects.data[neig_idx*6 + 3] - offset_x # - world_objects.data[neig_idx*6]/2
