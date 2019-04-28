@@ -319,6 +319,7 @@ class MoveGroupPythonInterface(object):
           #path = astar(data, start, end)
           path = astar2(np.array(data), start, end)
           print("A star done")
+          print(path)
           path_xy =  [[0]*3 for k in range(len(path))]
           # print(path)
           for j in range(len(path)):
@@ -339,7 +340,7 @@ class MoveGroupPythonInterface(object):
           # Plot collision state grid
           # fig2 = plt.figure(figsize=(10,10/ratio))
           if(plot_request==1):
-              cmap = colors.ListedColormap(['white','red','green','#0060ff','#aaaaaa'])
+              cmap = colors.ListedColormap(['white','red','green','#0060ff','#777777'])
               plt.figure(figsize=(15,15/ratio))
               plt.pcolor(data[::1],cmap=cmap,edgecolors='k', linewidths=1)
               plt.gca().invert_xaxis()
@@ -446,7 +447,7 @@ class MoveGroupPythonInterface(object):
       # pose_goal.orientation.z = 0.00111089701837
       # pose_goal.orientation.w = 0.707216963763
 
-      waypoints = []
+      self.waypoints = []
       wpose = group.get_current_pose().pose
       print("Initial pose: %s" %wpose)
       waypoints_number = len(path_xy)
@@ -468,10 +469,10 @@ class MoveGroupPythonInterface(object):
           wpose.position.x = path_xy[i][0]
           wpose.position.y = path_xy[i][1]
           ################################################################## CHECK height limit
-          if(optimal_grasp_point.z >=0.22):
+          if(optimal_grasp_point.z >=0.24):
               wpose.position.z = wpose.position.z - z_increment
           else:
-              wpose.position.z = 0.22
+              wpose.position.z = 0.24
 
 
           # euler = [1.571212121212, 1.5711348887669473,1.5711348887669473]
@@ -486,12 +487,12 @@ class MoveGroupPythonInterface(object):
           wpose.orientation.z = quat[2]
           wpose.orientation.w = quat[3]
 
-          waypoints.append(copy.deepcopy(wpose))
+          self.waypoints.append(copy.deepcopy(wpose))
           z_rot = z_rot - z_angle_increment
       # waypoints_number = len(waypoints)
       # print("Number of waypoints: %s" %waypoints_number)
       (self.plan, fraction) = group.compute_cartesian_path(
-                                         waypoints,   # waypoints to follow
+                                         self.waypoints,   # waypoints to follow
                                          0.01,        # eef_step
                                          0.0, True)         # jump_threshold
 
@@ -516,8 +517,19 @@ class MoveGroupPythonInterface(object):
       if request.execute_order == True:
           success = self.group.execute(self.plan, wait = True)
           print(success)
-          self.group.stop()
-          self.group.clear_pose_targets()
+          # self.group.stop()
+          # self.group.clear_pose_targets()
+
+          rospy.sleep(5)
+          reverse_waypoints = self.waypoints[::-1]
+
+          (self.reverse_plan, fraction) = self.group.compute_cartesian_path(
+                                             reverse_waypoints,   # waypoints to follow
+                                             0.01,        # eef_step
+                                             0.0, True)
+          rospy.sleep(5)
+          self.group.execute(self.reverse_plan, wait = True)
+
           if success == True:
               return True
           elif success == False:
@@ -1145,13 +1157,13 @@ class MoveGroupPythonInterface(object):
     i = 0
     while i < len(world_objects):
         object_id = str(i/6)
-
-        self.objectAdder.addBox(object_id, world_objects[i] + margin, world_objects[i+1] + margin, world_objects[i+2], world_objects[i+3], world_objects[i+4], world_objects[i+5])
-        if(object_id == str(target_id)):
-            self.objectAdder.setColor(object_id, 1.0, 0.2, 0.2, a=1.0)
-            ## Target object will have a different colour
-        else:
-            self.objectAdder.setColor(object_id, 0.1, 0.4, 1.0, a=1.0)
+        if(object_id!=str(target_id)):
+            self.objectAdder.addBox(object_id, world_objects[i] + margin, world_objects[i+1] + margin, world_objects[i+2], world_objects[i+3], world_objects[i+4], world_objects[i+5])
+            if(object_id == str(target_id)):
+                self.objectAdder.setColor(object_id, 1.0, 0.2, 0.2, a=1.0)
+                ## Target object will have a different colour
+            else:
+                self.objectAdder.setColor(object_id, 0.1, 0.4, 1.0, a=1.0)
             # All obstacles have the same colour
         # All the colours are set at the same time
         self.objectAdder.sendColors()
@@ -1354,6 +1366,17 @@ class MoveGroupPythonInterface(object):
     # Wait for the planning scene to update.
     return self.wait_for_state_update(box_is_attached=False, box_is_known=False, timeout=timeout)
 
+  def knn_search(x, D, K):
+       # find nearest bounding box to given point
+       ndata = D.shape[1]
+
+       K = K if K < ndata else ndata
+       # euclidean distances from the other points
+       sqd = np.sqrt(((D - x[:,:ndata])**2).sum(axis=0))
+       idx = np.argsort(sqd) # sorting
+       # return the index of the nearest neighbour
+       return idx[:K]
+
 def line_collision(x1,y1,x2,y2,x3,y3,x4,y4):
     uA = ((x4-x3)*(y1-y3) - (y4-y3)*(x1-x3)) / ((y4-y3)*(x2-x1) - (x4-x3)*(y2-y1))
     uB = ((x2-x1)*(y1-y3) - (y2-y1)*(x1-x3)) / ((y4-y3)*(x2-x1) - (x4-x3)*(y2-y1))
@@ -1554,7 +1577,7 @@ if __name__ == '__main__':
 	#main()
     commander = MoveGroupPythonInterface()
     commander.go_to_initial_state()
-    # commander.add_table()
+    commander.add_table()
     commander.path_executer_server()
     commander.path_planner_server()
 
