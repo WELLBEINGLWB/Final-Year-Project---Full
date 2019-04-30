@@ -246,7 +246,7 @@ class MoveGroupPythonInterface(object):
   def planner(self,request):
       # print(request)
 
-      plot_request = 0 # 0 for no plots, 1 for plots
+      plot_request = 1 # 0 for no plots, 1 for plots
 
       objects = request.sorted_objects.data
       optimal_grasp_point = request.grasp_point
@@ -503,7 +503,20 @@ class MoveGroupPythonInterface(object):
       if(fraction < 1):
           # failure_point = successful_points + 1
           print("Point at which it failed: %s" %(successful_points+1))
-      current_pose = self.group.get_current_pose().pose
+      attempt = 0
+      while fraction < 1:
+          print("Attempt number: %s" %attempt)
+          successful_points = int(fraction * waypoints_number)
+          failure_point_index = successful_points
+          self.waypoints[failure_point_index].position.x = self.waypoints[failure_point_index].position.x - 0.01
+          (self.plan, fraction) = group.compute_cartesian_path(
+                                             self.waypoints,   # waypoints to follow
+                                             0.01,        # eef_step
+                                             0.0, True)
+          attempt+=1
+          print(fraction)
+
+      # current_pose = self.group.get_current_pose().pose
       #success = group.execute(plan, wait=True)
       #print(success)
       # group.stop()
@@ -1395,13 +1408,24 @@ def object_collision(e_co, grasp_point, objects_array, neig_idx):
     num_collisions = 0
     target_index = neig_idx
     # Add margin to avoid the objects with a safer distance
-    margin = 0.06
+    margin = 0.02
     while i < len(objects_array):
         if(i/6 != neig_idx):
+            # bottom = line_collision(e_co.x, e_co.y, grasp_point.x, grasp_point.y,objects_array[i+3]-objects_array[i+0]/2 - margin,objects_array[i+4]-objects_array[i+1]/2 - margin,objects_array[i+3]-objects_array[i+0]/2 - margin, objects_array[i+4]+objects_array[i+1]/2 + margin)
+            # top = line_collision(e_co.x, e_co.y, grasp_point.x, grasp_point.y,objects_array[i+3]+objects_array[i+0]/2,objects_array[i+4]-objects_array[i+1]/2,objects_array[i+3]+objects_array[i+0]/2, objects_array[i+4]+objects_array[i+1]/2)
+            # left = line_collision(e_co.x, e_co.y, grasp_point.x, grasp_point.y,objects_array[i+3]-objects_array[i+0]/2 - margin ,objects_array[i+4]+objects_array[i+1]/2 + margin ,objects_array[i+3]+objects_array[i+0]/2 + margin, objects_array[i+4]+objects_array[i+1]/2 + margin)
+            # right = line_collision(e_co.x, e_co.y, grasp_point.x, grasp_point.y,objects_array[i+3]-objects_array[i+0]/2,objects_array[i+4]-objects_array[i+1]/2,objects_array[i+3]+objects_array[i+0]/2, objects_array[i+4]-objects_array[i+1]/2)
+
             bottom = line_collision(e_co.x, e_co.y, grasp_point.x, grasp_point.y,objects_array[i+3]-objects_array[i+0]/2 - margin,objects_array[i+4]-objects_array[i+1]/2 - margin,objects_array[i+3]-objects_array[i+0]/2 - margin, objects_array[i+4]+objects_array[i+1]/2 + margin)
             top = line_collision(e_co.x, e_co.y, grasp_point.x, grasp_point.y,objects_array[i+3]+objects_array[i+0]/2,objects_array[i+4]-objects_array[i+1]/2,objects_array[i+3]+objects_array[i+0]/2, objects_array[i+4]+objects_array[i+1]/2)
-            left = line_collision(e_co.x, e_co.y, grasp_point.x, grasp_point.y,objects_array[i+3]-objects_array[i+0]/2 - margin ,objects_array[i+4]+objects_array[i+1]/2 + margin ,objects_array[i+3]+objects_array[i+0]/2 + margin, objects_array[i+4]+objects_array[i+1]/2 + margin)
+            left = line_collision(e_co.x, e_co.y, grasp_point.x, grasp_point.y,objects_array[i+3]-objects_array[i+0]/2,objects_array[i+4]+objects_array[i+1]/2,objects_array[i+3]+objects_array[i+0]/2, objects_array[i+4]+objects_array[i+1]/2)
             right = line_collision(e_co.x, e_co.y, grasp_point.x, grasp_point.y,objects_array[i+3]-objects_array[i+0]/2,objects_array[i+4]-objects_array[i+1]/2,objects_array[i+3]+objects_array[i+0]/2, objects_array[i+4]-objects_array[i+1]/2)
+
+            # bottom = line_collision(e_co.x, e_co.y, grasp_point.x, grasp_point.y,objects_array[i+3]-objects_array[i]/2,objects_array[i+4]-objects_array[i+1]/2,objects_array[i+3]-objects_array[i]/2, objects_array[i+4]+objects_array[i+1]/2)
+            # top = line_collision(e_co.x, e_co.y, grasp_point.x, grasp_point.y,objects_array[i+3]+objects_array[i]/2,objects_array[i+4]-objects_array[i+1]/2,objects_array[i+3]+objects_array[i]/2, objects_array[i+4]+objects_array[i+1]/2)
+            # left = line_collision(e_co.x, e_co.y, grasp_point.x, grasp_point.y,objects_array[i+3]-objects_array[i]/2 - margin ,objects_array[i+4]+objects_array[i+1]/2 + margin ,objects_array[i+3]+objects_array[i+0]/2 + margin, objects_array[i+4]+objects_array[i+1]/2 + margin)
+            # right = line_collision(e_co.x, e_co.y, grasp_point.x, grasp_point.y,objects_array[i+3]-objects_array[i]/2,objects_array[i+4]-objects_array[i+1]/2,objects_array[i+3]+objects_array[i]/2, objects_array[i+4]-objects_array[i+1]/2)
+
             if(bottom == True or top == True or left == True or right == True):
                 # Number of collisions in a given xy position
                 num_collisions+=1
