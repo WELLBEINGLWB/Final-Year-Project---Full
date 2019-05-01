@@ -312,7 +312,7 @@ def handle_objects(req):
         # Converting the center point if the object to /world frame
         p_tr = transformer.transformPoint("world", pointstamp)
 
-        height_to_table = 0.16 - (p_tr.point.z - (objects[i+2]/2))
+        height_to_table = 0.185 - (p_tr.point.z - (objects[i+2]/2))
 
         # box_pose = geometry_msgs.msg.PoseStamped()
         # box_pose.header.frame_id = "world"

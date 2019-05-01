@@ -246,7 +246,7 @@ class MoveGroupPythonInterface(object):
   def planner(self,request):
       # print(request)
 
-      plot_request = 0 # 0 for no plots, 1 for plots
+      plot_request = 1 # 0 for no plots, 1 for plots
 
       objects = request.sorted_objects.data
       optimal_grasp_point = request.grasp_point
@@ -1413,7 +1413,7 @@ def object_collision(e_co, grasp_point, objects_array, neig_idx):
     num_collisions = 0
     target_index = neig_idx
     # Add margin to avoid the objects with a safer distance
-    margin = 0.02
+    margin = 0.03
     while i < len(objects_array):
         if(i/6 != neig_idx):
             # bottom = line_collision(e_co.x, e_co.y, grasp_point.x, grasp_point.y,objects_array[i+3]-objects_array[i+0]/2 - margin,objects_array[i+4]-objects_array[i+1]/2 - margin,objects_array[i+3]-objects_array[i+0]/2 - margin, objects_array[i+4]+objects_array[i+1]/2 + margin)
@@ -1596,7 +1596,7 @@ def astar2(array, start, goal):
             if  tentative_g_score < gscore.get(neighbor, 0) or neighbor not in [i[1]for i in oheap]:
                 came_from[neighbor] = current
                 gscore[neighbor] = tentative_g_score
-                fscore[neighbor] = tentative_g_score + heuristic(neighbor, goal)
+                fscore[neighbor] = tentative_g_score# + heuristic(neighbor, goal)
                 heappush(oheap, (fscore[neighbor], neighbor))
 
     return False
