@@ -433,10 +433,10 @@
       </collision>
     </link> -->
 
-    <joint name="${prefix}fake_hand_joint" type="fixed">
+    <joint name="${prefix}fake_wrist_joint" type="fixed">
       <parent link="${prefix}ee_magnet_cylinder" />
-      <child link = "${prefix}fake_hand_link" />
-      <origin xyz="0.05 0.0 0.025" rpy="0.0 0.0 0.0" />
+      <child link = "${prefix}fake_wrist_link" />
+      <origin xyz="0.05 0.0 0.0" rpy="0.0 0.0 0.0" />
     </joint>
 
     <!-- <joint name="${prefix}fake_hand_joint" type="revolute">
@@ -453,21 +453,47 @@
       <dynamics damping="0.0" friction="0.0"/>
     </joint> -->
 
-    <link name="${prefix}fake_hand_link">
+    <link name="${prefix}fake_wrist_link">
       <visual>
         <geometry>
           <!-- <box size="0.35 0.05 0.05"/> -->
-          <box size="0.13 0.03 0.05"/>
+          <box size="0.08 0.03 0.05"/>
         </geometry>
         <origin rpy="0 ${pi/2.0} 0" xyz="0 0 0"/>
-        <material name="HandColor">
+        <material name="WristColor">
           <color rgba="0.4 0.4 0.4 1.0"/>
         </material>
       </visual>
       <collision>
         <geometry>
           <!-- <box size="0.35 0.05 0.05"/> -->
-          <box size="0.13 0.03 0.05"/>
+          <box size="0.08 0.03 0.05"/>
+        </geometry>
+        <origin rpy="0 ${pi/2.0} 0" xyz="0 0 0"/>
+      </collision>
+    </link>
+
+    <joint name="${prefix}fake_hand_joint" type="fixed">
+      <parent link="${prefix}fake_wrist_link" />
+      <child link = "${prefix}fake_hand_link" />
+      <origin xyz="0.0 0.0 0.09" rpy="0.0 0.0 0.0" />
+    </joint>
+
+    <link name="${prefix}fake_hand_link">
+      <visual>
+        <geometry>
+          <!-- <box size="0.35 0.05 0.05"/> -->
+          <box size="0.10 0.03 0.05"/>
+        </geometry>
+        <origin rpy="0 ${pi/2.0} 0" xyz="0 0 0"/>
+        <material name="handColor">
+          <color rgba="0.2 0.2 0.2 1.0"/>
+        </material>
+      </visual>
+      <collision>
+        <geometry>
+          <!-- <box size="0.35 0.05 0.05"/> -->
+          <box size="0.10 0.03 0.05"/>
         </geometry>
         <origin rpy="0 ${pi/2.0} 0" xyz="0 0 0"/>
       </collision>
