@@ -212,7 +212,7 @@ class MoveGroupPythonInterface(object):
     initial_pose.orientation.w = 0.707216963763
     initial_pose.position.x = 0.2#0.297788083223
     initial_pose.position.y = 0.4#0.373332917389
-    initial_pose.position.z = 0.3
+    initial_pose.position.z = 0.20
 
     group.set_pose_target(initial_pose, group.get_end_effector_link())
     group.set_path_constraints(constraint)
@@ -246,7 +246,7 @@ class MoveGroupPythonInterface(object):
   def planner(self,request):
       # print(request)
 
-      plot_request = 1 # 0 for no plots, 1 for plots
+      plot_request = 0 # 0 for no plots, 1 for plots
 
       objects = request.sorted_objects.data
       optimal_grasp_point = request.grasp_point
@@ -454,6 +454,7 @@ class MoveGroupPythonInterface(object):
       print("Number of waypoints: %s" %waypoints_number)
       print("Object center points: %s" %optimal_grasp_point.z)
       z_increment = (wpose.position.z - optimal_grasp_point.z)/waypoints_number
+      z_imcrement_threshold = (wpose.position.z - 0.20)/waypoints_number
 
       # distance from star point to target point
       dist_target = math.sqrt((optimal_grasp_point.y - wpose.position.y)**2 + (optimal_grasp_point.x - wpose.position.x)**2)
@@ -469,10 +470,10 @@ class MoveGroupPythonInterface(object):
           wpose.position.x = path_xy[i][0]
           wpose.position.y = path_xy[i][1]
           ################################################################## CHECK height limit
-          if(optimal_grasp_point.z >=0.24):
+          if(optimal_grasp_point.z >=0.20):
               wpose.position.z = wpose.position.z - z_increment
           else:
-              wpose.position.z = 0.24
+              wpose.position.z =  wpose.position.z - z_imcrement_threshold
 
 
           # euler = [1.571212121212, 1.5711348887669473,1.5711348887669473]
@@ -1050,44 +1051,48 @@ class MoveGroupPythonInterface(object):
     self.table_x_center = 0.44
     self.table_y_center = 0.65
     # self.table_z_center = -0.24
-    self.table_z_center = 0.145
+    self.table_z_center = 0.12 # 0.145
+    self.table_height = self.table_z_center +  self.table_z_dim/2
+    print(self.table_height)
     # self.objectAdder.addBox("table1", self.table_x_dim, self.table_y_dim, 0.85, self.table_x_center, self.table_y_center, -0.24)
     self.objectAdder.addBox("table", self.table_x_dim, self.table_y_dim, self.table_z_dim, self.table_x_center, self.table_y_center, self.table_z_center)
     # self.objectAdder.setColor("table", 0.1, 1.0, 0.2, a=0.9)
     self.objectAdder.setColor("table", 0.57, 0.73, 1.0, a=0.9)
 
-    leg_length = 0.05
-    self.objectAdder.addBox("leg_1", leg_length , leg_length , 0.77 , self.table_x_center + self.table_x_dim/2 - leg_length/2 , self.table_y_center - self.table_y_dim/2 + leg_length/2 , -0.28)
-    self.objectAdder.addBox("leg_2", leg_length , leg_length , 0.77 , self.table_x_center + self.table_x_dim/2 - leg_length/2 , self.table_y_center + self.table_y_dim/2 - leg_length/2 , -0.28)
-    self.objectAdder.addBox("leg_3", leg_length , leg_length , 0.77 , self.table_x_center - self.table_x_dim/2 + leg_length/2 , self.table_y_center - self.table_y_dim/2 + leg_length/2 , -0.28)
-    self.objectAdder.addBox("leg_4", leg_length , leg_length , 0.77 , self.table_x_center - self.table_x_dim/2 + leg_length/2 , self.table_y_center + self.table_y_dim/2 - leg_length/2 , -0.28)
+    leg_side_length = 0.05
+    leg_height = 0.77
+    leg_center = self.table_z_center - self.table_z_dim/2 - leg_height/2
+    self.objectAdder.addBox("leg_1", leg_side_length , leg_side_length , leg_height , self.table_x_center + self.table_x_dim/2 - leg_side_length/2 , self.table_y_center - self.table_y_dim/2 + leg_side_length/2 , leg_center)
+    self.objectAdder.addBox("leg_2", leg_side_length , leg_side_length , leg_height , self.table_x_center + self.table_x_dim/2 - leg_side_length/2 , self.table_y_center + self.table_y_dim/2 - leg_side_length/2 , leg_center)
+    self.objectAdder.addBox("leg_3", leg_side_length , leg_side_length , leg_height , self.table_x_center - self.table_x_dim/2 + leg_side_length/2 , self.table_y_center - self.table_y_dim/2 + leg_side_length/2 , leg_center)
+    self.objectAdder.addBox("leg_4", leg_side_length , leg_side_length , leg_height , self.table_x_center - self.table_x_dim/2 + leg_side_length/2 , self.table_y_center + self.table_y_dim/2 - leg_side_length/2 , leg_center)
     self.objectAdder.setColor("leg_1", 0.78, 0.44, 0.2, a=1.0)
     self.objectAdder.setColor("leg_2", 0.78, 0.44, 0.2, a=1.0)
     self.objectAdder.setColor("leg_3", 0.78, 0.44, 0.2, a=1.0)
     self.objectAdder.setColor("leg_4", 0.78, 0.44, 0.2, a=1.0)
 
 
-    table_pose.pose.position.x = 0.30
-    table_pose.pose.position.y = 0.70
-    table_pose.pose.position.z = 0.26
+    # table_pose.pose.position.x = 0.30
+    # table_pose.pose.position.y = 0.70
+    # table_pose.pose.position.z = 0.26
     # scene.add_box("dummy0", table_pose, size=( 0.055, 0.055, 0.15))
 
-    table_pose.pose.position.x = 0.40
-    table_pose.pose.position.y = 0.90
-    table_pose.pose.position.z = 0.25
+    # table_pose.pose.position.x = 0.40
+    # table_pose.pose.position.y = 0.90
+    # table_pose.pose.position.z = 0.25
     # scene.add_box("dummy1", table_pose, size=( 0.055, 0.055, 0.15))
 
-    table_pose.pose.position.x = 0.40
-    table_pose.pose.position.y = 0.45
-    table_pose.pose.position.z = 0.20
+    # table_pose.pose.position.x = 0.40
+    # table_pose.pose.position.y = 0.45
+    # table_pose.pose.position.z = 0.20
     # scene.add_box("dummy2", table_pose, size=( 0.055, 0.055, 0.05))
 
 
 
     # table_pose.header.frame_id = "world"
-    table_pose.pose.position.x = 0.44
-    table_pose.pose.position.y = 0.65
-    table_pose.pose.position.z = 0.25
+    # table_pose.pose.position.x = 0.44
+    # table_pose.pose.position.y = 0.65
+    # table_pose.pose.position.z = 0.25
     # scene.add_box("ws", table_pose, size=( 0.7, 1.7, 0.2))
 
     # table_pose.pose.position.x = -0.45
@@ -1109,18 +1114,18 @@ class MoveGroupPythonInterface(object):
     self.objectAdder.setColor("side_wall", 0.1, 1.0, 0.2, a=0.9)
     self.objectAdder.sendColors()
 
-    top_pose = geometry_msgs.msg.PoseStamped()
-    top_pose.header.frame_id = "base"
-    top_pose.pose.orientation.w = 0.0
-    top_pose.pose.position.x = -0.7
-    top_pose.pose.position.y = -1.0
-    top_pose.pose.position.z = 0.75
+    # top_pose = geometry_msgs.msg.PoseStamped()
+    # top_pose.header.frame_id = "base"
+    # top_pose.pose.orientation.w = 0.0
+    # top_pose.pose.position.x = -0.7
+    # top_pose.pose.position.y = -1.0
+    # top_pose.pose.position.z = 0.75
     # scene.add_box("ceilling", top_pose, size=( 1.0, 2.0, 0.05))
 
 
-    top_pose.pose.position.x = 0.3
-    top_pose.pose.position.y = -0.7
-    top_pose.pose.position.z = 0.2
+    # top_pose.pose.position.x = 0.3
+    # top_pose.pose.position.y = -0.7
+    # top_pose.pose.position.z = 0.2
     # scene.add_box("person", top_pose, size=( 0.4, 0.4, 1.75))
 
     # arrow = Marker

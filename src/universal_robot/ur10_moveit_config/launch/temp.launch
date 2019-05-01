@@ -21,6 +21,12 @@
   <!-- </node> -->
    <!--add negative negative to clock-->
   <node pkg="realsense2_camera" type="tf_broadcaster.py" name="camera_tf_node" output="screen"/>
+
+  <!-- <include file="$(find ur10_moveit_config)/launch/moveit_rviz.launch">
+    <arg name="config" value="true"/>
+    <arg name="debug" value="$(arg debug)"/>
+  </include> -->
+  
   <!-- <node name="send_pose" pkg="ur10_moveit_config" type="send_pose.py" respawn="false" output="screen"/> -->
   <!-- rosrun natnet_ros client _server:=10.0.0.108 -->
 

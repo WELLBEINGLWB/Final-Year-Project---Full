@@ -109,7 +109,10 @@ class ExecutionManager(object):
           planner_resp = path_planner_service(data.sorted_objects, data.target_id, data.grasp_point)
           print(planner_resp.path_found)
           if(planner_resp.path_found == True):
-              self.path_executer(True)
+              option=raw_input("Execute? (y/n)")
+              if option=="y":
+                print("\n ")
+                self.path_executer(True)
           return planner_resp.path_found
       except rospy.ServiceException, e:
           print "Service call failed: %s"%e
