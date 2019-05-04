@@ -51,7 +51,7 @@ def all_close(goal, actual, tolerance):
 
   return True
 
-
+# Delete
 class Node():
     """A node class for A* Pathfinding"""
 
@@ -145,18 +145,7 @@ class MoveGroupPythonInterface(object):
 
     # joint_goal = group.get_current_joint_values()
     group.set_planning_time(10)
-    # joint_goal[0] = 0 # elbow_joint
-    # joint_goal[1] = -4*pi/5 # shoulder_lift_joint
-    # joint_goal[2] = 2*pi/3 # shoulder_pan_joint
-    # joint_goal[3] = -pi/2 # wrist_1_joint
-    # joint_goal[4] = -pi/2 # wrist_2_joint
-    # joint_goal[5] = 0 # wrist_3_joint
-    # joint_goal[0] = 0.61 # shoulder_pan_joint
-    # joint_goal[1] = -1.87 # shoulder_lift_joint
-    # joint_goal[2] = 2.44 # elbow_joint
-    # joint_goal[3] = -2.14 # wrist_1_joint
-    # joint_goal[4] = -1.57 # wrist_2_joint
-    # joint_goal[5] = 0.61 # wrist_3_joint
+
     constraint = moveit_msgs.msg.Constraints()
     constraint.name = "fixed wrist orientation"
     #
@@ -226,6 +215,11 @@ class MoveGroupPythonInterface(object):
     # Note that since this section of code will not be included in the tutorials
     # we use the class variable rather than the copied state variable
     # current_joints = self.group.get_current_joint_values()
+
+
+
+
+
     current_pose = self.group.get_current_pose().pose
     return all_close(initial_pose, current_pose, 0.01)
 
@@ -246,7 +240,7 @@ class MoveGroupPythonInterface(object):
   def planner(self,request):
       # print(request)
 
-      plot_request = 1 # 0 for no plots, 1 for plots
+      plot_request = 0 # 0 for no plots, 1 for plots
 
       objects = request.sorted_objects.data
       optimal_grasp_point = request.grasp_point
@@ -407,7 +401,8 @@ class MoveGroupPythonInterface(object):
 
       elif data[end[0]][end[1]] == 1:
           print("The target state is in collision")
-          return False
+          self.orientation_point_planner(optimal_grasp_point)
+          return True
 
   def ik_calculator(self, grasp_point, wrist_co):
 
@@ -480,13 +475,23 @@ class MoveGroupPythonInterface(object):
 
           # euler = [0, 1.5707, path_xy[i][2]]
           euler = [0, z_rot, path_xy[i][2]]
+          # euler = [-1.5707, 0, -0.707]
           quat = tf.transformations.quaternion_from_euler(euler[0],euler[1],euler[2])
+          # quat_test = [-0.51025,0.51025,-0.51025,0.51025]
+          # quat_test = [-0.661025,0.251025,-0.251025,0.661025]
+          # euler_test = tf.transformations.euler_from_quaternion(quat_test)
+          # print(euler_test)
           # print(quat)
           # print(path_xy[i][2])
           wpose.orientation.x = quat[0]
           wpose.orientation.y = quat[1]
           wpose.orientation.z = quat[2]
           wpose.orientation.w = quat[3]
+
+          # wpose.orientation.x = 0.489916391691
+          # wpose.orientation.y = -0.510273396847
+          # wpose.orientation.z = 0.531276672863
+          # wpose.orientation.w = -0.466206055832
 
           self.waypoints.append(copy.deepcopy(wpose))
           z_rot = z_rot - z_angle_increment
@@ -516,6 +521,84 @@ class MoveGroupPythonInterface(object):
                                              0.0, True)
           attempt+=1
           print(fraction)
+
+      # current_pose = self.group.get_current_pose().pose
+      #success = group.execute(plan, wait=True)
+      #print(success)
+      # group.stop()
+      # Clear  targets after planning with poses.
+      # group.clear_pose_targets()
+      #self.path_executer()
+      # group.set_start_state_to_current_state()
+      return self.plan, fraction
+
+  def orientation_point_planner(self, optimal_grasp_point):
+      group = self.group
+      scene = self.scene
+      group.set_planning_time(15)
+
+      # pose_goal = geometry_msgs.msg.Pose()
+      # pose_goal.orientation.x = 0.00111054358639
+      # pose_goal.orientation.y = 0.70699483645
+      # pose_goal.orientation.z = 0.00111089701837
+      # pose_goal.orientation.w = 0.707216963763
+
+      wrist_co = geometry_msgs.msg.Point()
+      wrist_co = self.group.get_current_pose().pose.position
+      co_e, co_s, elbow_angle = self.ik_calculator(optimal_grasp_point,wrist_co)
+
+      self.waypoints = []
+      wpose = group.get_current_pose().pose
+      print("Initial pose: %s" %wpose)
+
+      wpose.position.z = optimal_grasp_point.z + 0.1
+      self.waypoints.append(copy.deepcopy(wpose))
+
+      euler = [-1.5707, 0, -1.5707]
+      quat = tf.transformations.quaternion_from_euler(euler[0],euler[1],euler[2])
+      wpose.orientation.x = quat[0]
+      wpose.orientation.y = quat[1]
+      wpose.orientation.z = quat[2]
+      wpose.orientation.w = quat[3]
+      self.waypoints.append(copy.deepcopy(wpose))
+
+      wpose.position.x = optimal_grasp_point.x + 0.03
+      wpose.position.y = optimal_grasp_point.y + 0.015
+      euler = [-1.5707, 0, -elbow_angle]
+      quat = tf.transformations.quaternion_from_euler(euler[0],euler[1],euler[2])
+      wpose.orientation.x = quat[0]
+      wpose.orientation.y = quat[1]
+      wpose.orientation.z = quat[2]
+      wpose.orientation.w = quat[3]
+      self.waypoints.append(copy.deepcopy(wpose))
+
+      wpose.orientation.z -= 0.05
+      self.waypoints.append(copy.deepcopy(wpose))
+
+
+      (self.plan, fraction) = group.compute_cartesian_path(
+                                         self.waypoints,   # waypoints to follow
+                                         0.01,        # eef_step
+                                         0.0, True)         # jump_threshold
+
+
+      print("Fraction: %s" %fraction)
+
+      # if(fraction < 1):
+      #     # failure_point = successful_points + 1
+      #     print("Point at which it failed: %s" %(successful_points+1))
+      # attempt = 0
+      # while fraction < 1:
+      #     print("Attempt number: %s" %attempt)
+      #     successful_points = int(fraction * waypoints_number)
+      #     failure_point_index = successful_points
+      #     self.waypoints[failure_point_index].position.x = self.waypoints[failure_point_index].position.x - 0.01
+      #     (self.plan, fraction) = group.compute_cartesian_path(
+      #                                        self.waypoints,   # waypoints to follow
+      #                                        0.01,        # eef_step
+      #                                        0.0, True)
+      #     attempt+=1
+      #     print(fraction)
 
       # current_pose = self.group.get_current_pose().pose
       #success = group.execute(plan, wait=True)

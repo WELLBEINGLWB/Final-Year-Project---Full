@@ -25,6 +25,7 @@ objs = ['Bottle','Orange','Box','Cup','Mug','Bowl','Unicorn']
 min_obj = 2
 max_obj = 6
 
+gaze_array = []*(cols*rows)
 
 # number of objects in the scene
 num_obj = random.randint(min_obj, max_obj)
@@ -32,8 +33,8 @@ print 'Number of objects:  ', num_obj, '\n'
 
 # order of objects to each position
 obj_order = random.sample(range(0, len(objs)),num_obj)
-print obj_order, '\n'
-
+# print obj_order, '\n'
+#
 # Generate random positions in the grid for each objects
 obj_position = random.sample(range(0, cols*rows),num_obj)
 
