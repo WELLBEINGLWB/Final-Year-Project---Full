@@ -402,6 +402,28 @@ class MoveGroupPythonInterface(object):
       elif data[end[0]][end[1]] == 1:
           print("The target state is in collision")
           self.orientation_point_planner(optimal_grasp_point)
+
+
+          # length_f =  0.32
+          # _, _, collision_angle = self.ik_calculator(optimal_grasp_point,wrist_co)
+          # collision_angle = math.degrees(collision_angle) + 0.51
+          # print(collision_angle)
+          # possible_angles  = []
+          # for alpha in range(int(collision_angle),85):
+          #     alpha_rad = math.radians(alpha)
+          #     co_e.x = optimal_grasp_point.x - length_f*math.cos(alpha_rad)
+          #     co_e.y = optimal_grasp_point.y - length_f*math.sin(alpha_rad)
+          #
+          #     collision_state = object_collision(co_e,optimal_grasp_point, objects, target_id)
+          #     if(collision_state == False):
+          #         possible_angles.append(alpha)
+          #
+          # print(possible_angles)
+          #
+          #
+          # self.behind_point_planner(optimal_grasp_point, possible_angles)
+
+
           return True
 
   def ik_calculator(self, grasp_point, wrist_co):
@@ -431,6 +453,7 @@ class MoveGroupPythonInterface(object):
 
       return (e_co, sh_co, e_angle)
 
+
   def point_planner(self, path_xy, optimal_grasp_point):
       group = self.group
       scene = self.scene
@@ -444,6 +467,7 @@ class MoveGroupPythonInterface(object):
 
       self.waypoints = []
       wpose = group.get_current_pose().pose
+      self.waypoints.append(copy.deepcopy(wpose))
       print("Initial pose: %s" %wpose)
       waypoints_number = len(path_xy)
       print("Number of waypoints: %s" %waypoints_number)
@@ -537,18 +561,13 @@ class MoveGroupPythonInterface(object):
       scene = self.scene
       group.set_planning_time(15)
 
-      # pose_goal = geometry_msgs.msg.Pose()
-      # pose_goal.orientation.x = 0.00111054358639
-      # pose_goal.orientation.y = 0.70699483645
-      # pose_goal.orientation.z = 0.00111089701837
-      # pose_goal.orientation.w = 0.707216963763
-
       wrist_co = geometry_msgs.msg.Point()
       wrist_co = self.group.get_current_pose().pose.position
       co_e, co_s, elbow_angle = self.ik_calculator(optimal_grasp_point,wrist_co)
 
       self.waypoints = []
       wpose = group.get_current_pose().pose
+      self.waypoints.append(copy.deepcopy(wpose))
       print("Initial pose: %s" %wpose)
 
       wpose.position.z = optimal_grasp_point.z + 0.1
@@ -583,6 +602,78 @@ class MoveGroupPythonInterface(object):
 
 
       print("Fraction: %s" %fraction)
+
+      # if(fraction < 1):
+      #     # failure_point = successful_points + 1
+      #     print("Point at which it failed: %s" %(successful_points+1))
+      # attempt = 0
+      # while fraction < 1:
+      #     print("Attempt number: %s" %attempt)
+      #     successful_points = int(fraction * waypoints_number)
+      #     failure_point_index = successful_points
+      #     self.waypoints[failure_point_index].position.x = self.waypoints[failure_point_index].position.x - 0.01
+      #     (self.plan, fraction) = group.compute_cartesian_path(
+      #                                        self.waypoints,   # waypoints to follow
+      #                                        0.01,        # eef_step
+      #                                        0.0, True)
+      #     attempt+=1
+      #     print(fraction)
+
+      # current_pose = self.group.get_current_pose().pose
+      #success = group.execute(plan, wait=True)
+      #print(success)
+      # group.stop()
+      # Clear  targets after planning with poses.
+      # group.clear_pose_targets()
+      #self.path_executer()
+      # group.set_start_state_to_current_state()
+      return self.plan, fraction
+
+  def behind_point_planner(self, optimal_grasp_point, possible_angles):
+      group = self.group
+      scene = self.scene
+      group.set_planning_time(15)
+
+      wrist_co = geometry_msgs.msg.Point()
+      wrist_co = self.group.get_current_pose().pose.position
+      # co_e, co_s, elbow_angle = self.ik_calculator(optimal_grasp_point,wrist_co)
+
+      length_f = 0.32
+      fraction = 0
+      i = 0
+      while((fraction<1)):
+          if i == len(possible_angles):
+              break
+          self.waypoints = []
+          wpose = group.get_current_pose().pose
+          self.waypoints.append(copy.deepcopy(wpose))
+          # print("Initial pose: %s" %wpose)
+          print(i)
+          wpose.position.x = optimal_grasp_point.x - length_f*math.cos(math.radians(possible_angles[i])) + 0.3 # length_f
+          wpose.position.y = optimal_grasp_point.y - length_f*math.sin(math.radians(possible_angles[i]))
+          wpose.position.z = 0.3
+          self.waypoints.append(copy.deepcopy(wpose))
+
+
+          wpose.position.x = optimal_grasp_point.x
+          wpose.position.y = optimal_grasp_point.y
+          euler = [0, 1.5707, math.radians(possible_angles[i])]
+          quat = tf.transformations.quaternion_from_euler(euler[0],euler[1],euler[2])
+          wpose.orientation.x = quat[0]
+          wpose.orientation.y = quat[1]
+          wpose.orientation.z = quat[2]
+          wpose.orientation.w = quat[3]
+          self.waypoints.append(copy.deepcopy(wpose))
+
+
+          (self.plan, fraction) = group.compute_cartesian_path(
+                                             self.waypoints,   # waypoints to follow
+                                             0.01,        # eef_step
+                                             0.0, True)         # jump_threshold
+
+          print("Fraction: %s" %fraction)
+          i+=1
+
 
       # if(fraction < 1):
       #     # failure_point = successful_points + 1
@@ -1258,6 +1349,9 @@ class MoveGroupPythonInterface(object):
     i = 0
     while i < len(world_objects):
         object_id = str(i/6)
+        if(object_id==str(target_id)):
+            self.objectAdder.addBox(object_id, world_objects[i] + margin, world_objects[i+1] + margin, 0.01, world_objects[i+3], world_objects[i+4], world_objects[i+5]-world_objects[i+2]/2 + 0.005)
+            self.objectAdder.setColor(object_id, 1.0, 0.2, 0.2, a=1.0)
         if(object_id!=str(target_id)):
             self.objectAdder.addBox(object_id, world_objects[i] + margin, world_objects[i+1] + margin, world_objects[i+2], world_objects[i+3], world_objects[i+4], world_objects[i+5])
             if(object_id == str(target_id)):
