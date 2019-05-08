@@ -146,82 +146,107 @@ class MoveGroupPythonInterface(object):
     # joint_goal = group.get_current_joint_values()
     group.set_planning_time(10)
 
-    constraint = moveit_msgs.msg.Constraints()
-    constraint.name = "fixed wrist orientation"
+    # constraint = moveit_msgs.msg.Constraints()
+    # constraint.name = "fixed wrist orientation"
+    # #
+    # # constraint.joint_constraints.append(moveit_msgs.msg.JointConstraint(joint_name='elbow_joint', position=0, tolerance_above=math.pi,tolerance_below=math.pi, weight=1))
+    # # # Create an orientation constraint for the
+    # orientation_constraint = moveit_msgs.msg.OrientationConstraint()
+    # orientation_constraint.header.frame_id = "world"
+    # orientation_constraint.link_name = group.get_end_effector_link()
+    # orientation_constraint.orientation.x = 0.00111054358639
+    # orientation_constraint.orientation.y = 0.70699483645
+    # orientation_constraint.orientation.z = 0.00111089701837
+    # orientation_constraint.orientation.w = 0.707216963763
+    # orientation_constraint.absolute_x_axis_tolerance = 0.05
+    # orientation_constraint.absolute_y_axis_tolerance = 0.05
+    # orientation_constraint.absolute_z_axis_tolerance = 0.14
+    # orientation_constraint.weight = 1.0
     #
-    # constraint.joint_constraints.append(moveit_msgs.msg.JointConstraint(joint_name='elbow_joint', position=0, tolerance_above=math.pi,tolerance_below=math.pi, weight=1))
-    # # Create an orientation constraint for the
-    orientation_constraint = moveit_msgs.msg.OrientationConstraint()
-    orientation_constraint.header.frame_id = "world"
-    orientation_constraint.link_name = group.get_end_effector_link()
-    orientation_constraint.orientation.x = 0.00111054358639
-    orientation_constraint.orientation.y = 0.70699483645
-    orientation_constraint.orientation.z = 0.00111089701837
-    orientation_constraint.orientation.w = 0.707216963763
-    orientation_constraint.absolute_x_axis_tolerance = 0.05
-    orientation_constraint.absolute_y_axis_tolerance = 0.05
-    orientation_constraint.absolute_z_axis_tolerance = 0.14
-    orientation_constraint.weight = 1.0
+    # ## Append the constraint to the list of contraints
+    # constraint.orientation_constraints.append(orientation_constraint)
+    #
+    # primitive = shape_msgs.msg.SolidPrimitive()
+    # primitive.type = primitive.BOX
+    # ws_x = 0.7
+    # ws_y = 1.7
+    # ws_z = 0.3
+    # ## The workspace dimensions and center point will change according to the object to be grasped
+    # dim = [ws_x,ws_y,ws_z]
+    # primitive.dimensions = dim
+    # ws_pose = geometry_msgs.msg.Pose();
+    # ## table center point = (0.44,0.65,0.25)
+    # ws_pose.position.x = 0.44
+    # ws_pose.position.y = 0.65
+    # ws_pose.position.z = 0.25
+    # ws_pose.orientation.w = 0.0
+    # pos_constraint = moveit_msgs.msg.PositionConstraint()
+    # pos_constraint.header.frame_id = "world"
+    # pos_constraint.link_name = group.get_end_effector_link()
+    # pos_constraint.weight = 0.9
+    # primitives = [primitive]
+    # ws_poses = [ws_pose]
+    # pos_constraint.constraint_region.primitives = primitives
+    # pos_constraint.constraint_region.primitive_poses = ws_poses
+    #
+    # constraint.position_constraints.append(pos_constraint)
+    #
+    #
+    # initial_pose = geometry_msgs.msg.Pose()
+    # # pose_goal = geometry_msgs.msg.PoseStamped()
+    # # pose_goal.header.frame_id = group.get_end_effector_link()
+    # initial_pose.orientation.x = 0.00111054358639
+    # initial_pose.orientation.y = 0.70699483645
+    # initial_pose.orientation.z = 0.00111089701837
+    # initial_pose.orientation.w = 0.707216963763
+    # initial_pose.position.x = 0.2#0.297788083223
+    # initial_pose.position.y = 0.4#0.373332917389
+    # initial_pose.position.z = 0.20
+    #
+    # group.set_pose_target(initial_pose, group.get_end_effector_link())
+    # group.set_path_constraints(constraint)
+    # group.go(wait=True)
+    # # Calling `stop()` ensures that there is no residual movement
+    # group.stop()
+    # # It is always good to clear your targets after planning with poses.
+    # group.clear_pose_targets()
 
-    ## Append the constraint to the list of contraints
-    constraint.orientation_constraints.append(orientation_constraint)
-
-    primitive = shape_msgs.msg.SolidPrimitive()
-    primitive.type = primitive.BOX
-    ws_x = 0.7
-    ws_y = 1.7
-    ws_z = 0.3
-    ## The workspace dimensions and center point will change according to the object to be grasped
-    dim = [ws_x,ws_y,ws_z]
-    primitive.dimensions = dim
-    ws_pose = geometry_msgs.msg.Pose();
-    ## table center point = (0.44,0.65,0.25)
-    ws_pose.position.x = 0.44
-    ws_pose.position.y = 0.65
-    ws_pose.position.z = 0.25
-    ws_pose.orientation.w = 0.0
-    pos_constraint = moveit_msgs.msg.PositionConstraint()
-    pos_constraint.header.frame_id = "world"
-    pos_constraint.link_name = group.get_end_effector_link()
-    pos_constraint.weight = 0.9
-    primitives = [primitive]
-    ws_poses = [ws_pose]
-    pos_constraint.constraint_region.primitives = primitives
-    pos_constraint.constraint_region.primitive_poses = ws_poses
-
-    constraint.position_constraints.append(pos_constraint)
+    #
 
 
-    initial_pose = geometry_msgs.msg.Pose()
-    # pose_goal = geometry_msgs.msg.PoseStamped()
-    # pose_goal.header.frame_id = group.get_end_effector_link()
-    initial_pose.orientation.x = 0.00111054358639
-    initial_pose.orientation.y = 0.70699483645
-    initial_pose.orientation.z = 0.00111089701837
-    initial_pose.orientation.w = 0.707216963763
-    initial_pose.position.x = 0.2#0.297788083223
-    initial_pose.position.y = 0.4#0.373332917389
-    initial_pose.position.z = 0.20
+    # pose_goal = geometry_msgs.msg.Pose()
+    # pose_goal.orientation.x = 0.00111054358639
+    # pose_goal.orientation.y = 0.70699483645
+    # pose_goal.orientation.z = 0.00111089701837
+    # pose_goal.orientation.w = 0.707216963763
 
-    group.set_pose_target(initial_pose, group.get_end_effector_link())
-    group.set_path_constraints(constraint)
-    group.go(wait=True)
-    # Calling `stop()` ensures that there is no residual movement
-    group.stop()
-    # It is always good to clear your targets after planning with poses.
+    self.waypoints = []
+    wpose = group.get_current_pose().pose
+    # self.waypoints.append(copy.deepcopy(wpose))
+
+    wpose.position.x = 0.2
+    wpose.position.y = 0.4
+    wpose.position.z = 0.2
+    wpose.orientation.x = 0.00111054358639
+    wpose.orientation.y = 0.70699483645
+    wpose.orientation.z = 0.00111089701837
+    wpose.orientation.w = 0.707216963763
+
+    self.waypoints.append(copy.deepcopy(wpose))
+
+    (plan, fraction) = group.compute_cartesian_path(
+                                       self.waypoints,   # waypoints to follow
+                                       0.01,        # eef_step
+                                       0.0, True)
+
+
+    self.group.execute(plan, wait = True)
     group.clear_pose_targets()
-
-    # For testing:
-    # Note that since this section of code will not be included in the tutorials
-    # we use the class variable rather than the copied state variable
-    # current_joints = self.group.get_current_joint_values()
-
-
 
 
 
     current_pose = self.group.get_current_pose().pose
-    return all_close(initial_pose, current_pose, 0.01)
+    return all_close(wpose, current_pose, 0.01)
 
   def path_planner_server(self):
       # Initialize server proxy for path_planner_service
@@ -240,7 +265,7 @@ class MoveGroupPythonInterface(object):
   def planner(self,request):
       # print(request)
 
-      plot_request = 0 # 0 for no plots, 1 for plots
+      plot_request = 1 # 0 for no plots, 1 for plots
 
       objects = request.sorted_objects.data
       optimal_grasp_point = request.grasp_point
@@ -314,8 +339,15 @@ class MoveGroupPythonInterface(object):
           path = astar2(np.array(data), start, end)
           print("A star done")
           print(path)
+
+          if(path==False):
+              print("The target state is in collision")
+              return False
+
+
           path_xy =  [[0]*3 for k in range(len(path))]
           # print(path)
+
           for j in range(len(path)):
                   r = path[j][0]
                   c = path[j][1]
@@ -401,7 +433,7 @@ class MoveGroupPythonInterface(object):
 
       elif data[end[0]][end[1]] == 1:
           print("The target state is in collision")
-          self.orientation_point_planner(optimal_grasp_point)
+          # self.orientation_point_planner(optimal_grasp_point)
 
 
           # length_f =  0.32
@@ -452,7 +484,6 @@ class MoveGroupPythonInterface(object):
       e_co.y = grasp_point.y - f_length*math.sin(e_angle)
 
       return (e_co, sh_co, e_angle)
-
 
   def point_planner(self, path_xy, optimal_grasp_point):
       group = self.group
@@ -651,7 +682,7 @@ class MoveGroupPythonInterface(object):
           print(i)
           wpose.position.x = optimal_grasp_point.x - length_f*math.cos(math.radians(possible_angles[i])) + 0.3 # length_f
           wpose.position.y = optimal_grasp_point.y - length_f*math.sin(math.radians(possible_angles[i]))
-          wpose.position.z = 0.3
+          wpose.position.z = optimal_grasp_point.z
           self.waypoints.append(copy.deepcopy(wpose))
 
 
@@ -1221,11 +1252,11 @@ class MoveGroupPythonInterface(object):
     self.table_x_dim = 0.7
     self.table_y_dim = 1.7
     # self.table_z_dim = 0.85
-    self.table_z_dim = 0.08
+    self.table_z_dim = 0.02
     self.table_x_center = 0.44
     self.table_y_center = 0.65
     # self.table_z_center = -0.24
-    self.table_z_center = 0.12 # 0.145
+    self.table_z_center = 0.10 # 0.145
     self.table_height = self.table_z_center +  self.table_z_dim/2
     print(self.table_height)
     # self.objectAdder.addBox("table1", self.table_x_dim, self.table_y_dim, 0.85, self.table_x_center, self.table_y_center, -0.24)

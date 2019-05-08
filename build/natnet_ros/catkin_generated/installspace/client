@@ -175,7 +175,8 @@ class NatnetClientNode(object):
 
         header = Header()
         header.frame_id = self.mocap_frame
-        header.stamp = rospy.Time(timing.timestamp)
+        # header.stamp = rospy.Time(timing.timestamp)
+        header.stamp = rospy.Time.now()
 
         if rigid_bodies:
             self._publish_rigid_body_poses(header, rigid_bodies)

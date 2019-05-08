@@ -312,7 +312,7 @@ def handle_objects(req):
         # Converting the center point if the object to /world frame
         p_tr = transformer.transformPoint("world", pointstamp)
 
-        height_to_table = 0.185 - (p_tr.point.z - (objects[i+2]/2))
+        height_to_table = 0.165 - (p_tr.point.z - (objects[i+2]/2))
 
         # box_pose = geometry_msgs.msg.PoseStamped()
         # box_pose.header.frame_id = "world"
@@ -320,7 +320,7 @@ def handle_objects(req):
         # box_pose.pose.position.y = p_tr.point.y
         # box_pose.pose.position.z = p_tr.point.z  # - height_to_table
 
-        box_z = 0.16 + (objects[i+2]/2)
+        box_z = 0.10 + (objects[i+2]/2)
         box_z = box_z + (p_tr.point.z - box_z)/2
         # world_objects[i+2] = objects[i+2] + (p_tr.point.z - box_pose.pose.position.z)
 
@@ -378,8 +378,8 @@ def handle_objects(req):
     print(world_objects.data[neig_idx*6 + 3])
     print(world_objects.data[neig_idx*6 + 4])
     print(world_objects.data[neig_idx*6 + 5])
-    offset_x = 0.03
-    offset_y = 0.025
+    offset_x = 0.0
+    offset_y = 0.02
 
     grasp_point = geometry_msgs.msg.Point()
     grasp_point.x = world_objects.data[neig_idx*6 + 3] - offset_x # - world_objects.data[neig_idx*6]/2
