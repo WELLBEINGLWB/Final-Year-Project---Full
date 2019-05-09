@@ -265,7 +265,7 @@ class MoveGroupPythonInterface(object):
   def planner(self,request):
       # print(request)
 
-      plot_request = 1 # 0 for no plots, 1 for plots
+      plot_request = 0 # 0 for no plots, 1 for plots
 
       objects = request.sorted_objects.data
       optimal_grasp_point = request.grasp_point
@@ -426,8 +426,10 @@ class MoveGroupPythonInterface(object):
               rospy.sleep(5.0)
               plt.close('all')
 
-          self.point_planner(path_xy, optimal_grasp_point)
+          plan_found = self.point_planner(path_xy, optimal_grasp_point)
 
+          if(plan_found == False):
+              return False
           #self.go_to_initial_state()
           return True
 
@@ -566,6 +568,9 @@ class MoveGroupPythonInterface(object):
           print("Point at which it failed: %s" %(successful_points+1))
       attempt = 0
       while fraction < 1:
+          if(attempt == 200):
+              print("Failed after 200 attempts")
+              return False
           print("Attempt number: %s" %attempt)
           successful_points = int(fraction * waypoints_number)
           failure_point_index = successful_points
@@ -585,7 +590,7 @@ class MoveGroupPythonInterface(object):
       # group.clear_pose_targets()
       #self.path_executer()
       # group.set_start_state_to_current_state()
-      return self.plan, fraction
+      return True
 
   def orientation_point_planner(self, optimal_grasp_point):
       group = self.group
@@ -739,14 +744,14 @@ class MoveGroupPythonInterface(object):
           # self.group.stop()
           # self.group.clear_pose_targets()
 
-          rospy.sleep(5)
+          rospy.sleep(3)
           reverse_waypoints = self.waypoints[::-1]
 
           (self.reverse_plan, fraction) = self.group.compute_cartesian_path(
                                              reverse_waypoints,   # waypoints to follow
                                              0.01,        # eef_step
                                              0.0, True)
-          rospy.sleep(5)
+          rospy.sleep(4)
           self.group.execute(self.reverse_plan, wait = True)
 
           if success == True:

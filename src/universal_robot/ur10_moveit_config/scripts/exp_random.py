@@ -23,7 +23,7 @@ for n in range(25):
     cols = np.size(grid,1)
     rows = np.size(grid,0)
     ratio = cols*1.0 / rows
-    objs = ['Bottle','Orange','Box','Cup','Mug','Bowl']
+    objs = ['Bottle','Orange','Box','Cup','Mug']
     min_obj = 2
     max_obj = 4
 

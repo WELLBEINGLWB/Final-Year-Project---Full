@@ -80,6 +80,23 @@ bool service_callback (segmentation::seg::Request  &req, segmentation::seg::Resp
   pcl::transformPointCloud (*transformed1_cloud, *transformed2_cloud, transform_y);
 
 
+  // pcl::PointXYZ minimumPt, maximumPt;
+  // pcl::getMinMax3D (*transformed2_cloud, minimumPt, maximumPt);
+  //
+  // // add additional
+  // for (float y=-0.5f; y<=0.5f; y+=0.001f) {
+  //   for (float x=-0.5f; x<=0.5f; x+=0.001f) {
+  //     pcl::PointXYZ point;
+  //     point.x = x;
+  //     point.y = y;
+  //     point.z = minimumPt.z;
+  //     transformed2_cloud->points.push_back(point);
+  //   }
+  // }
+
+
+
+
   // pcl::PCDReader reader;
   // pcl::PointCloud<pcl::PointXYZ>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZ>), cloud_f (new pcl::PointCloud<pcl::PointXYZ>);
   pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_f (new pcl::PointCloud<pcl::PointXYZ>);
