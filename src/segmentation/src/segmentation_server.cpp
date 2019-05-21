@@ -234,7 +234,8 @@ bool service_callback (segmentation::seg::Request  &req, segmentation::seg::Resp
       // float xCenter = (maxPt.x + minPt.x)/2 - 0.30;
       // float yCenter = (maxPt.y + minPt.y)/2 - 0.18;
       // float zCenter = (maxPt.z + minPt.z)/2 + 0.08;
-      float xCenter = (maxPt.x + minPt.x)/2;
+      // float xCenter = (maxPt.x + minPt.x)/2;
+      float xCenter = maxPt.x;
       float yCenter = (maxPt.y + minPt.y)/2;
       float zCenter = (maxPt.z + minPt.z)/2;
       // float zCenter = (maxPt.z + minTable.z)/2;

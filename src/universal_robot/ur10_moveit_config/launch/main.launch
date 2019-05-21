@@ -22,6 +22,18 @@
    <!--add negative negative to clock-->
   <node pkg="realsense2_camera" type="tf_broadcaster.py" name="camera_tf_node" output="screen"/>
 
+  <!-- pointcloud segmentation node -->
+  <!-- <node pkg="segmentation" type="segmentation_server" name="segmentation" output="screen"/> -->
+
+  <!-- Gaze optimiser - tranfosrm objects, find target object and optimal grasp point -->
+  <!-- <node pkg="ur10_moveit_config" type="gaze_optimiser.py" name="gaze_optimiser" output="screen"/> -->
+
+  <!-- Exetucion manager/controller that controls all the services responses/requests -->
+  <!-- <node pkg="ur10_moveit_config" type="controller.py" name="execution_manager" output="screen"/> -->
+
+  <!-- Main node to control the robot and find a collision-free trajectory -->
+  <!-- <node pkg="ur10_moveit_config" type="path_planner.py" name="path_planner" output="screen"/> -->
+
   <!-- <node name="send_pose" pkg="ur10_moveit_config" type="send_pose.py" respawn="false" output="screen"/> -->
   <!-- rosrun natnet_ros client _server:=10.0.0.108 -->
 

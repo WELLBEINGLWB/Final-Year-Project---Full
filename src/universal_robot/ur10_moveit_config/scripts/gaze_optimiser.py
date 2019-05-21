@@ -378,13 +378,15 @@ def handle_objects(req):
     print(world_objects.data[neig_idx*6 + 3])
     print(world_objects.data[neig_idx*6 + 4])
     print(world_objects.data[neig_idx*6 + 5])
-    offset_x = 0.0
-    offset_y = 0.015
+    offset_x = -0.015
+    offset_y = -0.03
 
     grasp_point = geometry_msgs.msg.Point()
     grasp_point.x = world_objects.data[neig_idx*6 + 3] - offset_x # - world_objects.data[neig_idx*6]/2
     grasp_point.y = world_objects.data[neig_idx*6 + 4] - world_objects.data[neig_idx*6 + 1]/2 - offset_y
     grasp_point.z = world_objects.data[neig_idx*6 + 5]
+
+    print("Grasp point: %s" %grasp_point)
 
     co_e, co_s = angle_ik(grasp_point)
     print("Coord %s" %co_e)

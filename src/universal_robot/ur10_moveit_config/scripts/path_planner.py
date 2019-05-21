@@ -225,7 +225,7 @@ class MoveGroupPythonInterface(object):
     # self.waypoints.append(copy.deepcopy(wpose))
 
     wpose.position.x = 0.2
-    wpose.position.y = 0.4
+    wpose.position.y = 0.36 #0.4
     wpose.position.z = 0.2
     wpose.orientation.x = 0.00111054358639
     wpose.orientation.y = 0.70699483645
@@ -274,14 +274,14 @@ class MoveGroupPythonInterface(object):
       # Add object bounding boxes to planning scene
       self.add_box(objects, target_id)
 
-      ratio = 1.7/0.7
-      rows = 169
+      ratio = 1.2/0.7
+      rows = 240
       cols = int(rows/ratio) + 1
       print("num cols: %s" %cols)
       data = [[0 for _ in range(rows)] for _ in range(cols)]
-      Yresolution = 1.7/rows
+      Yresolution = 1.2/rows
       Xresolution = 0.7/cols
-      print(optimal_grasp_point)
+      print("Optimal grasp point: %s" %optimal_grasp_point)
       target_x = optimal_grasp_point.x  # - world_objects.data[neig_idx*6]/2
       target_y = optimal_grasp_point.y
       target_index = [round(target_x/Xresolution)-1,round(target_y/Yresolution)-2]
@@ -298,6 +298,7 @@ class MoveGroupPythonInterface(object):
       print("start_point:", start_point)
       start = (int(round(start_point[0]/Xresolution)-1), int(round(start_point[1]/Yresolution)-1))
       end = (int(target_index[0]), int(target_index[1]))
+      print(end)
       print("start:", start)
       print("end:", end)
 
@@ -426,7 +427,88 @@ class MoveGroupPythonInterface(object):
               rospy.sleep(5.0)
               plt.close('all')
 
-          plan_found = self.point_planner(path_xy, optimal_grasp_point)
+
+          path_n = [[0 for col in range(2)] for row in range(len(path_xy))]
+          path_x = [[0 for col in range(1)] for row in range(len(path_xy))]
+          path_y = [[0 for col in range(1)] for row in range(len(path_xy))]
+
+
+          for k in range(len(path_xy)):
+              path_n[k][0] = path_xy[k][0]
+              path_n[k][1] = path_xy[k][1]
+              path_x[k] =  path_xy[k][0]
+              path_y[k] =  path_xy[k][1]
+          # print(path_n)
+          # path_x = path_xy[:,0]
+          # fig = plt.figure(figsize=(10,10/(1.2/0.7)))
+          print(path_x)
+          print(path_y)
+          # fig, ax = plt.subplots(figsize=(25,25/(1.2/0.7)))
+          # ax.plot(path_y, path_x, 'r.', label= 'Unsmoothed curve')
+          window_size = 6
+          window= np.ones(int(window_size))/float(window_size)
+          smooth_y = np.convolve(path_y, window, 'valid')
+          smooth_x = np.convolve(path_x, window, 'valid')
+          # ax.plot(smooth_y, smooth_x, 'b.', label= 'Smoothed curve')
+
+
+
+
+          weight_data = 0.5
+          weight_smooth = 0.1
+          tolerance = 0.001
+
+          newpath = [[0 for col in range(len(path_n[0]))] for row in range(len(path_n))]
+          new_smooth = [[0 for col in range(1)] for row in range(len(path_xy))]
+          for i in range(len(path_n)):
+            for j in range(len(path_n[0])):
+                newpath[i][j] = path_n[i][j]
+
+
+          change = 1
+          while change > tolerance:
+            change = 0
+            for i in range(1,len(path_n)-1):
+                for j in range(len(path_n[0])):
+                    ori = newpath[i][j]
+                    newpath[i][j] = newpath[i][j] + weight_data*(path_n[i][j]-newpath[i][j])
+                    newpath[i][j] = newpath[i][j] + weight_smooth*(newpath[i+1][j]+newpath[i-1][j]-2*newpath[i][j])
+                    change += abs(ori - newpath[i][j])
+                    # print(change)
+
+          for i in range(len(path_n)):
+              print '['+ ', '.join('%.6f'%x for x in path_n[i]) +'] -> ['+ ', '.join('%.6f'%x for x in newpath[i]) +']'
+              new_smooth[i] = newpath[i][1]
+          # ax.plot(new_smooth, path_x, 'g.', label= 'Smoothed curve2')
+          # ax.axis([0.2,1.4, -0.2, 0.75])
+          # plt.gca().invert_xaxis()
+          # plt.xlabel("Y")
+          # plt.ylabel("X")
+          # plt.grid(True)
+          # plt.show(block=False)
+          # # plt.xlabel("Months since Jan 1749.")
+          # # plt.ylabel("No. of Sun spots")
+          # rospy.sleep(10.0)
+          # plt.close('all')
+
+          new_path = [[0 for col in range(len(smooth_x))] for row in range(len(smooth_y))]
+          for j in range(len(new_path)):
+              new_path[j][0] = smooth_x[j]
+              new_path[j][1] = smooth_y[j]
+              grasp_point.x = new_path[j][0]
+              grasp_point.y = new_path[j][1]
+              co_e, co_s, elbow_angle = self.ik_calculator(grasp_point,wrist_co)
+              new_path[j][2] = elbow_angle
+
+          # for j in range(len(new_smooth)):
+          #     new_path[j][0] = new_smooth[j][0]
+          #     new_path[j][1] = new_smooth[j][1]
+          #     grasp_point.x = new_smooth[j][0]
+          #     grasp_point.y = new_smooth[j][1]
+          #     co_e, co_s, elbow_angle = self.ik_calculator(grasp_point,wrist_co)
+          #     new_path[j][2] = elbow_angle
+
+          plan_found = self.point_planner(new_path, optimal_grasp_point)
 
           if(plan_found == False):
               return False
@@ -582,6 +664,7 @@ class MoveGroupPythonInterface(object):
           attempt+=1
           print(fraction)
 
+      print(self.waypoints[-1])
       # current_pose = self.group.get_current_pose().pose
       #success = group.execute(plan, wait=True)
       #print(success)
@@ -689,6 +772,7 @@ class MoveGroupPythonInterface(object):
           wpose.position.y = optimal_grasp_point.y - length_f*math.sin(math.radians(possible_angles[i]))
           wpose.position.z = optimal_grasp_point.z
           self.waypoints.append(copy.deepcopy(wpose))
+
 
 
           wpose.position.x = optimal_grasp_point.x
@@ -1257,11 +1341,11 @@ class MoveGroupPythonInterface(object):
     self.table_x_dim = 0.7
     self.table_y_dim = 1.7
     # self.table_z_dim = 0.85
-    self.table_z_dim = 0.02
+    self.table_z_dim = 0.06
     self.table_x_center = 0.44
     self.table_y_center = 0.65
     # self.table_z_center = -0.24
-    self.table_z_center = 0.10 # 0.145
+    self.table_z_center = 0.08 # 0.145
     self.table_height = self.table_z_center +  self.table_z_dim/2
     print(self.table_height)
     # self.objectAdder.addBox("table1", self.table_x_dim, self.table_y_dim, 0.85, self.table_x_center, self.table_y_center, -0.24)
@@ -1270,7 +1354,7 @@ class MoveGroupPythonInterface(object):
     self.objectAdder.setColor("table", 0.57, 0.73, 1.0, a=0.9)
 
     leg_side_length = 0.05
-    leg_height = 0.77
+    leg_height = 0.7
     leg_center = self.table_z_center - self.table_z_dim/2 - leg_height/2
     self.objectAdder.addBox("leg_1", leg_side_length , leg_side_length , leg_height , self.table_x_center + self.table_x_dim/2 - leg_side_length/2 , self.table_y_center - self.table_y_dim/2 + leg_side_length/2 , leg_center)
     self.objectAdder.addBox("leg_2", leg_side_length , leg_side_length , leg_height , self.table_x_center + self.table_x_dim/2 - leg_side_length/2 , self.table_y_center + self.table_y_dim/2 - leg_side_length/2 , leg_center)
@@ -1287,58 +1371,11 @@ class MoveGroupPythonInterface(object):
     # table_pose.pose.position.z = 0.26
     # scene.add_box("dummy0", table_pose, size=( 0.055, 0.055, 0.15))
 
-    # table_pose.pose.position.x = 0.40
-    # table_pose.pose.position.y = 0.90
-    # table_pose.pose.position.z = 0.25
-    # scene.add_box("dummy1", table_pose, size=( 0.055, 0.055, 0.15))
-
-    # table_pose.pose.position.x = 0.40
-    # table_pose.pose.position.y = 0.45
-    # table_pose.pose.position.z = 0.20
-    # scene.add_box("dummy2", table_pose, size=( 0.055, 0.055, 0.05))
-
-
-
-    # table_pose.header.frame_id = "world"
-    # table_pose.pose.position.x = 0.44
-    # table_pose.pose.position.y = 0.65
-    # table_pose.pose.position.z = 0.25
-    # scene.add_box("ws", table_pose, size=( 0.7, 1.7, 0.2))
-
-    # table_pose.pose.position.x = -0.45
-    # table_pose.pose.position.y = -0.55
-    # table_pose.pose.position.z = 0
-    # scene.add_box("2", table_pose, size=( 0.25, 0.25, 1.75))
-    # print("Table height: ")
-    # print(-0.24 + (0.85/2))
-    #
-    # wall_pose = geometry_msgs.msg.PoseStamped()
-    # wall_pose.header.frame_id = "base"
-    # wall_pose.pose.orientation.w = 0.0
-    # wall_pose.pose.position.x = -0.45
-    # wall_pose.pose.position.y = 0.40
-    # wall_pose.pose.position.z = 0.20
-    # scene.add_box("wall", wall_pose, size=( 2.0, 0.1, 1.5))
 
     self.objectAdder.addBox("side_wall", 2.0, 0.1, 1.5, 0.45, -0.40, 0.20)
     self.objectAdder.setColor("side_wall", 0.1, 1.0, 0.2, a=0.9)
     self.objectAdder.sendColors()
 
-    # top_pose = geometry_msgs.msg.PoseStamped()
-    # top_pose.header.frame_id = "base"
-    # top_pose.pose.orientation.w = 0.0
-    # top_pose.pose.position.x = -0.7
-    # top_pose.pose.position.y = -1.0
-    # top_pose.pose.position.z = 0.75
-    # scene.add_box("ceilling", top_pose, size=( 1.0, 2.0, 0.05))
-
-
-    # top_pose.pose.position.x = 0.3
-    # top_pose.pose.position.y = -0.7
-    # top_pose.pose.position.z = 0.2
-    # scene.add_box("person", top_pose, size=( 0.4, 0.4, 1.75))
-
-    # arrow = Marker
 
     # scene.setColor("table", 0.9, 0.2, 0.9, 1.0)
     # Add a mesh
