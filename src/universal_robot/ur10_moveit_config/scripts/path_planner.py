@@ -116,6 +116,10 @@ class MoveGroupPythonInterface(object):
     self.eef_link = eef_link
     self.group_names = group_names
 
+    self.target_obj_id = 0
+
+    self.area_array = []
+
     self.fk_srv = rospy.ServiceProxy('/compute_fk',GetPositionFK)
     self.fk_srv.wait_for_service()
     # self.objs = []
@@ -271,6 +275,7 @@ class MoveGroupPythonInterface(object):
       optimal_grasp_point = request.grasp_point
       grasp_point = geometry_msgs.msg.Point()
       target_id = request.target_id
+      self.target_obj_id = target_id
       # Add object bounding boxes to planning scene
       self.add_box(objects, target_id)
 
@@ -295,12 +300,12 @@ class MoveGroupPythonInterface(object):
 
       # start_point = [0.15,0.38]
       start_point = [wrist_co.x,wrist_co.y]
-      print("start_point:", start_point)
+      # print("start_point:", start_point)
       start = (int(round(start_point[0]/Xresolution)-1), int(round(start_point[1]/Yresolution)-1))
       end = (int(target_index[0]), int(target_index[1]))
-      print(end)
-      print("start:", start)
-      print("end:", end)
+      # print(end)
+      # print("start:", start)
+      # print("end:", end)
 
 
 
@@ -339,7 +344,7 @@ class MoveGroupPythonInterface(object):
           #path = astar(data, start, end)
           path = astar2(np.array(data), start, end)
           print("A star done")
-          print(path)
+          # print(path) # print astar output - path in xy indexes
 
           if(path==False):
               print("The target state is in collision")
@@ -383,7 +388,7 @@ class MoveGroupPythonInterface(object):
           co_e, co_s, elbow_angle = self.ik_calculator(grasp_point,wrist_co)
           print(grasp_point)
 
-          print(path_xy)
+          # print(path_xy)
 
 
           # Animation of the arm trajectory
@@ -440,13 +445,13 @@ class MoveGroupPythonInterface(object):
               path_y[k] =  path_xy[k][1]
           # print(path_n)
           # path_x = path_xy[:,0]
-          # fig = plt.figure(figsize=(10,10/(1.2/0.7)))
-          print(path_x)
-          print(path_y)
+
+          # print(path_x)
+          # print(path_y)
           # fig, ax = plt.subplots(figsize=(25,25/(1.2/0.7)))
           # ax.plot(path_y, path_x, 'r.', label= 'Unsmoothed curve')
           window_size = 6
-          window= np.ones(int(window_size))/float(window_size)
+          window = np.ones(int(window_size))/float(window_size)
           smooth_y = np.convolve(path_y, window, 'valid')
           smooth_x = np.convolve(path_x, window, 'valid')
           # ax.plot(smooth_y, smooth_x, 'b.', label= 'Smoothed curve')
@@ -454,31 +459,31 @@ class MoveGroupPythonInterface(object):
 
 
 
-          weight_data = 0.5
-          weight_smooth = 0.1
-          tolerance = 0.001
-
-          newpath = [[0 for col in range(len(path_n[0]))] for row in range(len(path_n))]
-          new_smooth = [[0 for col in range(1)] for row in range(len(path_xy))]
-          for i in range(len(path_n)):
-            for j in range(len(path_n[0])):
-                newpath[i][j] = path_n[i][j]
-
-
-          change = 1
-          while change > tolerance:
-            change = 0
-            for i in range(1,len(path_n)-1):
-                for j in range(len(path_n[0])):
-                    ori = newpath[i][j]
-                    newpath[i][j] = newpath[i][j] + weight_data*(path_n[i][j]-newpath[i][j])
-                    newpath[i][j] = newpath[i][j] + weight_smooth*(newpath[i+1][j]+newpath[i-1][j]-2*newpath[i][j])
-                    change += abs(ori - newpath[i][j])
-                    # print(change)
-
-          for i in range(len(path_n)):
-              print '['+ ', '.join('%.6f'%x for x in path_n[i]) +'] -> ['+ ', '.join('%.6f'%x for x in newpath[i]) +']'
-              new_smooth[i] = newpath[i][1]
+          # weight_data = 0.5
+          # weight_smooth = 0.1
+          # tolerance = 0.001
+          #
+          # newpath = [[0 for col in range(len(path_n[0]))] for row in range(len(path_n))]
+          # new_smooth = [[0 for col in range(1)] for row in range(len(path_xy))]
+          # for i in range(len(path_n)):
+          #   for j in range(len(path_n[0])):
+          #       newpath[i][j] = path_n[i][j]
+          #
+          #
+          # change = 1
+          # while change > tolerance:
+          #   change = 0
+          #   for i in range(1,len(path_n)-1):
+          #       for j in range(len(path_n[0])):
+          #           ori = newpath[i][j]
+          #           newpath[i][j] = newpath[i][j] + weight_data*(path_n[i][j]-newpath[i][j])
+          #           newpath[i][j] = newpath[i][j] + weight_smooth*(newpath[i+1][j]+newpath[i-1][j]-2*newpath[i][j])
+          #           change += abs(ori - newpath[i][j])
+          #           # print(change)
+          #
+          # for i in range(len(path_n)):
+          #     print '['+ ', '.join('%.6f'%x for x in path_n[i]) +'] -> ['+ ', '.join('%.6f'%x for x in newpath[i]) +']'
+          #     new_smooth[i] = newpath[i][1]
           # ax.plot(new_smooth, path_x, 'g.', label= 'Smoothed curve2')
           # ax.axis([0.2,1.4, -0.2, 0.75])
           # plt.gca().invert_xaxis()
@@ -486,8 +491,6 @@ class MoveGroupPythonInterface(object):
           # plt.ylabel("X")
           # plt.grid(True)
           # plt.show(block=False)
-          # # plt.xlabel("Months since Jan 1749.")
-          # # plt.ylabel("No. of Sun spots")
           # rospy.sleep(10.0)
           # plt.close('all')
 
@@ -827,7 +830,7 @@ class MoveGroupPythonInterface(object):
           print(success)
           # self.group.stop()
           # self.group.clear_pose_targets()
-
+          self.scene.remove_world_object(str(self.target_obj_id))
           rospy.sleep(3)
           reverse_waypoints = self.waypoints[::-1]
 
@@ -1395,13 +1398,15 @@ class MoveGroupPythonInterface(object):
     ## Removing all the objects in the scene before adding the new ones
     # print("Number of objects found in the scene:" , len(scene.get_known_object_names()))
     no = len(scene.get_known_object_names())
-    f = 0
-    while f < no:
-        box_nam = str(f)
-        scene.remove_world_object(box_nam)
-        # print("Removed object number ")
-        # print(f)
-        f+=1
+
+    #  Loop to remove all the objects
+    # f = 0
+    # while f < no:
+    #     box_nam = str(f)
+    #     # scene.remove_world_object(box_nam)
+    #     # print("Removed object number ")
+    #     # print(f)
+    #     f+=1
 
     # print(msg.data)
     ## Adding Objects to the Planning Scene
@@ -1416,29 +1421,88 @@ class MoveGroupPythonInterface(object):
     # obj_name={}
     # for n in range(1,10):
     #     obj_name["object{0}".format(n)]="Hello"
-
-    # Extra margin to add to the bounding boxes and to find gaze point within one object(in meters)
+    old_objs = scene.get_objects()
     margin = 0.0
     i = 0
     while i < len(world_objects):
+        # find is there is already an object in within the boundaries of the new object
         object_id = str(i/6)
-        if(object_id==str(target_id)):
-            self.objectAdder.addBox(object_id, world_objects[i] + margin, world_objects[i+1] + margin, 0.01, world_objects[i+3], world_objects[i+4], world_objects[i+5]-world_objects[i+2]/2 + 0.005)
-            self.objectAdder.setColor(object_id, 1.0, 0.2, 0.2, a=1.0)
-        if(object_id!=str(target_id)):
-            self.objectAdder.addBox(object_id, world_objects[i] + margin, world_objects[i+1] + margin, world_objects[i+2], world_objects[i+3], world_objects[i+4], world_objects[i+5])
-            if(object_id == str(target_id)):
+        is_obj = scene.get_known_object_names_in_roi((world_objects[i+3] - (world_objects[i]/2)),(world_objects[i+4] - (world_objects[i+1]/2)),(world_objects[i+5] - (world_objects[i+2]/2)),(world_objects[i+3] + (world_objects[i]/2)),(world_objects[i+4] + (world_objects[i+1]/2)),(world_objects[i+5] + (world_objects[i+2]/2) + 0.5))
+        if (not is_obj):
+            print("No object in place")
+            if(object_id==str(target_id)):
+                self.objectAdder.addBox(object_id, world_objects[i] + margin, world_objects[i+1] + margin, 0.01, world_objects[i+3], world_objects[i+4], world_objects[i+5]-world_objects[i+2]/2 + 0.005)
                 self.objectAdder.setColor(object_id, 1.0, 0.2, 0.2, a=1.0)
-                ## Target object will have a different colour
-            else:
-                self.objectAdder.setColor(object_id, 0.1, 0.4, 1.0, a=1.0)
-            # All obstacles have the same colour
-        # All the colours are set at the same time
-        self.objectAdder.sendColors()
+            if(object_id!=str(target_id)):
+                self.objectAdder.addBox(object_id, world_objects[i] + margin, world_objects[i+1] + margin, world_objects[i+2], world_objects[i+3], world_objects[i+4], world_objects[i+5])
+                if(object_id == str(target_id)):
+                    self.objectAdder.setColor(object_id, 1.0, 0.2, 0.2, a=1.0)
+                    ## Target object will have a different colour
+                else:
+                    self.objectAdder.setColor(object_id, 0.1, 0.4, 1.0, a=1.0)
+        else:
+            print("Old object id is: %s" %is_obj[0])
+            new_area = (world_objects[i] + margin)*(world_objects[i+1] + margin) # area = xDimension * yDimension
+            old_area = (old_objs[str(is_obj[0])].primitives[0].dimensions[0])*(old_objs[str(is_obj[0])].primitives[0].dimensions[1])
+            print(new_area)
+            print(old_area)
+            # old_area = 0.2*0.2#self.area_array[i/6]
+            if(new_area > old_area): # or i == target_id
+                if(object_id==str(target_id)):
+                    self.objectAdder.addBox(object_id, world_objects[i] + margin, world_objects[i+1] + margin, 0.01, world_objects[i+3], world_objects[i+4], world_objects[i+5]-world_objects[i+2]/2 + 0.005)
+                    self.objectAdder.setColor(object_id, 1.0, 0.2, 0.2, a=1.0)
+                if(object_id!=str(target_id)):
+                    self.objectAdder.addBox(object_id, world_objects[i] + margin, world_objects[i+1] + margin, world_objects[i+2], world_objects[i+3], world_objects[i+4], world_objects[i+5])
+                    if(object_id == str(target_id)):
+                        self.objectAdder.setColor(object_id, 1.0, 0.2, 0.2, a=1.0)
+                        ## Target object will have a different colour
+                    else:
+                        self.objectAdder.setColor(object_id, 0.1, 0.4, 1.0, a=1.0)
         i+=6
+    self.objectAdder.sendColors()
+    # Extra margin to add to the bounding boxes and to find gaze point within one object(in meters)
+    # old_objs = scene.get_objects()
+    # id = 0
+    # objDim = (old_objs[str(id)].primitives[0].dimensions[0])*(old_objs[str(id)].primitives[0].dimensions[0])
+    # print(objDim) #["primitives"]
+
+    # self.area_array = [[0] for k in range(num_objects)]
+
+    # i = 0
+    # while i < len(world_objects):
+    #     self.area_array[i/6] = (world_objects[i] + margin)*(world_objects[i+1] + margin)
+    #     i+=6
+    #
+    # # print(self.area_array)
+
+    # area = (world_objects[i] + margin)*(world_objects[i+1] + margin)
+
+
+    # i = 0
+    # print(world_objects)
+    # while i < len(world_objects):
+    #     object_id = str(i/6)
+    #     if(object_id==str(target_id)):
+    #         self.objectAdder.addBox(object_id, world_objects[i] + margin, world_objects[i+1] + margin, 0.01, world_objects[i+3], world_objects[i+4], world_objects[i+5]-world_objects[i+2]/2 + 0.005)
+    #         self.objectAdder.setColor(object_id, 1.0, 0.2, 0.2, a=1.0)
+    #     if(object_id!=str(target_id)):
+    #         self.objectAdder.addBox(object_id, world_objects[i] + margin, world_objects[i+1] + margin, world_objects[i+2], world_objects[i+3], world_objects[i+4], world_objects[i+5])
+    #         if(object_id == str(target_id)):
+    #             self.objectAdder.setColor(object_id, 1.0, 0.2, 0.2, a=1.0)
+    #             ## Target object will have a different colour
+    #         else:
+    #             self.objectAdder.setColor(object_id, 0.1, 0.4, 1.0, a=1.0)
+    #         # All obstacles have the same colour
+    #     # All the colours are set at the same time
+    #     # self.objectAdder.sendColors()
+    #     i+=6
+    # self.objectAdder.sendColors()
+    # minx, miny, minz, maxx, maxy, maxz, with_type = False
+    # ((world_objects[i+3] - (world_objects[i]/2),(world_objects[i+4] - (world_objects[i+1]/2),(world_objects[i+5] - (world_objects[i+2]/2),(world_objects[i+3] + (world_objects[i]/2),(world_objects[i+4] + (world_objects[i+1]/2),(world_objects[i+5] + (world_objects[i+2]/2))
 
 
 
+    # print(scene.get_known_object_names())
     # transformer = tf.TransformListener()
 
     # i = 0
