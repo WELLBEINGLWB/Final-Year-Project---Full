@@ -1455,6 +1455,7 @@ class MoveGroupPythonInterface(object):
     roi_margin = 0.1
     i = 0
     world_objects = list(world_objects)
+    # print(world_objects)
     while i < len(world_objects):
         object_id = str(i/6)
         old_objs = scene.get_objects()
@@ -1468,36 +1469,46 @@ class MoveGroupPythonInterface(object):
             else:
                 is_obj = [s for s in is_obj if s.isdigit()]
                 old_obj_pose = scene.get_object_poses(is_obj)
-                print(i)
-                world_objects.remove(i)
-                world_objetcs.insert(i,old_objs[str(is_obj[0])].primitives[0].dimensions[0])
-                world_objects.remove(i+1)
-                world_objetcs.insert(i+1,old_objs[str(is_obj[0])].primitives[0].dimensions[1])
-                world_objects.remove(i+2)
-                world_objetcs.insert(i+2,old_objs[str(is_obj[0])].primitives[0].dimensions[2])
-                world_objects.remove(i+3)
-                world_objetcs.insert(i+3,old_obj_pose[str(is_obj[0])].position.x)
-                world_objects.remove(i+4)
-                world_objetcs.insert(i+4,old_obj_pose[str(is_obj[0])].position.y)
-                world_objects.remove(i+5)
-                world_objetcs.insert(i+5,old_obj_pose[str(is_obj[0])].position.z)
+                # print(i)
+                # print(world_objects)
+                world_objects.pop(i)
+                world_objects.insert(i,old_objs[str(is_obj[0])].primitives[0].dimensions[0])
+                world_objects.pop(i+1)
+                world_objects.insert(i+1,old_objs[str(is_obj[0])].primitives[0].dimensions[1])
+                world_objects.pop(i+2)
+                world_objects.insert(i+2,old_objs[str(is_obj[0])].primitives[0].dimensions[2])
+                world_objects.pop(i+3)
+                world_objects.insert(i+3,old_obj_pose[str(is_obj[0])].position.x)
+                world_objects.pop(i+4)
+                world_objects.insert(i+4,old_obj_pose[str(is_obj[0])].position.y)
+                world_objects.pop(i+5)
+                world_objects.insert(i+5,old_obj_pose[str(is_obj[0])].position.z)
                 scene.remove_world_object(str(is_obj[0]))
         i+=6
 
     old_objs = scene.get_objects()
+    print("After")
+    print(self.scene.get_known_object_names())
     old_ids = [s for s in self.scene.get_known_object_names() if s.isdigit()]
     print("old_ids: %s" %old_ids)
 
 
     for k in old_ids:
-        temp_id = str(i)
-        old_obj_pose = scene.get_object_poses(temp_id)
+        print(k)
+        temp_id = str(k)
+        print(temp_id)
+        old_obj_pose = scene.get_object_poses([str(k)])
+        print(old_obj_pose)
+        if bool(old_obj_pose) == False:
+            old_obj_pose = scene.get_object_poses([str(k)])
+            print(old_obj_pose)
+
         world_objects.append(old_objs[str(k)].primitives[0].dimensions[0])
         world_objects.append(old_objs[str(k)].primitives[0].dimensions[1])
         world_objects.append(old_objs[str(k)].primitives[0].dimensions[2])
-        world_objects.append(old_obj_pose[str(is_obj[0])].position.x)
-        world_objects.append(old_obj_pose[str(is_obj[0])].position.y)
-        world_objects.append(old_obj_pose[str(is_obj[0])].position.z)
+        world_objects.append(old_obj_pose[str(k)].position.x)
+        world_objects.append(old_obj_pose[str(k)].position.y)
+        world_objects.append(old_obj_pose[str(k)].position.z)
         scene.remove_world_object(str(i))
 
 
