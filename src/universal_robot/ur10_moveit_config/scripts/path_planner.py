@@ -260,6 +260,19 @@ class MoveGroupPythonInterface(object):
       # print("Not get here")
 
   def path_executer_server(self):
+
+      no = len(self.scene.get_known_object_names()) - 6
+      # print(self.scene.get_known_object_names())
+      print(no)
+      #  Loop to remove all the objects
+      f = 0
+      while f < no:
+          box_nam = str(f)
+          self.scene.remove_world_object(box_nam)
+          # print("Removed object number ")
+          print(f)
+          f = f + 1
+
       # Initialize server proxy for path_planner_service
       s = rospy.Service('path_executer_service', executionOrder, self.path_executer)
       print "Ready to execute path."
@@ -1316,6 +1329,10 @@ class MoveGroupPythonInterface(object):
     # box_name = self.box_name
     scene = self.scene
 
+    no = len(self.scene.get_known_object_names())
+
+
+
     # group = self.group
     # robot = self.robot
     # eef_link = self.eef_link
@@ -1359,14 +1376,14 @@ class MoveGroupPythonInterface(object):
     leg_side_length = 0.05
     leg_height = 0.7
     leg_center = self.table_z_center - self.table_z_dim/2 - leg_height/2
-    self.objectAdder.addBox("leg_1", leg_side_length , leg_side_length , leg_height , self.table_x_center + self.table_x_dim/2 - leg_side_length/2 , self.table_y_center - self.table_y_dim/2 + leg_side_length/2 , leg_center)
-    self.objectAdder.addBox("leg_2", leg_side_length , leg_side_length , leg_height , self.table_x_center + self.table_x_dim/2 - leg_side_length/2 , self.table_y_center + self.table_y_dim/2 - leg_side_length/2 , leg_center)
-    self.objectAdder.addBox("leg_3", leg_side_length , leg_side_length , leg_height , self.table_x_center - self.table_x_dim/2 + leg_side_length/2 , self.table_y_center - self.table_y_dim/2 + leg_side_length/2 , leg_center)
-    self.objectAdder.addBox("leg_4", leg_side_length , leg_side_length , leg_height , self.table_x_center - self.table_x_dim/2 + leg_side_length/2 , self.table_y_center + self.table_y_dim/2 - leg_side_length/2 , leg_center)
-    self.objectAdder.setColor("leg_1", 0.78, 0.44, 0.2, a=1.0)
-    self.objectAdder.setColor("leg_2", 0.78, 0.44, 0.2, a=1.0)
-    self.objectAdder.setColor("leg_3", 0.78, 0.44, 0.2, a=1.0)
-    self.objectAdder.setColor("leg_4", 0.78, 0.44, 0.2, a=1.0)
+    self.objectAdder.addBox("leg_top_right", leg_side_length , leg_side_length , leg_height , self.table_x_center + self.table_x_dim/2 - leg_side_length/2 , self.table_y_center - self.table_y_dim/2 + leg_side_length/2 , leg_center)
+    self.objectAdder.addBox("leg_top_left", leg_side_length , leg_side_length , leg_height , self.table_x_center + self.table_x_dim/2 - leg_side_length/2 , self.table_y_center + self.table_y_dim/2 - leg_side_length/2 , leg_center)
+    self.objectAdder.addBox("leg_bottom_right", leg_side_length , leg_side_length , leg_height , self.table_x_center - self.table_x_dim/2 + leg_side_length/2 , self.table_y_center - self.table_y_dim/2 + leg_side_length/2 , leg_center)
+    self.objectAdder.addBox("leg_bottom_left", leg_side_length , leg_side_length , leg_height , self.table_x_center - self.table_x_dim/2 + leg_side_length/2 , self.table_y_center + self.table_y_dim/2 - leg_side_length/2 , leg_center)
+    self.objectAdder.setColor("leg_top_right", 0.78, 0.44, 0.2, a=1.0)
+    self.objectAdder.setColor("leg_top_left", 0.78, 0.44, 0.2, a=1.0)
+    self.objectAdder.setColor("leg_bottom_right", 0.78, 0.44, 0.2, a=1.0)
+    self.objectAdder.setColor("leg_bottom_left", 0.78, 0.44, 0.2, a=1.0)
 
 
     # table_pose.pose.position.x = 0.30
@@ -1416,50 +1433,176 @@ class MoveGroupPythonInterface(object):
 
     # Number of objects in the array (each has 6 dimensions)
     num_objects = len(world_objects)/6
+
+    ##################################################################################
+
+    no = len(self.scene.get_known_object_names()) - 6
+
+    print(self.scene.get_known_object_names())
+    old_objs = scene.get_objects()
+    # print(old_objs)
+    # old_ids = [s for s in self.scene.get_known_object_names() if s.isdigit()]
+    # print(old_ids)
+    # # old_ids = [0]
+    # old_ids = [str(item) for item in old_ids]
+    # # print(old_ids)
+    # if  len(old_ids) > 0:
+    #     poses = scene.get_object_poses(old_ids)
+    #     print("blah")
+    #     for i in range(len(old_ids)):
+    #         print(poses[old_ids[i]].position.x)
+    margin = 0.0
+    roi_margin = 0.1
+    i = 0
+    world_objects = list(world_objects)
+    while i < len(world_objects):
+        object_id = str(i/6)
+        old_objs = scene.get_objects()
+        is_obj = scene.get_known_object_names_in_roi((world_objects[i+3] - (world_objects[i]/2) - roi_margin),(world_objects[i+4] - (world_objects[i+1]/2) - roi_margin),(world_objects[i+5] - (world_objects[i+2]/2)),(world_objects[i+3] + (world_objects[i]/2) + roi_margin),(world_objects[i+4] + (world_objects[i+1]/2) + roi_margin),(world_objects[i+5] + (world_objects[i+2]/2) + 0.5))
+        if is_obj: #list is not empty
+            new_area = (world_objects[i] + margin)*(world_objects[i+1] + margin) # area = xDimension * yDimension
+            old_area = (old_objs[str(is_obj[0])].primitives[0].dimensions[0])*(old_objs[str(is_obj[0])].primitives[0].dimensions[1])
+
+            if(new_area > old_area):
+                scene.remove_world_object(str(is_obj[0]))
+            else:
+                is_obj = [s for s in is_obj if s.isdigit()]
+                old_obj_pose = scene.get_object_poses(is_obj)
+                print(i)
+                world_objects.remove(i)
+                world_objetcs.insert(i,old_objs[str(is_obj[0])].primitives[0].dimensions[0])
+                world_objects.remove(i+1)
+                world_objetcs.insert(i+1,old_objs[str(is_obj[0])].primitives[0].dimensions[1])
+                world_objects.remove(i+2)
+                world_objetcs.insert(i+2,old_objs[str(is_obj[0])].primitives[0].dimensions[2])
+                world_objects.remove(i+3)
+                world_objetcs.insert(i+3,old_obj_pose[str(is_obj[0])].position.x)
+                world_objects.remove(i+4)
+                world_objetcs.insert(i+4,old_obj_pose[str(is_obj[0])].position.y)
+                world_objects.remove(i+5)
+                world_objetcs.insert(i+5,old_obj_pose[str(is_obj[0])].position.z)
+                scene.remove_world_object(str(is_obj[0]))
+        i+=6
+
+    old_objs = scene.get_objects()
+    old_ids = [s for s in self.scene.get_known_object_names() if s.isdigit()]
+    print("old_ids: %s" %old_ids)
+
+
+    for k in old_ids:
+        temp_id = str(i)
+        old_obj_pose = scene.get_object_poses(temp_id)
+        world_objects.append(old_objs[str(k)].primitives[0].dimensions[0])
+        world_objects.append(old_objs[str(k)].primitives[0].dimensions[1])
+        world_objects.append(old_objs[str(k)].primitives[0].dimensions[2])
+        world_objects.append(old_obj_pose[str(is_obj[0])].position.x)
+        world_objects.append(old_obj_pose[str(is_obj[0])].position.y)
+        world_objects.append(old_obj_pose[str(is_obj[0])].position.z)
+        scene.remove_world_object(str(i))
+
+
+
+    # scene.remove_world_object(str(is_obj[0]))
+
+
+    # while i < len(world_objects):
+    #     # find is there is already an object in within the boundaries of the new object
+    #     object_id = str(i/6)
+    #     is_obj = scene.get_known_object_names_in_roi((world_objects[i+3] - (world_objects[i]/2) - roi_margin),(world_objects[i+4] - (world_objects[i+1]/2) - roi_margin),(world_objects[i+5] - (world_objects[i+2]/2)),(world_objects[i+3] + (world_objects[i]/2) + roi_margin),(world_objects[i+4] + (world_objects[i+1]/2) + roi_margin),(world_objects[i+5] + (world_objects[i+2]/2) + 0.5))
+    #     if (not is_obj): # is_obj is emtpy, no previous object in same place
+    #         print("No object in place")
+    #         if(object_id==str(target_id)):
+    #             self.objectAdder.addBox(object_id, world_objects[i] + margin, world_objects[i+1] + margin, 0.01, world_objects[i+3], world_objects[i+4], world_objects[i+5]-world_objects[i+2]/2 + 0.005)
+    #             self.objectAdder.setColor(object_id, 1.0, 0.2, 0.2, a=1.0)
+    #         if(object_id!=str(target_id)):
+    #             self.objectAdder.addBox(object_id, world_objects[i] + margin, world_objects[i+1] + margin, world_objects[i+2], world_objects[i+3], world_objects[i+4], world_objects[i+5])
+    #             if(object_id == str(target_id)):
+    #                 self.objectAdder.setColor(object_id, 1.0, 0.2, 0.2, a=1.0)
+    #                 ## Target object will have a different colour
+    #             else:
+    #                 self.objectAdder.setColor(object_id, 0.1, 0.4, 1.0, a=1.0)
+    #     else:
+    #         print("Old object id is: %s" %is_obj[0])
+    #         new_area = (world_objects[i] + margin)*(world_objects[i+1] + margin) # area = xDimension * yDimension
+    #         old_area = (old_objs[str(is_obj[0])].primitives[0].dimensions[0])*(old_objs[str(is_obj[0])].primitives[0].dimensions[1])
+    #         print(new_area)
+    #         print(old_area)
+    #         # old_area = 0.2*0.2#self.area_array[i/6]
+    #         if(new_area > old_area): # or i == target_id
+    #             if(object_id==str(target_id)):
+    #                 self.objectAdder.addBox(object_id, world_objects[i] + margin, world_objects[i+1] + margin, 0.01, world_objects[i+3], world_objects[i+4], world_objects[i+5]-world_objects[i+2]/2 + 0.005)
+    #                 self.objectAdder.setColor(object_id, 1.0, 0.2, 0.2, a=1.0)
+    #             if(object_id!=str(target_id)):
+    #                 self.objectAdder.addBox(object_id, world_objects[i] + margin, world_objects[i+1] + margin, world_objects[i+2], world_objects[i+3], world_objects[i+4], world_objects[i+5])
+    #                 if(object_id == str(target_id)):
+    #                     self.objectAdder.setColor(object_id, 1.0, 0.2, 0.2, a=1.0)
+    #                     ## Target object will have a different colour
+    #                 else:
+    #                     self.objectAdder.setColor(object_id, 0.1, 0.4, 1.0, a=1.0)
+    #     i+=6
+    # self.objectAdder.sendColors()
+
+    ##################################################################################
+
+
+
+
+
+
+
+
+
+
     # print("Number of objects: ")
     # print(num_objects)
     # obj_name={}
     # for n in range(1,10):
     #     obj_name["object{0}".format(n)]="Hello"
-    old_objs = scene.get_objects()
-    margin = 0.0
-    i = 0
-    while i < len(world_objects):
-        # find is there is already an object in within the boundaries of the new object
-        object_id = str(i/6)
-        is_obj = scene.get_known_object_names_in_roi((world_objects[i+3] - (world_objects[i]/2)),(world_objects[i+4] - (world_objects[i+1]/2)),(world_objects[i+5] - (world_objects[i+2]/2)),(world_objects[i+3] + (world_objects[i]/2)),(world_objects[i+4] + (world_objects[i+1]/2)),(world_objects[i+5] + (world_objects[i+2]/2) + 0.5))
-        if (not is_obj):
-            print("No object in place")
-            if(object_id==str(target_id)):
-                self.objectAdder.addBox(object_id, world_objects[i] + margin, world_objects[i+1] + margin, 0.01, world_objects[i+3], world_objects[i+4], world_objects[i+5]-world_objects[i+2]/2 + 0.005)
-                self.objectAdder.setColor(object_id, 1.0, 0.2, 0.2, a=1.0)
-            if(object_id!=str(target_id)):
-                self.objectAdder.addBox(object_id, world_objects[i] + margin, world_objects[i+1] + margin, world_objects[i+2], world_objects[i+3], world_objects[i+4], world_objects[i+5])
-                if(object_id == str(target_id)):
-                    self.objectAdder.setColor(object_id, 1.0, 0.2, 0.2, a=1.0)
-                    ## Target object will have a different colour
-                else:
-                    self.objectAdder.setColor(object_id, 0.1, 0.4, 1.0, a=1.0)
-        else:
-            print("Old object id is: %s" %is_obj[0])
-            new_area = (world_objects[i] + margin)*(world_objects[i+1] + margin) # area = xDimension * yDimension
-            old_area = (old_objs[str(is_obj[0])].primitives[0].dimensions[0])*(old_objs[str(is_obj[0])].primitives[0].dimensions[1])
-            print(new_area)
-            print(old_area)
-            # old_area = 0.2*0.2#self.area_array[i/6]
-            if(new_area > old_area): # or i == target_id
-                if(object_id==str(target_id)):
-                    self.objectAdder.addBox(object_id, world_objects[i] + margin, world_objects[i+1] + margin, 0.01, world_objects[i+3], world_objects[i+4], world_objects[i+5]-world_objects[i+2]/2 + 0.005)
-                    self.objectAdder.setColor(object_id, 1.0, 0.2, 0.2, a=1.0)
-                if(object_id!=str(target_id)):
-                    self.objectAdder.addBox(object_id, world_objects[i] + margin, world_objects[i+1] + margin, world_objects[i+2], world_objects[i+3], world_objects[i+4], world_objects[i+5])
-                    if(object_id == str(target_id)):
-                        self.objectAdder.setColor(object_id, 1.0, 0.2, 0.2, a=1.0)
-                        ## Target object will have a different colour
-                    else:
-                        self.objectAdder.setColor(object_id, 0.1, 0.4, 1.0, a=1.0)
-        i+=6
-    self.objectAdder.sendColors()
+
+
+    ##################################################################################
+
+
+    # old_objs = scene.get_objects()
+    # margin = 0.0
+    # roi_margin = 0.1
+    # i = 0
+    # while i < len(world_objects):
+    #     # find is there is already an object in within the boundaries of the new object
+    #     object_id = str(i/6)
+    #     is_obj = scene.get_known_object_names_in_roi((world_objects[i+3] - (world_objects[i]/2) - roi_margin),(world_objects[i+4] - (world_objects[i+1]/2) - roi_margin),(world_objects[i+5] - (world_objects[i+2]/2)),(world_objects[i+3] + (world_objects[i]/2) + roi_margin),(world_objects[i+4] + (world_objects[i+1]/2) + roi_margin),(world_objects[i+5] + (world_objects[i+2]/2) + 0.5))
+    #     if (not is_obj):
+    #         print("No object in place")
+    #         if(object_id==str(target_id)):
+    #             self.objectAdder.addBox(object_id, world_objects[i] + margin, world_objects[i+1] + margin, 0.01, world_objects[i+3], world_objects[i+4], world_objects[i+5]-world_objects[i+2]/2 + 0.005)
+    #             self.objectAdder.setColor(object_id, 1.0, 0.2, 0.2, a=1.0)
+    #         if(object_id!=str(target_id)):
+    #             self.objectAdder.addBox(object_id, world_objects[i] + margin, world_objects[i+1] + margin, world_objects[i+2], world_objects[i+3], world_objects[i+4], world_objects[i+5])
+    #             if(object_id == str(target_id)):
+    #                 self.objectAdder.setColor(object_id, 1.0, 0.2, 0.2, a=1.0)
+    #                 ## Target object will have a different colour
+    #             else:
+    #                 self.objectAdder.setColor(object_id, 0.1, 0.4, 1.0, a=1.0)
+    #     else:
+    #         print("Old object id is: %s" %is_obj[0])
+    #         new_area = (world_objects[i] + margin)*(world_objects[i+1] + margin) # area = xDimension * yDimension
+    #         old_area = (old_objs[str(is_obj[0])].primitives[0].dimensions[0])*(old_objs[str(is_obj[0])].primitives[0].dimensions[1])
+    #         print(new_area)
+    #         print(old_area)
+    #         # old_area = 0.2*0.2#self.area_array[i/6]
+    #         if(new_area > old_area): # or i == target_id
+    #             if(object_id==str(target_id)):
+    #                 self.objectAdder.addBox(object_id, world_objects[i] + margin, world_objects[i+1] + margin, 0.01, world_objects[i+3], world_objects[i+4], world_objects[i+5]-world_objects[i+2]/2 + 0.005)
+    #                 self.objectAdder.setColor(object_id, 1.0, 0.2, 0.2, a=1.0)
+    #             if(object_id!=str(target_id)):
+    #                 self.objectAdder.addBox(object_id, world_objects[i] + margin, world_objects[i+1] + margin, world_objects[i+2], world_objects[i+3], world_objects[i+4], world_objects[i+5])
+    #                 if(object_id == str(target_id)):
+    #                     self.objectAdder.setColor(object_id, 1.0, 0.2, 0.2, a=1.0)
+    #                     ## Target object will have a different colour
+    #                 else:
+    #                     self.objectAdder.setColor(object_id, 0.1, 0.4, 1.0, a=1.0)
+    #     i+=6
+    # self.objectAdder.sendColors()
     # Extra margin to add to the bounding boxes and to find gaze point within one object(in meters)
     # old_objs = scene.get_objects()
     # id = 0
@@ -1477,29 +1620,31 @@ class MoveGroupPythonInterface(object):
 
     # area = (world_objects[i] + margin)*(world_objects[i+1] + margin)
 
+    ##################################################################################
 
-    # i = 0
+    i = 0
     # print(world_objects)
-    # while i < len(world_objects):
-    #     object_id = str(i/6)
-    #     if(object_id==str(target_id)):
-    #         self.objectAdder.addBox(object_id, world_objects[i] + margin, world_objects[i+1] + margin, 0.01, world_objects[i+3], world_objects[i+4], world_objects[i+5]-world_objects[i+2]/2 + 0.005)
-    #         self.objectAdder.setColor(object_id, 1.0, 0.2, 0.2, a=1.0)
-    #     if(object_id!=str(target_id)):
-    #         self.objectAdder.addBox(object_id, world_objects[i] + margin, world_objects[i+1] + margin, world_objects[i+2], world_objects[i+3], world_objects[i+4], world_objects[i+5])
-    #         if(object_id == str(target_id)):
-    #             self.objectAdder.setColor(object_id, 1.0, 0.2, 0.2, a=1.0)
-    #             ## Target object will have a different colour
-    #         else:
-    #             self.objectAdder.setColor(object_id, 0.1, 0.4, 1.0, a=1.0)
-    #         # All obstacles have the same colour
-    #     # All the colours are set at the same time
-    #     # self.objectAdder.sendColors()
-    #     i+=6
-    # self.objectAdder.sendColors()
+    while i < len(world_objects):
+        object_id = str(i/6)
+        if(object_id==str(target_id)):
+            self.objectAdder.addBox(object_id, world_objects[i] + margin, world_objects[i+1] + margin, 0.01, world_objects[i+3], world_objects[i+4], world_objects[i+5]-world_objects[i+2]/2 + 0.005)
+            self.objectAdder.setColor(object_id, 1.0, 0.2, 0.2, a=1.0)
+        if(object_id!=str(target_id)):
+            self.objectAdder.addBox(object_id, world_objects[i] + margin, world_objects[i+1] + margin, world_objects[i+2], world_objects[i+3], world_objects[i+4], world_objects[i+5])
+            if(object_id == str(target_id)):
+                self.objectAdder.setColor(object_id, 1.0, 0.2, 0.2, a=1.0)
+                ## Target object will have a different colour
+            else:
+                self.objectAdder.setColor(object_id, 0.1, 0.4, 1.0, a=1.0)
+            # All obstacles have the same colour
+        # All the colours are set at the same time
+        # self.objectAdder.sendColors()
+        i+=6
+    self.objectAdder.sendColors()
     # minx, miny, minz, maxx, maxy, maxz, with_type = False
     # ((world_objects[i+3] - (world_objects[i]/2),(world_objects[i+4] - (world_objects[i+1]/2),(world_objects[i+5] - (world_objects[i+2]/2),(world_objects[i+3] + (world_objects[i]/2),(world_objects[i+4] + (world_objects[i+1]/2),(world_objects[i+5] + (world_objects[i+2]/2))
 
+    ##################################################################################
 
 
     # print(scene.get_known_object_names())
