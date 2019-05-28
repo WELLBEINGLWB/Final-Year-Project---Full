@@ -44,6 +44,7 @@ class Node():
     def __eq__(self, other):
         return self.position == other.position
 
+## DELETE
 def astar(maze, start, end):
     """Returns a list of tuples as a path from the given start to the given end point"""
 
@@ -138,6 +139,7 @@ def knn_search(x, D, K):
      # return the indexes of K nearest neighbours
      return idx[:K]
 
+## DELETE
 def circular_ik (grasp_point):
     e_co = geometry_msgs.msg.Point()
     e_co.z = grasp_point.z
@@ -149,6 +151,7 @@ def circular_ik (grasp_point):
     sh_length = 0.36
     e_length = 0.32
 
+## DELETE
 def angle_ik(grasp_point):
     e_co = geometry_msgs.msg.Point()
     e_co.z = grasp_point.z
@@ -171,6 +174,7 @@ def angle_ik(grasp_point):
 
     return (e_co, sh_co)
 
+## DELETE
 def prev_angle_ik(grasp_point):
     e_co = geometry_msgs.msg.Point()
     e_co.z = grasp_point.z
@@ -192,6 +196,7 @@ def prev_angle_ik(grasp_point):
 
     return (e_co, sh_co)
 
+## DELETE
 def ik_calculator(grasp_point):
     e_co = geometry_msgs.msg.Point()
     e_co.z = grasp_point.z
@@ -420,6 +425,8 @@ def handle_objects(req):
 
     return srv_response
 
+
+## DELETE
 def sim(req):
     transformer = tf.TransformListener()
 

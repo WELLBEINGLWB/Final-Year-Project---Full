@@ -130,6 +130,7 @@ class ExecutionManager(object):
           return executer_resp
       except rospy.ServiceException, e:
           print "Service call failed: %s"%e
+
   # Function purely for debugging
   def debug_printer(self):
       print("Got here!")
