@@ -248,6 +248,32 @@ def ik_calculator(grasp_point):
 
     return (e_co, sh_co)
 
+def correct_ik(grasp_point, wrist_co):
+    e_co = geometry_msgs.msg.Point()
+    sh_co = geometry_msgs.msg.Point()
+    # wrist_co = geometry_msgs.msg.Point()
+    # wrist_co = self.group.get_current_pose().pose.position
+    e_co.z = grasp_point.z
+
+    sh_co.x = -0.18
+    sh_co.y = 0.36
+    sh_co.z = 0.54
+    u_length = 0.36 # upepr arm length
+    f_length = 0.38 # forearm length
+
+    #print("Grasp point: %s" %grasp_point)
+    # wrist_0_x = .x - f_length
+    # elbow_angle = math.degrees(math.atan((grasp_point.y - sh_co.y)/(grasp_point.x - sh_co.x)))
+    # e_angle = math.atan((grasp_point.y - sh_co.y)/(grasp_point.x - sh_co.x - 0.29))
+    e_angle = math.atan((grasp_point.y - wrist_co.y)/(grasp_point.x - wrist_co.x + f_length))
+    elbow_angle = math.degrees(e_angle)
+    # print("Elbow angle: %s" %elbow_angle)
+
+    e_co.x = grasp_point.x - f_length*math.cos(e_angle)
+    e_co.y = grasp_point.y - f_length*math.sin(e_angle)
+
+    return (e_co, sh_co)
+
 def line_collision(x1,y1,x2,y2,x3,y3,x4,y4):
     uA = ((x4-x3)*(y1-y3) - (y4-y3)*(x1-x3)) / ((y4-y3)*(x2-x1) - (x4-x3)*(y2-y1))
     uB = ((x2-x1)*(y1-y3) - (y2-y1)*(x1-x3)) / ((y4-y3)*(x2-x1) - (x4-x3)*(y2-y1))
@@ -361,6 +387,14 @@ def handle_objects(req):
     # pylab.rcParams['figure.figsize'] = 5, 10
     # plt.subplots_adjust(left=0.1, right=0.9, bottom=0.1, top=0.9)
 
+    plot_request = 1
+    if(plot_request==1):
+         fig = plt.figure(figsize=(10,10/(1.7/0.8)))
+         ax = fig.add_subplot(111)
+         # plt.cla()
+         ax.axis([-0.2,1.7, -0.2, 0.75])
+         plt.gca().invert_xaxis()
+
     j = 0
     while j < len(objects):
     #    center[0].append(objects[i+3])
@@ -369,8 +403,8 @@ def handle_objects(req):
         iteration = int(j/6)
         center[0,iteration] = world_objects.data[j+3]
         center[1,iteration] = world_objects.data[j+4]
-        # rect = patches.Rectangle((center[1,iteration]-world_objects.data[j+1]/2,center[0,iteration]-world_objects.data[j]/2),world_objects.data[j+1],world_objects.data[j],linewidth=1,edgecolor='r',facecolor='none')
-        # ax.add_patch(rect)
+        rect = patches.Rectangle((center[1,iteration]-world_objects.data[j+1]/2,center[0,iteration]-world_objects.data[j]/2),world_objects.data[j+1],world_objects.data[j],linewidth=1,edgecolor='r',facecolor='none')
+        ax.add_patch(rect)
         # print(center)
         j+=6
 
@@ -383,33 +417,41 @@ def handle_objects(req):
     print(world_objects.data[neig_idx*6 + 3])
     print(world_objects.data[neig_idx*6 + 4])
     print(world_objects.data[neig_idx*6 + 5])
-    offset_x = -0.015
+    offset_x = 0.03
     offset_y = -0.03
 
     grasp_point = geometry_msgs.msg.Point()
     grasp_point.x = world_objects.data[neig_idx*6 + 3] - offset_x # - world_objects.data[neig_idx*6]/2
-    grasp_point.y = world_objects.data[neig_idx*6 + 4] - world_objects.data[neig_idx*6 + 1]/2 - offset_y
+    grasp_point.y = world_objects.data[neig_idx*6 + 4] #- world_objects.data[neig_idx*6 + 1]/2 - offset_y
     grasp_point.z = world_objects.data[neig_idx*6 + 5]
 
     print("Grasp point: %s" %grasp_point)
 
-    co_e, co_s = angle_ik(grasp_point)
+    wrist_co = geometry_msgs.msg.Point()
+    wrist_co.x = 0.2
+    wrist_co.y = 0.36
+    wrist_co.z = 0.2
+
+    co_e, co_s = correct_ik(grasp_point, wrist_co)
     print("Coord %s" %co_e)
 
     # rect = patches.Rectangle((0.5,0.2),0.15,0.1,linewidth=1,edgecolor='r',facecolor='none')
     # ax.add_patch(rect)
 
     # highlighting the target object center
-    # pylab.plot(center[1,neig_idx],center[0,neig_idx],'o', markerfacecolor='None',markersize=15,markeredgewidth=1)
+    pylab.plot(center[1,neig_idx],center[0,neig_idx],'o', markerfacecolor='None',markersize=15,markeredgewidth=1)
     # plt.axis([-0.2,1.7, -0.2, 0.75])
-    # ax.plot(center[1,:],center[0,:],'ob',x[1,0],x[0,0],'or',grasp_point.y,grasp_point.x,'og')
-    # ax.plot(center[1,neig_idx],center[0,neig_idx],'o', markerfacecolor='None',markersize=15,markeredgewidth=1)
-    # plt.plot([co_s.y,co_e.y,grasp_point.y],[co_s.x,co_e.x,grasp_point.x])
+    ax.plot(center[1,:],center[0,:],'ob',x[1,0],x[0,0],'or',grasp_point.y,grasp_point.x,'og')
+    ax.plot(center[1,neig_idx],center[0,neig_idx],'o', markerfacecolor='None',markersize=15,markeredgewidth=1)
+    plt.plot([co_s.y,co_e.y,grasp_point.y],[co_s.x,co_e.x,grasp_point.x])
+    plt.plot([wrist_co.y,grasp_point.y],[wrist_co.x,grasp_point.x + offset_x])
+    plt.plot([co_s.y,co_e.y,grasp_point.y],[co_s.x,co_e.x,grasp_point.x],'o')
     # plt.gca().invert_xaxis()
-    # plt.show(block=False)
-    # rospy.sleep(5.0)
-    # plt.close('all')
-
+    plt.show(block=False)
+    rospy.sleep(5.0)
+    plt.close('all')
+    print("Grasp point: %s" %grasp_point)
+    print("Elbow point: %s" %co_e)
 
     index = int(neig_idx)
     print("Index %s" %index)

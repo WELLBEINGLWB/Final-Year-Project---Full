@@ -150,74 +150,6 @@ class MoveGroupPythonInterface(object):
     # joint_goal = group.get_current_joint_values()
     group.set_planning_time(10)
 
-    # constraint = moveit_msgs.msg.Constraints()
-    # constraint.name = "fixed wrist orientation"
-    # #
-    # # constraint.joint_constraints.append(moveit_msgs.msg.JointConstraint(joint_name='elbow_joint', position=0, tolerance_above=math.pi,tolerance_below=math.pi, weight=1))
-    # # # Create an orientation constraint for the
-    # orientation_constraint = moveit_msgs.msg.OrientationConstraint()
-    # orientation_constraint.header.frame_id = "world"
-    # orientation_constraint.link_name = group.get_end_effector_link()
-    # orientation_constraint.orientation.x = 0.00111054358639
-    # orientation_constraint.orientation.y = 0.70699483645
-    # orientation_constraint.orientation.z = 0.00111089701837
-    # orientation_constraint.orientation.w = 0.707216963763
-    # orientation_constraint.absolute_x_axis_tolerance = 0.05
-    # orientation_constraint.absolute_y_axis_tolerance = 0.05
-    # orientation_constraint.absolute_z_axis_tolerance = 0.14
-    # orientation_constraint.weight = 1.0
-    #
-    # ## Append the constraint to the list of contraints
-    # constraint.orientation_constraints.append(orientation_constraint)
-    #
-    # primitive = shape_msgs.msg.SolidPrimitive()
-    # primitive.type = primitive.BOX
-    # ws_x = 0.7
-    # ws_y = 1.7
-    # ws_z = 0.3
-    # ## The workspace dimensions and center point will change according to the object to be grasped
-    # dim = [ws_x,ws_y,ws_z]
-    # primitive.dimensions = dim
-    # ws_pose = geometry_msgs.msg.Pose();
-    # ## table center point = (0.44,0.65,0.25)
-    # ws_pose.position.x = 0.44
-    # ws_pose.position.y = 0.65
-    # ws_pose.position.z = 0.25
-    # ws_pose.orientation.w = 0.0
-    # pos_constraint = moveit_msgs.msg.PositionConstraint()
-    # pos_constraint.header.frame_id = "world"
-    # pos_constraint.link_name = group.get_end_effector_link()
-    # pos_constraint.weight = 0.9
-    # primitives = [primitive]
-    # ws_poses = [ws_pose]
-    # pos_constraint.constraint_region.primitives = primitives
-    # pos_constraint.constraint_region.primitive_poses = ws_poses
-    #
-    # constraint.position_constraints.append(pos_constraint)
-    #
-    #
-    # initial_pose = geometry_msgs.msg.Pose()
-    # # pose_goal = geometry_msgs.msg.PoseStamped()
-    # # pose_goal.header.frame_id = group.get_end_effector_link()
-    # initial_pose.orientation.x = 0.00111054358639
-    # initial_pose.orientation.y = 0.70699483645
-    # initial_pose.orientation.z = 0.00111089701837
-    # initial_pose.orientation.w = 0.707216963763
-    # initial_pose.position.x = 0.2#0.297788083223
-    # initial_pose.position.y = 0.4#0.373332917389
-    # initial_pose.position.z = 0.20
-    #
-    # group.set_pose_target(initial_pose, group.get_end_effector_link())
-    # group.set_path_constraints(constraint)
-    # group.go(wait=True)
-    # # Calling `stop()` ensures that there is no residual movement
-    # group.stop()
-    # # It is always good to clear your targets after planning with poses.
-    # group.clear_pose_targets()
-
-    #
-
-
     # pose_goal = geometry_msgs.msg.Pose()
     # pose_goal.orientation.x = 0.00111054358639
     # pose_goal.orientation.y = 0.70699483645
@@ -263,14 +195,14 @@ class MoveGroupPythonInterface(object):
 
       no = len(self.scene.get_known_object_names()) - 6
       # print(self.scene.get_known_object_names())
-      print(no)
+      # print(no)
       #  Loop to remove all the objects
       f = 0
       while f < no:
           box_nam = str(f)
           self.scene.remove_world_object(box_nam)
           # print("Removed object number ")
-          print(f)
+          # print(f)
           f = f + 1
 
       # Initialize server proxy for path_planner_service
@@ -302,7 +234,9 @@ class MoveGroupPythonInterface(object):
       print("Optimal grasp point: %s" %optimal_grasp_point)
       target_x = optimal_grasp_point.x  # - world_objects.data[neig_idx*6]/2
       target_y = optimal_grasp_point.y
-      target_index = [round(target_x/Xresolution)-1,round(target_y/Yresolution)-2]
+      # target_index = [round(target_x/Xresolution)-1,round(target_y/Yresolution)-2]
+      target_index = [round(target_x/Xresolution),round(target_y/Yresolution)]
+
       print(target_index)
 
       # Initial position of the robot/wrist
@@ -349,6 +283,10 @@ class MoveGroupPythonInterface(object):
       # rospy.sleep(10.0)
       # plt.close('all')
 
+      # grasp_point = optimal_grasp_point
+      # co_e, co_s, elbow_angle = self.ik_calculator(grasp_point,wrist_co)
+      # print("Grasp point: %s" %grasp_point)
+      # print("Elbow point: %s" %co_e)
 
       #print astar(nmap, (0,0), (10,13))
 
@@ -399,8 +337,8 @@ class MoveGroupPythonInterface(object):
           # grasp_point.y = 0.38
           # co_e, co_s = angle_ik(grasp_point)
           co_e, co_s, elbow_angle = self.ik_calculator(grasp_point,wrist_co)
-          print(grasp_point)
-
+          print("Grasp point: %s" %grasp_point)
+          print("Elbow point: %s" %co_e)
           # print(path_xy)
 
 
@@ -437,12 +375,12 @@ class MoveGroupPythonInterface(object):
                   ax.plot(center[1,target_id],center[0,target_id],'o', markerfacecolor='None',markersize=15,markeredgewidth=1)
                   ax.plot([co_s.y,co_e.y,grasp_point.y],[co_s.x,co_e.x,grasp_point.x])
                   plt.draw()
-                  plt.pause(0.01)
+                  plt.pause(0.0001)
 
               # plt.cla()
               i+=1
           if(plot_request==1):
-              rospy.sleep(5.0)
+              rospy.sleep(3.0)
               plt.close('all')
 
 
@@ -468,8 +406,6 @@ class MoveGroupPythonInterface(object):
           smooth_y = np.convolve(path_y, window, 'valid')
           smooth_x = np.convolve(path_x, window, 'valid')
           # ax.plot(smooth_y, smooth_x, 'b.', label= 'Smoothed curve')
-
-
 
 
           # weight_data = 0.5
@@ -536,25 +472,23 @@ class MoveGroupPythonInterface(object):
           # self.orientation_point_planner(optimal_grasp_point)
 
 
-          # length_f =  0.32
-          # _, _, collision_angle = self.ik_calculator(optimal_grasp_point,wrist_co)
-          # collision_angle = math.degrees(collision_angle) + 0.51
-          # print(collision_angle)
-          # possible_angles  = []
-          # for alpha in range(int(collision_angle),85):
-          #     alpha_rad = math.radians(alpha)
-          #     co_e.x = optimal_grasp_point.x - length_f*math.cos(alpha_rad)
-          #     co_e.y = optimal_grasp_point.y - length_f*math.sin(alpha_rad)
-          #
-          #     collision_state = object_collision(co_e,optimal_grasp_point, objects, target_id)
-          #     if(collision_state == False):
-          #         possible_angles.append(alpha)
-          #
-          # print(possible_angles)
-          #
-          #
-          # self.behind_point_planner(optimal_grasp_point, possible_angles)
+          length_f =  0.32
+          _, _, collision_angle = self.ik_calculator(optimal_grasp_point,wrist_co)
+          collision_angle = math.degrees(collision_angle) + 0.51
+          print(collision_angle)
+          possible_angles  = []
+          for alpha in range(int(collision_angle),85):
+              alpha_rad = math.radians(alpha)
+              co_e.x = optimal_grasp_point.x - length_f*math.cos(alpha_rad)
+              co_e.y = optimal_grasp_point.y - length_f*math.sin(alpha_rad)
 
+              collision_state = object_collision(co_e,optimal_grasp_point, objects, target_id)
+              if(collision_state == False):
+                  possible_angles.append(alpha)
+
+          print(possible_angles)
+
+          self.behind_point_planner(optimal_grasp_point, possible_angles)
 
           return True
 
@@ -566,11 +500,11 @@ class MoveGroupPythonInterface(object):
       # wrist_co = self.group.get_current_pose().pose.position
       e_co.z = grasp_point.z
 
-      sh_co.x = -0.15
+      sh_co.x = -0.18
       sh_co.y = 0.42
       sh_co.z = 0.54
       u_length = 0.36 # upepr arm length
-      f_length = 0.30 # forearm length
+      f_length = 0.40 # forearm length
 
       #print("Grasp point: %s" %grasp_point)
       # wrist_0_x = .x - f_length
@@ -604,7 +538,7 @@ class MoveGroupPythonInterface(object):
       print("Number of waypoints: %s" %waypoints_number)
       print("Object center points: %s" %optimal_grasp_point.z)
       z_increment = (wpose.position.z - optimal_grasp_point.z)/waypoints_number
-      z_imcrement_threshold = (wpose.position.z - 0.20)/waypoints_number
+      z_increment_threshold = (wpose.position.z - 0.20)/waypoints_number
 
       # distance from star point to target point
       dist_target = math.sqrt((optimal_grasp_point.y - wpose.position.y)**2 + (optimal_grasp_point.x - wpose.position.x)**2)
@@ -623,7 +557,7 @@ class MoveGroupPythonInterface(object):
           if(optimal_grasp_point.z >=0.20):
               wpose.position.z = wpose.position.z - z_increment
           else:
-              wpose.position.z =  wpose.position.z - z_imcrement_threshold
+              wpose.position.z =  wpose.position.z - z_increment_threshold
 
 
           # euler = [1.571212121212, 1.5711348887669473,1.5711348887669473]
@@ -1438,8 +1372,9 @@ class MoveGroupPythonInterface(object):
 
     no = len(self.scene.get_known_object_names()) - 6
 
-    print(self.scene.get_known_object_names())
+    # print(self.scene.get_known_object_names())
     old_objs = scene.get_objects()
+
     # print(old_objs)
     # old_ids = [s for s in self.scene.get_known_object_names() if s.isdigit()]
     # print(old_ids)
@@ -1451,6 +1386,7 @@ class MoveGroupPythonInterface(object):
     #     print("blah")
     #     for i in range(len(old_ids)):
     #         print(poses[old_ids[i]].position.x)
+
     margin = 0.0
     roi_margin = 0.1
     i = 0
@@ -1487,21 +1423,21 @@ class MoveGroupPythonInterface(object):
         i+=6
 
     old_objs = scene.get_objects()
-    print("After")
-    print(self.scene.get_known_object_names())
+    # print("After")
+    # print(self.scene.get_known_object_names())
     old_ids = [s for s in self.scene.get_known_object_names() if s.isdigit()]
-    print("old_ids: %s" %old_ids)
+    # print("old_ids: %s" %old_ids)
 
 
     for k in old_ids:
-        print(k)
+        # print(k)
         temp_id = str(k)
-        print(temp_id)
+        # print(temp_id)
         old_obj_pose = scene.get_object_poses([str(k)])
-        print(old_obj_pose)
+        # print(old_obj_pose)
         if bool(old_obj_pose) == False:
             old_obj_pose = scene.get_object_poses([str(k)])
-            print(old_obj_pose)
+            # print(old_obj_pose)
 
         world_objects.append(old_objs[str(k)].primitives[0].dimensions[0])
         world_objects.append(old_objs[str(k)].primitives[0].dimensions[1])
@@ -1554,14 +1490,6 @@ class MoveGroupPythonInterface(object):
     # self.objectAdder.sendColors()
 
     ##################################################################################
-
-
-
-
-
-
-
-
 
 
     # print("Number of objects: ")
@@ -1639,14 +1567,18 @@ class MoveGroupPythonInterface(object):
         object_id = str(i/6)
         if(object_id==str(target_id)):
             self.objectAdder.addBox(object_id, world_objects[i] + margin, world_objects[i+1] + margin, 0.01, world_objects[i+3], world_objects[i+4], world_objects[i+5]-world_objects[i+2]/2 + 0.005)
-            self.objectAdder.setColor(object_id, 1.0, 0.2, 0.2, a=1.0)
+            # self.objectAdder.setColor(object_id, 1.0, 0.2, 0.2, a=1.0)
+            self.objectAdder.setColor(object_id, 0.1, 1.0, 0.2, a=1.0)
+
         if(object_id!=str(target_id)):
             self.objectAdder.addBox(object_id, world_objects[i] + margin, world_objects[i+1] + margin, world_objects[i+2], world_objects[i+3], world_objects[i+4], world_objects[i+5])
-            if(object_id == str(target_id)):
-                self.objectAdder.setColor(object_id, 1.0, 0.2, 0.2, a=1.0)
-                ## Target object will have a different colour
-            else:
-                self.objectAdder.setColor(object_id, 0.1, 0.4, 1.0, a=1.0)
+            # self.objectAdder.setColor(object_id, 0.1, 0.4, 1.0, a=1.0)
+            self.objectAdder.setColor(object_id, 1.0, 0.2, 0.2, a=1.0)
+            # if(object_id == str(target_id)):
+            #     self.objectAdder.setColor(object_id, 1.0, 0.2, 0.2, a=1.0)
+            #     ## Target object will have a different colour
+            # else:
+            #     self.objectAdder.setColor(object_id, 0.1, 0.4, 1.0, a=1.0)
             # All obstacles have the same colour
         # All the colours are set at the same time
         # self.objectAdder.sendColors()
@@ -1660,132 +1592,6 @@ class MoveGroupPythonInterface(object):
 
     # print(scene.get_known_object_names())
     # transformer = tf.TransformListener()
-
-    # i = 0
-    # while i < len(objects):
-    #
-    #     # Transform the center point of the object from cameraLink frame to world frame
-    #     transformer.waitForTransform("camera_link", "world", rospy.Time(0),rospy.Duration(4.0))
-    #     pointstamp = geometry_msgs.msg.PointStamped()
-    #     pointstamp.header.frame_id = "camera_link"
-    #     pointstamp.header.stamp = rospy.Time()
-    #     pointstamp.point.x = objects[i+3]
-    #     pointstamp.point.y = objects[i+4]
-    #     pointstamp.point.z = objects[i+5]
-    #
-    #     # print("Before: ")
-    #     # print(pointstamp.point.x)
-    #     # print(pointstamp.point.y)
-    #     # print(pointstamp.point.z)
-    #     # transformer.waitForTransform("camera_link", "world", rospy.Time(0),rospy.Duration(4.0))
-    #
-    #     # Converting the center point if the object to /world frame
-    #     p_tr = transformer.transformPoint("world", pointstamp)
-    #
-    #     # world_objects[i+3] = p_tr.point.x
-    #     # world_objects[i+4] = p_tr.point.y
-    #     # world_objects[i+5] = p_tr.point.z
-    #     # print("After: ")
-    #     # print(p_tr.point.x)
-    #     # print(p_tr.point.y)
-    #     # print(p_tr.point.z)
-    #
-    #     height_to_table = 0.185 - (p_tr.point.z - (objects[i+2]/2))
-    #     # print("Object height: ")
-    #     # print(objects[i+2])
-    #     # print("Height to table: ")
-    #     # print(height_to_table)
-    #     # print("------- ")
-    #
-    #     box_name = self.box_name
-    #     box_pose = geometry_msgs.msg.PoseStamped()
-    #     box_pose.header.frame_id = "world"
-    #     box_pose.pose.position.x = p_tr.point.x
-    #     box_pose.pose.position.y = p_tr.point.y
-    #     # box_pose.pose.position.z = p_tr.point.z  # - height_to_table
-    #
-    #     box_pose.pose.position.z = 0.185 + (objects[i+2]/2)
-    #     box_pose.pose.position.z = box_pose.pose.position.z + (p_tr.point.z - box_pose.pose.position.z)/2
-    #     # world_objects[i+2] = objects[i+2] + (p_tr.point.z - box_pose.pose.position.z)
-    #
-    #     world_objects.insert(i, objects[i])
-    #     world_objects.insert(i+1, objects[i+1])
-    #     world_objects.insert(i+2, objects[i+2] + (p_tr.point.z - box_pose.pose.position.z))
-    #     world_objects.insert(i+3, p_tr.point.x)
-    #     world_objects.insert(i+4, p_tr.point.y)
-    #     world_objects.insert(i+5, box_pose.pose.position.z)
-    #     # print(world_objects)
-    #     object_id = str(i/6)
-    #     # self.objectAdder.addBox(object_id, world_objects[i] + margin, world_objects[i+1] + margin, world_objects[i+2] , world_objects[i+3], world_objects[i+4], world_objects[i+5])
-    #     # self.objectAdder.addBox(object_id, world_objects[i] + margin, world_objects[i+1] + margin, world_objects[i+2], world_objects[i+3], world_objects[i+4], world_objects[i+5])
-    #     # scene.add_box(object_id, box_pose, size=(objects[i] + margin, objects[i+1] + margin, objects[i+2] + (p_tr.point.z - box_pose.pose.position.z)))
-    #     # self.objectAdder.setColor(object_id, 0.1, 0.4, 1.0, a=0.9)
-    #     # self.objectAdder.sendColors()
-    #
-    #     ## Gaze integration
-    #     margin = 0.0 #0.042
-    #     gaze_margin = 0.05
-    #     # self.gaze_point = geometry_msgs.msg.Point()
-    #     # self.gaze_point.x = 0.4
-    #     # self.gaze_point.y = 0.6
-    #     # self.gaze_point.z = 0.2
-    #     print("x,y,z = ")
-    #     print(world_objects[i+3])
-    #     print(world_objects[i+4])
-    #     print(world_objects[i+5])
-    #     print("------")
-    #
-    #     #Adding the objects to the world
-    #     ## If the gaze point is within the object, that is the target object
-    #     if (((world_objects[i+3] - (world_objects[i]/2) - gaze_margin) <= self.gaze_point.x <= (world_objects[i+3] + (world_objects[i]/2) + gaze_margin))
-    #           and ((world_objects[i+4] - (world_objects[i+1]/2) - gaze_margin) <= self.gaze_point.y <= (world_objects[i+4] + (world_objects[i+1]/2) + gaze_margin))
-    #           and ((world_objects[i+5] - (world_objects[i+2]/2) - gaze_margin) <= self.gaze_point.z <= (world_objects[i+5] + (world_objects[i+2]/2) + gaze_margin))):
-    #
-    #             # self.target_obj_name = object_id
-    #             self.target_obj = []
-    #             self.target_obj.insert(0, world_objects[i])
-    #             self.target_obj.insert(1, world_objects[i+1])
-    #             self.target_obj.insert(2, world_objects[i+2])
-    #             self.target_obj.insert(3, world_objects[i+3])
-    #             self.target_obj.insert(4, world_objects[i+4])
-    #             self.target_obj.insert(5, world_objects[i+5])
-    #             self.target_obj.insert(6, object_id)
-    #             print(self.target_obj)
-    #             # targe_obj is set as such: [xDimension, yDimension, zDimension, xCenter, yCenter, zCenter, objectID]
-    #
-    #             # self.target_obj_x = world_objects[i+3]
-    #             # self.target_obj_y = world_objects[i+4]
-    #             # self.target_obj_z = world_objects[i+5]
-    #             self.objectAdder.addBox(object_id, world_objects[i] + margin, world_objects[i+1] + margin, world_objects[i+2], world_objects[i+3], world_objects[i+4], world_objects[i+5])
-    #             ## remove target object from world_objects???
-    #             self.objectAdder.setColor(object_id, 1.0, 0.2, 0.2, a=1.0)
-    #             ## Target object will have a different colour
-    #
-    #     else:
-    #             self.objectAdder.addBox(object_id, world_objects[i] + margin, world_objects[i+1] + margin, world_objects[i+2], world_objects[i+3], world_objects[i+4], world_objects[i+5])
-    #             self.objectAdder.setColor(object_id, 0.1, 0.4, 1.0, a=1.0)
-    #             # All obstacles have the same colour
-    #     # All the colours are set at the same time
-    #     self.objectAdder.sendColors()
-    #     i+=6
-
-        # target_obj = ['0', 0.11087217926979065, 0.3403069078922272, 0.11774600305213856, 0.48992229410969163, 0.49934569425808273, 0.27480948858513754]
-
-
-    # j = 0
-    # while j < len(world_objects):
-    #     if(world_objects[j]- <= self.target_obj)
-    #
-    #     j+=6
-    # obj_ids=['0','1','2','table']
-    # print(scene.get_object_poses(obj_ids))
-    # obj = ['table']
-    # objs = scene.get_objects()
-    # print(objs)
-    # print("---------------")
-    # print(scene.get_known_object_names())
-    # print("Number of objects in the scene: ")
-    # print(len(scene.get_known_object_names()))
 
     # Add a mesh
     # self.leg_mesh = "/home/faisallab008/catkin_ws/src/universal_robot/ur_description/meshes/cube.stl" # or better, use find_package()
@@ -1883,7 +1689,7 @@ def object_collision(e_co, grasp_point, objects_array, neig_idx):
     num_collisions = 0
     target_index = neig_idx
     # Add margin to avoid the objects with a safer distance
-    margin = 0.03
+    margin = 0.02
     while i < len(objects_array):
         if(i/6 != neig_idx):
             # bottom = line_collision(e_co.x, e_co.y, grasp_point.x, grasp_point.y,objects_array[i+3]-objects_array[i+0]/2 - margin,objects_array[i+4]-objects_array[i+1]/2 - margin,objects_array[i+3]-objects_array[i+0]/2 - margin, objects_array[i+4]+objects_array[i+1]/2 + margin)
@@ -2079,9 +1885,3 @@ if __name__ == '__main__':
     commander.add_table()
     commander.path_executer_server()
     commander.path_planner_server()
-
-
-    # commander.go_to_initial_state()
-    # print(commander.robot.get_current_state())
-    # commander.go_to_initial_state()
-    # commander.add_table()
