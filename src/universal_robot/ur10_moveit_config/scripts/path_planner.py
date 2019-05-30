@@ -885,7 +885,7 @@ class MoveGroupPythonInterface(object):
               reverse_waypoints.append(copy.deepcopy(wpose))
 
 
-              euler = [-1.5707, 0.505, -1.15]
+              euler = [-1.5707+0.45, 0.505, -1.15]
               quat = tf.transformations.quaternion_from_euler(euler[0],euler[1],euler[2])
               wpose.orientation.x = quat[0]
               wpose.orientation.y = quat[1]
@@ -893,16 +893,10 @@ class MoveGroupPythonInterface(object):
               wpose.orientation.w = quat[3]
               wpose.position.x = 0.2
               wpose.position.y = 0.36
-              wpose.position.z -= self.waypoints[0].position.z
-
-              # wpose.orientation.x = 0
-              # wpose.orientation.y = 0.707
-              # wpose.orientation.z = 0
-              # wpose.orientation.w = 0.707
-              # wpose.position.z -= 0.12
+              wpose.position.z -= 0.12
               reverse_waypoints.append(copy.deepcopy(wpose))
 
-              # reverse_waypoints.append(copy.deepcopy(self.waypoints[0]))
+              reverse_waypoints.append(copy.deepcopy(self.waypoints[0]))
 
           else:
               reverse_waypoints = self.waypoints[::-1]
