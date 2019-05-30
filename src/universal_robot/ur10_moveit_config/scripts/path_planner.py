@@ -118,6 +118,8 @@ class MoveGroupPythonInterface(object):
 
     self.target_obj_id = 0
 
+    self.orientation_plan = 0
+
     self.area_array = []
 
     self.fk_srv = rospy.ServiceProxy('/compute_fk',GetPositionFK)
@@ -289,6 +291,9 @@ class MoveGroupPythonInterface(object):
       # print("Elbow point: %s" %co_e)
 
       #print astar(nmap, (0,0), (10,13))
+
+
+
 
       if data[end[0]][end[1]] != 1:
           print("A star working...")
@@ -469,15 +474,14 @@ class MoveGroupPythonInterface(object):
 
       elif data[end[0]][end[1]] == 1:
           print("The target state is in collision")
-          # self.orientation_point_planner(optimal_grasp_point)
 
 
-          length_f =  0.32
+          length_f =  0.38
           _, _, collision_angle = self.ik_calculator(optimal_grasp_point,wrist_co)
           collision_angle = math.degrees(collision_angle) + 0.51
           print(collision_angle)
           possible_angles  = []
-          for alpha in range(int(collision_angle),85):
+          for alpha in range(int(collision_angle), 80):
               alpha_rad = math.radians(alpha)
               co_e.x = optimal_grasp_point.x - length_f*math.cos(alpha_rad)
               co_e.y = optimal_grasp_point.y - length_f*math.sin(alpha_rad)
@@ -488,7 +492,12 @@ class MoveGroupPythonInterface(object):
 
           print(possible_angles)
 
-          self.behind_point_planner(optimal_grasp_point, possible_angles)
+          plan_found = self.behind_point_planner(optimal_grasp_point, possible_angles)
+          if(plan_found == False):
+              plan_found = self.orientation_point_planner(optimal_grasp_point)
+              self.orientation_plan = 1
+              if(plan_found == False):
+                  return False
 
           return True
 
@@ -639,10 +648,39 @@ class MoveGroupPythonInterface(object):
       self.waypoints.append(copy.deepcopy(wpose))
       print("Initial pose: %s" %wpose)
 
+      # wpose.position.z = optimal_grasp_point.z + 0.1
+      # # self.waypoints.append(copy.deepcopy(wpose))
+      #
+      # # euler = [-1.5707, 0, -1.5707]
+      # euler = [-1.5707, 0.505, -1.5707]
+      # quat = tf.transformations.quaternion_from_euler(euler[0],euler[1],euler[2])
+      # wpose.orientation.x = quat[0]
+      # wpose.orientation.y = quat[1]
+      # wpose.orientation.z = quat[2]
+      # wpose.orientation.w = quat[3]
+      # self.waypoints.append(copy.deepcopy(wpose))
+      #
+      # wpose.position.x = optimal_grasp_point.x - 0.02
+      # wpose.position.y = optimal_grasp_point.y - 0.02
+      # # euler = [-1.5707, 0, -elbow_angle]
+      # # euler = [-1.1344, 0.505, -elbow_angle]
+      # euler = [-1.5707, 0.505, -1.15]
+      # # euler = [-1.5707, 0.505, -elbow_angle]
+      # quat = tf.transformations.quaternion_from_euler(euler[0],euler[1],euler[2])
+      # wpose.orientation.x = quat[0]
+      # wpose.orientation.y = quat[1]
+      # wpose.orientation.z = quat[2]
+      # wpose.orientation.w = quat[3]
+      # self.waypoints.append(copy.deepcopy(wpose))
+      #
+      # wpose.orientation.z -= 0.05
+      # self.waypoints.append(copy.deepcopy(wpose))
+
       wpose.position.z = optimal_grasp_point.z + 0.1
-      self.waypoints.append(copy.deepcopy(wpose))
+      # self.waypoints.append(copy.deepcopy(wpose))
 
-      euler = [-1.5707, 0, -1.5707]
+      # euler = [-1.5707, 0, -1.5707]
+      euler = [-1.5707, 0.505, -1.5707]
       quat = tf.transformations.quaternion_from_euler(euler[0],euler[1],euler[2])
       wpose.orientation.x = quat[0]
       wpose.orientation.y = quat[1]
@@ -650,9 +688,12 @@ class MoveGroupPythonInterface(object):
       wpose.orientation.w = quat[3]
       self.waypoints.append(copy.deepcopy(wpose))
 
-      wpose.position.x = optimal_grasp_point.x + 0.03
-      wpose.position.y = optimal_grasp_point.y + 0.015
-      euler = [-1.5707, 0, -elbow_angle]
+      wpose.position.x = optimal_grasp_point.x - 0.02
+      wpose.position.y = optimal_grasp_point.y - 0.02
+      # euler = [-1.5707, 0, -elbow_angle]
+      # euler = [-1.1344, 0.505, -elbow_angle]
+      euler = [-1.5707, 0.505, -1.15]
+      # euler = [-1.5707, 0.505, -elbow_angle]
       quat = tf.transformations.quaternion_from_euler(euler[0],euler[1],euler[2])
       wpose.orientation.x = quat[0]
       wpose.orientation.y = quat[1]
@@ -660,8 +701,51 @@ class MoveGroupPythonInterface(object):
       wpose.orientation.w = quat[3]
       self.waypoints.append(copy.deepcopy(wpose))
 
-      wpose.orientation.z -= 0.05
-      self.waypoints.append(copy.deepcopy(wpose))
+      # wpose.position.z -= 0.05
+      # self.waypoints.append(copy.deepcopy(wpose))
+
+
+
+      # euler = [-1.5707+0.321, 0.505, -1.15]
+      # quat = tf.transformations.quaternion_from_euler(euler[0],euler[1],euler[2])
+      # wpose.orientation.x = quat[0]
+      # wpose.orientation.y = quat[1]
+      # wpose.orientation.z = quat[2]
+      # wpose.orientation.w = quat[3]
+      # wpose.position.z += 0.12
+      # temp_z = wpose.position.z
+      # self.waypoints.append(copy.deepcopy(wpose))
+
+
+      # wpose = group.get_current_pose().pose
+      # euler = [-1.5707, 0.505, -1.15]
+      # quat = tf.transformations.quaternion_from_euler(euler[0],euler[1],euler[2])
+      # wpose.orientation.x = quat[0]
+      # wpose.orientation.y = quat[1]
+      # wpose.orientation.z = quat[2]
+      # wpose.orientation.w = quat[3]
+      # wpose.position.z = temp_z
+      # self.waypoints.append(copy.deepcopy(wpose))
+
+
+
+      # wpose.orientation.x = 0
+      # wpose.orientation.y = 0.707
+      # wpose.orientation.z = 0
+      # wpose.orientation.w = 0.707
+      # wpose.position.z -= 0.12
+      # self.waypoints.append(copy.deepcopy(wpose))
+
+      # euler = [-1.5707, 0.505, -1.5707]
+      # quat = tf.transformations.quaternion_from_euler(euler[0],euler[1],euler[2])
+      # wpose.orientation.x = quat[0]
+      # wpose.orientation.y = quat[1]
+      # wpose.orientation.z = quat[2]
+      # wpose.orientation.w = quat[3]
+      # wpose = group.get_current_pose().pose
+      # self.waypoints.append(copy.deepcopy(wpose))
+
+
 
 
       (self.plan, fraction) = group.compute_cartesian_path(
@@ -696,7 +780,10 @@ class MoveGroupPythonInterface(object):
       # group.clear_pose_targets()
       #self.path_executer()
       # group.set_start_state_to_current_state()
-      return self.plan, fraction
+      if fraction == 1:
+          return True
+      else:
+          return False
 
   def behind_point_planner(self, optimal_grasp_point, possible_angles):
       group = self.group
@@ -707,7 +794,7 @@ class MoveGroupPythonInterface(object):
       wrist_co = self.group.get_current_pose().pose.position
       # co_e, co_s, elbow_angle = self.ik_calculator(optimal_grasp_point,wrist_co)
 
-      length_f = 0.32
+      length_f = 0.38
       fraction = 0
       i = 0
       while((fraction<1)):
@@ -719,14 +806,14 @@ class MoveGroupPythonInterface(object):
           # print("Initial pose: %s" %wpose)
           print(i)
           wpose.position.x = optimal_grasp_point.x - length_f*math.cos(math.radians(possible_angles[i])) + 0.3 # length_f
-          wpose.position.y = optimal_grasp_point.y - length_f*math.sin(math.radians(possible_angles[i]))
+          wpose.position.y = (optimal_grasp_point.y - 0.05) - length_f*math.sin(math.radians(possible_angles[i]))
           wpose.position.z = optimal_grasp_point.z
           self.waypoints.append(copy.deepcopy(wpose))
 
 
 
           wpose.position.x = optimal_grasp_point.x
-          wpose.position.y = optimal_grasp_point.y
+          wpose.position.y = optimal_grasp_point.y - 0.05
           euler = [0, 1.5707, math.radians(possible_angles[i])]
           quat = tf.transformations.quaternion_from_euler(euler[0],euler[1],euler[2])
           wpose.orientation.x = quat[0]
@@ -769,23 +856,62 @@ class MoveGroupPythonInterface(object):
       # group.clear_pose_targets()
       #self.path_executer()
       # group.set_start_state_to_current_state()
-      return self.plan, fraction
+
+      if fraction == 1:
+        return True
+      else:
+        return False
 
   def path_executer(self,request):
       if request.execute_order == True:
           success = self.group.execute(self.plan, wait = True)
           print(success)
-          # self.group.stop()
-          # self.group.clear_pose_targets()
+
+          # remove target object
           self.scene.remove_world_object(str(self.target_obj_id))
           rospy.sleep(3)
-          reverse_waypoints = self.waypoints[::-1]
+
+          if self.orientation_plan == 1:
+              reverse_waypoints = []
+              wpose = self.waypoints[-1]
+              euler = [-1.5707+0.321, 0.505, -1.15]
+              quat = tf.transformations.quaternion_from_euler(euler[0],euler[1],euler[2])
+              wpose.orientation.x = quat[0]
+              wpose.orientation.y = quat[1]
+              wpose.orientation.z = quat[2]
+              wpose.orientation.w = quat[3]
+              wpose.position.z += 0.12
+              temp_z = wpose.position.z
+              reverse_waypoints.append(copy.deepcopy(wpose))
+
+
+              euler = [-1.5707, 0.505, -1.15]
+              quat = tf.transformations.quaternion_from_euler(euler[0],euler[1],euler[2])
+              wpose.orientation.x = quat[0]
+              wpose.orientation.y = quat[1]
+              wpose.orientation.z = quat[2]
+              wpose.orientation.w = quat[3]
+              wpose.position.x = 0.2
+              wpose.position.y = 0.36
+              wpose.position.z -= self.waypoints[0].position.z
+
+              # wpose.orientation.x = 0
+              # wpose.orientation.y = 0.707
+              # wpose.orientation.z = 0
+              # wpose.orientation.w = 0.707
+              # wpose.position.z -= 0.12
+              reverse_waypoints.append(copy.deepcopy(wpose))
+
+              # reverse_waypoints.append(copy.deepcopy(self.waypoints[0]))
+
+          else:
+              reverse_waypoints = self.waypoints[::-1]
 
           (self.reverse_plan, fraction) = self.group.compute_cartesian_path(
                                              reverse_waypoints,   # waypoints to follow
                                              0.01,        # eef_step
                                              0.0, True)
-          rospy.sleep(4)
+          rospy.sleep(2)
           self.group.execute(self.reverse_plan, wait = True)
 
           if success == True:
@@ -1689,7 +1815,7 @@ def object_collision(e_co, grasp_point, objects_array, neig_idx):
     num_collisions = 0
     target_index = neig_idx
     # Add margin to avoid the objects with a safer distance
-    margin = 0.02
+    margin = 0.0
     while i < len(objects_array):
         if(i/6 != neig_idx):
             # bottom = line_collision(e_co.x, e_co.y, grasp_point.x, grasp_point.y,objects_array[i+3]-objects_array[i+0]/2 - margin,objects_array[i+4]-objects_array[i+1]/2 - margin,objects_array[i+3]-objects_array[i+0]/2 - margin, objects_array[i+4]+objects_array[i+1]/2 + margin)
