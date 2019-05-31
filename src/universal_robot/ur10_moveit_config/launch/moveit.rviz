@@ -27,7 +27,7 @@ Panels:
     Experimental: false
     Name: Time
     SyncMode: 0
-    SyncSource: PointCloud2
+    SyncSource: ""
 Visualization Manager:
   Class: ""
   Displays:
@@ -111,6 +111,11 @@ Visualization Manager:
             Show Axes: false
             Show Trail: false
             Value: true
+          fake_wrist_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
           forearm_link:
             Alpha: 1
             Show Axes: false
@@ -172,7 +177,7 @@ Visualization Manager:
         Interactive Marker Size: 0.15
         Joint Violation Color: 255; 0; 255
         Planning Group: manipulator
-        Query Goal State: true
+        Query Goal State: false
         Query Start State: false
         Show Workspace: false
         Start State Alpha: 1
@@ -224,6 +229,11 @@ Visualization Manager:
             Show Trail: false
             Value: true
           fake_hand_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          fake_wrist_link:
             Alpha: 1
             Show Axes: false
             Show Trail: false
@@ -399,22 +409,22 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 1.76819
+      Distance: 3.34148
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.06
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 0.438459
-        Y: 0.810637
-        Z: 0.142799
+        X: 0.477352
+        Y: 0.719692
+        Z: 0.26599
       Name: Current View
       Near Clip Distance: 0.01
-      Pitch: 0.209796
+      Pitch: 0.384796
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 2.53545
+      Yaw: 3.17545
     Saved: ~
 Window Geometry:
   Displays:
@@ -436,5 +446,5 @@ Window Geometry:
   Views:
     collapsed: true
   Width: 1294
-  X: 310
-  Y: 73
+  X: 300
+  Y: 63

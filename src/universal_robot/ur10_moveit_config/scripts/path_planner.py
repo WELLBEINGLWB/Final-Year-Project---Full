@@ -468,7 +468,37 @@ class MoveGroupPythonInterface(object):
           plan_found = self.point_planner(new_path, optimal_grasp_point)
 
           if(plan_found == False):
-              return False
+              # return False
+
+              print("The target state is in collision")
+
+
+              length_f =  0.38
+              _, _, collision_angle = self.ik_calculator(optimal_grasp_point,wrist_co)
+              collision_angle = math.degrees(collision_angle) + 0.51
+              print(collision_angle)
+              possible_angles  = []
+              for alpha in range(int(collision_angle), 80):
+                  alpha_rad = math.radians(alpha)
+                  co_e.x = optimal_grasp_point.x - length_f*math.cos(alpha_rad)
+                  co_e.y = optimal_grasp_point.y - length_f*math.sin(alpha_rad)
+
+                  collision_state = object_collision(co_e,optimal_grasp_point, objects, target_id)
+                  if(collision_state == False):
+                      if(alpha>62):
+                          possible_angles.append(alpha)
+
+              print(possible_angles)
+
+              plan_found = self.behind_point_planner(optimal_grasp_point, possible_angles)
+              if(plan_found == False):
+                  plan_found = self.orientation_point_planner(optimal_grasp_point)
+                  self.orientation_plan = 1
+                  if(plan_found == False):
+                      return False
+
+              return True
+
           #self.go_to_initial_state()
           return True
 
@@ -488,7 +518,8 @@ class MoveGroupPythonInterface(object):
 
               collision_state = object_collision(co_e,optimal_grasp_point, objects, target_id)
               if(collision_state == False):
-                  possible_angles.append(alpha)
+                  if(alpha>60):
+                      possible_angles.append(alpha)
 
           print(possible_angles)
 
@@ -688,8 +719,8 @@ class MoveGroupPythonInterface(object):
       wpose.orientation.w = quat[3]
       self.waypoints.append(copy.deepcopy(wpose))
 
-      wpose.position.x = optimal_grasp_point.x - 0.02
-      wpose.position.y = optimal_grasp_point.y - 0.02
+      wpose.position.x = optimal_grasp_point.x - 0.01
+      wpose.position.y = optimal_grasp_point.y - 0.01
       # euler = [-1.5707, 0, -elbow_angle]
       # euler = [-1.1344, 0.505, -elbow_angle]
       euler = [-1.5707, 0.505, -1.15]
@@ -897,6 +928,8 @@ class MoveGroupPythonInterface(object):
               reverse_waypoints.append(copy.deepcopy(wpose))
 
               reverse_waypoints.append(copy.deepcopy(self.waypoints[0]))
+
+              self.orientation_plan = 0
 
           else:
               reverse_waypoints = self.waypoints[::-1]
@@ -1182,130 +1215,6 @@ class MoveGroupPythonInterface(object):
     # group.set_start_state_to_current_state()
     return all_close(pose_goal, current_pose, 0.01)
 
-  def plan_pose_goal(self):
-    group = self.group
-    group.set_planning_time(10)
-
-     # Create a contraints list and name it
-    # constraint = moveit_msgs.msg.Constraints()
-    # constraint.name = "fixed wrist orientation"
-    # #
-    # # Create an orientation constraint for the
-    # orientation_constraint = moveit_msgs.msg.OrientationConstraint()
-    # orientation_constraint.header.frame_id = "world"
-    # orientation_constraint.link_name = group.get_end_effector_link()
-    # orientation_constraint.orientation.x = 0.00111054358639
-    # orientation_constraint.orientation.y = 0.70699483645
-    # orientation_constraint.orientation.z = 0.00111089701837
-    # orientation_constraint.orientation.w = 0.707216963763
-    # orientation_constraint.absolute_x_axis_tolerance = 0.05
-    # orientation_constraint.absolute_y_axis_tolerance = 0.05
-    # orientation_constraint.absolute_z_axis_tolerance = 0.14
-    # orientation_constraint.weight = 1.0
-
-    ## Append the constraint to the list of contraints
-    # constraint.orientation_constraints.append(orientation_constraint)
-
-    # joint_constraint = moveit_msgs.msg.JointConstraint()
-
-    # group.setMaxVelocityScalingFactor(0.1);
-
-
-    # Set the path constraints on the end effector
-    # group.set_path_constraints(constraint)
-
-
-    pos_x = float(input("Enter x coordinate: "))
-    pos_y = float(input("Enter y coordinate: "))
-    pos_z = float(input("Enter z coordinate: "))
-
-    pose_goal = geometry_msgs.msg.Pose()
-
-    # pose_goal.orientation.x = 0.00111054358639
-    # pose_goal.orientation.y = 0.70699483645
-    # pose_goal.orientation.z = 0.00111089701837
-    # pose_goal.orientation.w = 0.707216963763
-    pose_goal.position.x = pos_x
-    pose_goal.position.y = pos_y
-    pose_goal.position.z = pos_z
-
-    group.plan(pose_goal)
-
-    robot = self.robot
-    display_trajectory_publisher = self.display_trajectory_publisher
-
-    ## Displaying a Trajectory
-    ## ^^^^^^^^^^^^^^^^^^^^^^^
-    ## You can ask RViz to visualize a plan (aka trajectory) for you. But the
-    ## group.plan() method does this automatically so this is not that useful
-    ## here (it just displays the same trajectory again):
-    ##
-    ## A `DisplayTrajectory`_ msg has two primary fields, trajectory_start and trajectory.
-    ## We populate the trajectory_start with our current robot state to copy over
-    ## any AttachedCollisionObjects and add our plan to the trajectory.
-    display_trajectory = moveit_msgs.msg.DisplayTrajectory()
-    display_trajectory.trajectory_start = robot.get_current_state()
-    display_trajectory.trajectory.append(pose_goal)
-    # Publish
-    # display_trajectory_publisher.publish(display_trajectory);
-
-    # group.set_max_acceleration_scaling_factor(0.1)
-    ## Executing a Plan
-    ## ^^^^^^^^^^^^^^^^
-    ## Use execute if you would like the robot to follow the plan that has already been computed:
-    option=raw_input("Execute? (y/n)")
-    if option=="y":
-      print("\n ")
-      group.go(pose_goal, wait=True)
-
-    # group.clearPathConstraints();
-
-
-    # group.set_pose_target(pose_goal, group.get_end_effector_link())
-
-    ## Now, we call the planner to compute the plan and execute it.
-    # plan = group.go(wait=True)
-    # Calling `stop()` ensures that there is no residual movement
-    # group.stop()
-    # Clear your targets after planning with poses.
-    # Note: there is no equivalent function for clear_joint_value_targets()
-    # group.clear_pose_targets()
-
-    # current_pose = self.group.get_current_pose().pose
-    # return all_close(pose_goal, current_pose, 0.01)
-  ##DELETE
-  def plan_cartesian_path(self, scale=1):
-    # Copy class variables to local variables to make the web tutorials more clear.
-    # In practice, you should use the class variables directly unless you have a good reason not to.
-    group = self.group
-
-    ## Cartesian Paths
-    ## ^^^^^^^^^^^^^^^
-    ## You can plan a Cartesian path directly by specifying a list of waypoints for the end-effector to go through:
-
-    waypoints = []
-
-    wpose = group.get_current_pose().pose
-    wpose.position.z -= scale * 0.1  # First move up (z)
-    wpose.position.y += scale * 0.2  # and sideways (y)
-    waypoints.append(copy.deepcopy(wpose))
-
-    wpose.position.x += scale * 0.1  # Second move forward/backwards in (x)
-    waypoints.append(copy.deepcopy(wpose))
-
-    wpose.position.y -= scale * 0.1  # Third move sideways (y)
-    waypoints.append(copy.deepcopy(wpose))
-
-    # We want the Cartesian path to be interpolated at a resolution of 1 cm
-    # which is why we will specify 0.01 as the eef_step in Cartesian
-    # translation.  We will disable the jump threshold by setting it to 0.0 disabling:
-    (plan, fraction) = group.compute_cartesian_path(
-                                       waypoints,   # waypoints to follow
-                                       0.01,        # eef_step
-                                       0.0)         # jump_threshold
-
-    # Note: We are just planning, not asking move_group to actually move the robot yet:
-    return plan, fraction
   ##DELETE
   def display_trajectory(self, plan):
     # Copy class variables to local variables to make the web tutorials more clear.
@@ -1413,11 +1322,11 @@ class MoveGroupPythonInterface(object):
     # table_pose.pose.position.z = -0.24
     # scene.add_box("table", table_pose, size=( 0.7, 1.7, 0.85))
     self.table_x_dim = 0.7
-    self.table_y_dim = 1.7
+    self.table_y_dim = 1.4
     # self.table_z_dim = 0.85
     self.table_z_dim = 0.06
     self.table_x_center = 0.44
-    self.table_y_center = 0.65
+    self.table_y_center = 0.5
     # self.table_z_center = -0.24
     self.table_z_center = 0.08 # 0.145
     self.table_height = self.table_z_center +  self.table_z_dim/2
@@ -1508,7 +1417,7 @@ class MoveGroupPythonInterface(object):
     #         print(poses[old_ids[i]].position.x)
 
     margin = 0.0
-    roi_margin = 0.1
+    roi_margin = 0.15
     i = 0
     world_objects = list(world_objects)
     # print(world_objects)
@@ -1779,17 +1688,6 @@ class MoveGroupPythonInterface(object):
 
     # Wait for the planning scene to update.
     return self.wait_for_state_update(box_is_attached=False, box_is_known=False, timeout=timeout)
-
-  def knn_search(x, D, K):
-       # find nearest bounding box to given point
-       ndata = D.shape[1]
-
-       K = K if K < ndata else ndata
-       # euclidean distances from the other points
-       sqd = np.sqrt(((D - x[:,:ndata])**2).sum(axis=0))
-       idx = np.argsort(sqd) # sorting
-       # return the index of the nearest neighbour
-       return idx[:K]
 
 def line_collision(x1,y1,x2,y2,x3,y3,x4,y4):
     uA = ((x4-x3)*(y1-y3) - (y4-y3)*(x1-x3)) / ((y4-y3)*(x2-x1) - (x4-x3)*(y2-y1))

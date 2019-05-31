@@ -83,7 +83,7 @@ bool service_callback (segmentation::seg::Request  &req, segmentation::seg::Resp
   // pcl::PointXYZ minimumPt, maximumPt;
   // pcl::getMinMax3D (*transformed2_cloud, minimumPt, maximumPt);
   //
-  // // add additional points
+  // // add additional points at same heiht of minimum to replicate table
   // for (float y=-0.5f; y<=0.5f; y+=0.001f) {
   //   for (float x=-0.5f; x<=0.5f; x+=0.001f) {
   //     pcl::PointXYZ point;
@@ -93,7 +93,6 @@ bool service_callback (segmentation::seg::Request  &req, segmentation::seg::Resp
   //     transformed2_cloud->points.push_back(point);
   //   }
   // }
-
 
 
 
