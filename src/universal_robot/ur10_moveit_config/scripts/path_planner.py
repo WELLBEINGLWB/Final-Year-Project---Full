@@ -836,11 +836,22 @@ class MoveGroupPythonInterface(object):
           self.waypoints.append(copy.deepcopy(wpose))
           # print("Initial pose: %s" %wpose)
           print(i)
-          wpose.position.x = optimal_grasp_point.x - length_f*math.cos(math.radians(possible_angles[i])) + 0.3 # length_f
-          wpose.position.y = (optimal_grasp_point.y - 0.05) - length_f*math.sin(math.radians(possible_angles[i]))
-          wpose.position.z = optimal_grasp_point.z
-          self.waypoints.append(copy.deepcopy(wpose))
+          # wpose.position.x = optimal_grasp_point.x #- length_f*math.cos(math.radians(possible_angles[i])) + 0.3 # length_f
+          # wpose.position.y = (optimal_grasp_point.y - 0.05) - length_f*math.sin(math.radians(possible_angles[i]))
+          # wpose.position.z = optimal_grasp_point.z
+          # self.waypoints.append(copy.deepcopy(wpose))
 
+          hor = length_f*math.sin(math.radians(possible_angles[i]))
+          ver = length_f*math.cos(math.radians(possible_angles[i]))
+          wpose.position.y = optimal_grasp_point.y - (hor/2) - 0.05
+          wpose.position.x = optimal_grasp_point.x - (ver/2) + 0.03
+          euler = [0, 1.5707, math.radians(possible_angles[i]/2)]
+          quat = tf.transformations.quaternion_from_euler(euler[0],euler[1],euler[2])
+          wpose.orientation.x = quat[0]
+          wpose.orientation.y = quat[1]
+          wpose.orientation.z = quat[2]
+          wpose.orientation.w = quat[3]
+          self.waypoints.append(copy.deepcopy(wpose))
 
 
           wpose.position.x = optimal_grasp_point.x
@@ -916,7 +927,7 @@ class MoveGroupPythonInterface(object):
               reverse_waypoints.append(copy.deepcopy(wpose))
 
 
-              euler = [-1.5707+0.45, 0.505, -1.15]
+              euler = [-1.5707+0.38, 0.505, -1.15]
               quat = tf.transformations.quaternion_from_euler(euler[0],euler[1],euler[2])
               wpose.orientation.x = quat[0]
               wpose.orientation.y = quat[1]
@@ -1417,20 +1428,24 @@ class MoveGroupPythonInterface(object):
     #         print(poses[old_ids[i]].position.x)
 
     margin = 0.0
-    roi_margin = 0.15
+    roi_margin = 0.1
     i = 0
     world_objects = list(world_objects)
     # print(world_objects)
     while i < len(world_objects):
         object_id = str(i/6)
         old_objs = scene.get_objects()
-        is_obj = scene.get_known_object_names_in_roi((world_objects[i+3] - (world_objects[i]/2) - roi_margin),(world_objects[i+4] - (world_objects[i+1]/2) - roi_margin),(world_objects[i+5] - (world_objects[i+2]/2)),(world_objects[i+3] + (world_objects[i]/2) + roi_margin),(world_objects[i+4] + (world_objects[i+1]/2) + roi_margin),(world_objects[i+5] + (world_objects[i+2]/2) + 0.5))
+        # is_obj = scene.get_known_object_names_in_roi((world_objects[i+3] - (world_objects[i]/2) - roi_margin),(world_objects[i+4] - (world_objects[i+1]/2) - roi_margin),(world_objects[i+5] - (world_objects[i+2]/2)),(world_objects[i+3] + (world_objects[i]/2) + roi_margin),(world_objects[i+4] + (world_objects[i+1]/2) + roi_margin),(world_objects[i+5] + (world_objects[i+2]/2) + 0.5))
+        is_obj = scene.get_known_object_names_in_roi((world_objects[i+3] - (world_objects[i]/2) - roi_margin),(world_objects[i+4] - (world_objects[i+1]/2) - roi_margin),0.11,(world_objects[i+3] + (world_objects[i]/2) + roi_margin),(world_objects[i+4] + (world_objects[i+1]/2) + roi_margin),(world_objects[i+5] + (world_objects[i+2]/2) + 0.5))
+        print("Is: %s" %is_obj)
         if is_obj: #list is not empty
             new_area = (world_objects[i] + margin)*(world_objects[i+1] + margin) # area = xDimension * yDimension
             old_area = (old_objs[str(is_obj[0])].primitives[0].dimensions[0])*(old_objs[str(is_obj[0])].primitives[0].dimensions[1])
 
             if(new_area > old_area):
+                print(self.scene.get_known_object_names())
                 scene.remove_world_object(str(is_obj[0]))
+                print(self.scene.get_known_object_names())
             else:
                 is_obj = [s for s in is_obj if s.isdigit()]
                 old_obj_pose = scene.get_object_poses(is_obj)
@@ -1452,14 +1467,14 @@ class MoveGroupPythonInterface(object):
         i+=6
 
     old_objs = scene.get_objects()
-    # print("After")
-    # print(self.scene.get_known_object_names())
+    print("After")
+    print(self.scene.get_known_object_names())
     old_ids = [s for s in self.scene.get_known_object_names() if s.isdigit()]
-    # print("old_ids: %s" %old_ids)
+    print("old_ids: %s" %old_ids)
 
 
     for k in old_ids:
-        # print(k)
+        print("K: %s" %k)
         temp_id = str(k)
         # print(temp_id)
         old_obj_pose = scene.get_object_poses([str(k)])
@@ -1474,7 +1489,20 @@ class MoveGroupPythonInterface(object):
         world_objects.append(old_obj_pose[str(k)].position.x)
         world_objects.append(old_obj_pose[str(k)].position.y)
         world_objects.append(old_obj_pose[str(k)].position.z)
-        scene.remove_world_object(str(i))
+        scene.remove_world_object(str(k))
+
+    print("After, after")
+    print(self.scene.get_known_object_names())
+
+    # no = len(scene.get_known_object_names())
+
+    # f = 0
+    # while f < no:
+    #     box_nam = str(f)
+    #     scene.remove_world_object(box_nam)
+    #     # print("Removed object number ")
+    #     # print(f)
+    #     f+=1
 
 
 
@@ -1594,6 +1622,7 @@ class MoveGroupPythonInterface(object):
     # print(world_objects)
     while i < len(world_objects):
         object_id = str(i/6)
+        print(object_id)
         if(object_id==str(target_id)):
             self.objectAdder.addBox(object_id, world_objects[i] + margin, world_objects[i+1] + margin, 0.01, world_objects[i+3], world_objects[i+4], world_objects[i+5]-world_objects[i+2]/2 + 0.005)
             # self.objectAdder.setColor(object_id, 1.0, 0.2, 0.2, a=1.0)
@@ -1611,6 +1640,7 @@ class MoveGroupPythonInterface(object):
             # All obstacles have the same colour
         # All the colours are set at the same time
         # self.objectAdder.sendColors()
+
         i+=6
     self.objectAdder.sendColors()
     # minx, miny, minz, maxx, maxy, maxz, with_type = False
