@@ -75,7 +75,7 @@ def transform(data):
     tf_world.child_frame_id = "mocap"
     tf_world.transform.translation.x = 0.44119273064295744
     tf_world.transform.translation.y = 0.9410698271776146
-    tf_world.transform.translation.z = 0.08089792635101989
+    tf_world.transform.translation.z = 0.089792635101989
     tf_world.transform.rotation.x = -0.005599046472481776
     tf_world.transform.rotation.y = 0.006340010063533339
     tf_world.transform.rotation.z = -0.0011661715015195775

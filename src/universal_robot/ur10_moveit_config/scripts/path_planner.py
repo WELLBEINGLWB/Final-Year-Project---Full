@@ -118,7 +118,7 @@ class MoveGroupPythonInterface(object):
 
     self.orientation_plan = 0
 
-    self.f_length = 0.35
+    self.f_length = 0.38
 
     ##DELETE
     self.area_array = []
@@ -528,8 +528,8 @@ class MoveGroupPythonInterface(object):
       elbow_angle = math.degrees(e_angle)
       # print("Elbow angle: %s" %elbow_angle)
 
-      e_co.x = grasp_point.x - self.f_length*math.cos(e_angle)
-      e_co.y = grasp_point.y - self.f_length*math.sin(e_angle)
+      e_co.x = grasp_point.x - (self.f_length + 0.02)*math.cos(e_angle)
+      e_co.y = grasp_point.y - (self.f_length + 0.02)*math.sin(e_angle)
 
       return (e_co, sh_co, e_angle)
 
@@ -827,7 +827,7 @@ class MoveGroupPythonInterface(object):
 
 
           wpose.position.x = optimal_grasp_point.x
-          wpose.position.y = optimal_grasp_point.y - 0.05
+          wpose.position.y = optimal_grasp_point.y - 0.02
           euler = [0, 1.5707, math.radians(possible_angles[i])]
           quat = tf.transformations.quaternion_from_euler(euler[0],euler[1],euler[2])
           wpose.orientation.x = quat[0]

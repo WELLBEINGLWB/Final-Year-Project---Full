@@ -436,7 +436,7 @@
     <joint name="${prefix}fake_wrist_joint" type="fixed">
       <parent link="${prefix}ee_magnet_cylinder" />
       <child link = "${prefix}fake_wrist_link" />
-      <origin xyz="0.05 0.0 0.0" rpy="0.0 0.0 0.0" />
+      <origin xyz="0.07 0.0 0.0" rpy="0.0 0.0 0.0" />
     </joint>
 
     <!-- <joint name="${prefix}fake_hand_joint" type="revolute">
@@ -457,7 +457,7 @@
       <visual>
         <geometry>
           <!-- <box size="0.35 0.05 0.05"/> -->
-          <box size="0.08 0.03 0.05"/>
+          <box size="0.08 0.04 0.09"/>
         </geometry>
         <origin rpy="0 ${pi/2.0} 0" xyz="0 0 0"/>
         <material name="WristColor">
@@ -467,7 +467,7 @@
       <collision>
         <geometry>
           <!-- <box size="0.35 0.05 0.05"/> -->
-          <box size="0.08 0.03 0.05"/>
+          <box size="0.08 0.03 0.09"/>
         </geometry>
         <origin rpy="0 ${pi/2.0} 0" xyz="0 0 0"/>
       </collision>
@@ -483,7 +483,7 @@
       <visual>
         <geometry>
           <!-- <box size="0.35 0.05 0.05"/> -->
-          <box size="0.11 0.03 0.05"/>
+          <box size="0.11 0.04 0.05"/>
           <!--<mesh filename="package://ur_description/meshes/hand.stl"/>-->
         </geometry>
         <origin rpy="0 ${pi/2.0} 0" xyz="0 0 0"/>
@@ -494,7 +494,7 @@
       <collision>
         <geometry>
           <!-- <box size="0.35 0.05 0.05"/> -->
-          <box size="0.11 0.03 0.05"/>
+          <box size="0.11 0.04 0.05"/>
           <!--<mesh filename="package://ur_description/meshes/hand.stl"/>-->
         </geometry>
         <origin rpy="0 ${pi/2.0} 0" xyz="0 0 0"/>
