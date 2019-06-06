@@ -476,7 +476,7 @@
     <joint name="${prefix}fake_hand_joint" type="fixed">
       <parent link="${prefix}fake_wrist_link" />
       <child link = "${prefix}fake_hand_link" />
-      <origin xyz="0.0 0.0 0.095" rpy="0.0 0.0 0.0" />  #0.115 offsey for 0.15 hand length
+      <origin xyz="0.0 0.0 0.095" rpy="0.0 0.0 0.0" />  #0.115 offset for 0.15 hand length
     </joint>
 
     <link name="${prefix}fake_hand_link">

@@ -32,6 +32,7 @@ if __name__ == '__main__':
 
 
 #####################################
+## Use the block below (and comment the block above) for tests without Optitrack.
 
 # rospy.init_node('camera_tf_node', anonymous="True")
 # tf_br = tf.TransformBroadcaster() # Broadcaster for camera_link
@@ -47,6 +48,7 @@ if __name__ == '__main__':
 #
 # while not rospy.is_shutdown():
 # 	# camera on top of box
+	#Publish a static transformation
 # 	tf_br.sendTransform((-0.42427238822,-0.339268058538, 0.313522875309), ( -0.085530012846,0.201468780637,  0.0283537395298,  0.975341498852),rospy.Time.now(), "camera_link", "mocap")
 #
 # 	## tf_br.sendTransform((-0.589579701424,-0.279752343893,0.329931378365), (-0.0747203528881, 0.102493800223, 0.0811263248324, 0.988600313663),rospy.Time.now(), "camera_link", "mocap")
@@ -54,6 +56,7 @@ if __name__ == '__main__':
 # 	tf_br.sendTransform((t[0], t[1], t[2]), (r[0], r[1], r[2], r[3]),rospy.Time.now(), "mocap", "world")
 # 	rate.sleep()
 
+################
 
 '''
 camera on top of box

@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-
 import tf
 import rospy
 import geometry_msgs.msg
@@ -11,16 +10,12 @@ from std_msgs.msg import Float32MultiArray
 from sensor_msgs.msg import PointCloud2
 from segmentation.srv import*
 
-
 import pylab
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import axes3d
 import matplotlib.patches as patches
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 from matplotlib import colors
-
-
-
 
 def gaze_optimiser_server():
     # Initialize server proxy for gaze omptimiser service
@@ -30,7 +25,7 @@ def gaze_optimiser_server():
     print("Not get here")
 
 def knn_search(x, D, K):
-     # find nearest bounding box to gaze point
+     # find nearest bounding box to gaze point in order to identify target object
      ndata = D.shape[1]
 
      K = K if K < ndata else ndata
@@ -114,7 +109,7 @@ def handle_objects(req):
     gaze = req.gaze_point
     print(objects)
     print("--------------")
-    print(gaze)
+    print("Gaze point: %s" %gaze)
     num_objects = int(len(objects)/6) # number of object
 
     world_objects = Float32MultiArray()
@@ -144,7 +139,7 @@ def handle_objects(req):
         # box_pose.pose.position.y = p_tr.point.y
         # box_pose.pose.position.z = p_tr.point.z  # - height_to_table
 
-        box_z = 0.10 + (objects[i+2]/2)
+        box_z = 0.11 + (objects[i+2]/2)
         box_z = box_z + (p_tr.point.z - box_z)/2
         # world_objects[i+2] = objects[i+2] + (p_tr.point.z - box_pose.pose.position.z)
 

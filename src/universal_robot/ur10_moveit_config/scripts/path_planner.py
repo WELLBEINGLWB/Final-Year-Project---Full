@@ -51,7 +51,7 @@ def all_close(goal, actual, tolerance):
 
   return True
 
-# Delete
+##DELETE
 class Node():
     """A node class for A* Pathfinding"""
 
@@ -72,7 +72,6 @@ class MoveGroupPythonInterface(object):
     super(MoveGroupPythonInterface, self).__init__()
 
 
-    ##
     ## First initialize `moveit_commander`_ and a `rospy`_ node:
     moveit_commander.roscpp_initialize(sys.argv)
     rospy.init_node('path_planner', anonymous=True)
@@ -90,7 +89,6 @@ class MoveGroupPythonInterface(object):
     ## Create a `DisplayTrajectory`_ publisher which is used later to publish trajectories for RViz to visualize:
     display_trajectory_publisher = rospy.Publisher('/move_group/display_planned_path', moveit_msgs.msg.DisplayTrajectory, queue_size=20)
 
-	## Getting Basic Information
     # Get name of the reference frame for the robot:
     planning_frame = group.get_planning_frame()
 
@@ -120,43 +118,21 @@ class MoveGroupPythonInterface(object):
 
     self.orientation_plan = 0
 
+    self.f_length = 0.35
+
+    ##DELETE
     self.area_array = []
 
     self.fk_srv = rospy.ServiceProxy('/compute_fk',GetPositionFK)
     self.fk_srv.wait_for_service()
     # self.objs = []
 
-# delete
-  def poseCallback(self, pose):
-      self.q = (pose.pose.orientation.x, pose.pose.orientation.y, pose.pose.orientation.z, pose.pose.orientation.w)
-      self.translation = (pose.pose.position.x, pose.pose.position.y, pose.pose.position.z)
-      self.q = 5
-          # self.poseCallback()
-      print(self.q)
-# delete
-  def gaze_callback(self,point):
-      self.gaze_point = geometry_msgs.msg.Point()
-      self.gaze_point.x = point.x
-      self.gaze_point.y = point.y
-      self.gaze_point.z = point.z
-      # print("Point x: ")
-      # print(self.gaze_point.x)
-      # print("Point y: ")
-      # print(self.gaze_point.y)
-      # print("Point z: ")
-      # print(self.gaze_point.z)
 
   def go_to_initial_state(self):
     group = self.group
 
     # joint_goal = group.get_current_joint_values()
     group.set_planning_time(10)
-
-    # pose_goal = geometry_msgs.msg.Pose()
-    # pose_goal.orientation.x = 0.00111054358639
-    # pose_goal.orientation.y = 0.70699483645
-    # pose_goal.orientation.z = 0.00111089701837
-    # pose_goal.orientation.w = 0.707216963763
 
     self.waypoints = []
     wpose = group.get_current_pose().pose
@@ -195,7 +171,7 @@ class MoveGroupPythonInterface(object):
 
   def path_executer_server(self):
 
-      no = len(self.scene.get_known_object_names()) - 6
+      no = len(self.scene.get_known_object_names())
       # print(self.scene.get_known_object_names())
       # print(no)
       #  Loop to remove all the objects
@@ -207,6 +183,7 @@ class MoveGroupPythonInterface(object):
           # print(f)
           f = f + 1
 
+      # print(self.scene.get_known_object_names())
       # Initialize server proxy for path_planner_service
       s = rospy.Service('path_executer_service', executionOrder, self.path_executer)
       print "Ready to execute path."
@@ -265,7 +242,6 @@ class MoveGroupPythonInterface(object):
               grasp_point.x = Xresolution*(j+1)
               grasp_point.y = Yresolution*(i+1)
               co_e, co_s, elbow_angle = self.ik_calculator(grasp_point,wrist_co)
-              # co_e, co_s = angle_ik(grasp_point)
               collision_state = object_collision(co_e,grasp_point, objects, target_id)
               if(collision_state == True):
                   data[j][i] = 1
@@ -340,7 +316,6 @@ class MoveGroupPythonInterface(object):
           grasp_point.y = optimal_grasp_point.y
           # grasp_point.x = 0.15
           # grasp_point.y = 0.38
-          # co_e, co_s = angle_ik(grasp_point)
           co_e, co_s, elbow_angle = self.ik_calculator(grasp_point,wrist_co)
           print("Grasp point: %s" %grasp_point)
           print("Elbow point: %s" %co_e)
@@ -374,7 +349,6 @@ class MoveGroupPythonInterface(object):
               grasp_point.x = path_xy[i][0]
               grasp_point.y = path_xy[i][1]
               co_e, co_s, elbow_angle = self.ik_calculator(grasp_point,wrist_co)
-              # co_e, co_s = angle_ik(grasp_point)
               if(plot_request==1):
                   ax.plot(center[1,:],center[0,:],'ob',grasp_point.y,grasp_point.x,'og',co_e.y,co_e.x,'ok',0.38,-0.15,'oy')
                   ax.plot(center[1,target_id],center[0,target_id],'o', markerfacecolor='None',markersize=15,markeredgewidth=1)
@@ -472,16 +446,15 @@ class MoveGroupPythonInterface(object):
 
               print("The target state is in collision")
 
-
-              length_f =  0.38
+              # length_f = 0.38
               _, _, collision_angle = self.ik_calculator(optimal_grasp_point,wrist_co)
               collision_angle = math.degrees(collision_angle) + 0.51
               print(collision_angle)
               possible_angles  = []
               for alpha in range(int(collision_angle), 80):
                   alpha_rad = math.radians(alpha)
-                  co_e.x = optimal_grasp_point.x - length_f*math.cos(alpha_rad)
-                  co_e.y = optimal_grasp_point.y - length_f*math.sin(alpha_rad)
+                  co_e.x = optimal_grasp_point.x - self.f_length*math.cos(alpha_rad)
+                  co_e.y = optimal_grasp_point.y - self.f_length*math.sin(alpha_rad)
 
                   collision_state = object_collision(co_e,optimal_grasp_point, objects, target_id)
                   if(collision_state == False):
@@ -506,15 +479,15 @@ class MoveGroupPythonInterface(object):
           print("The target state is in collision")
 
 
-          length_f =  0.38
+          # length_f =  0.38
           _, _, collision_angle = self.ik_calculator(optimal_grasp_point,wrist_co)
           collision_angle = math.degrees(collision_angle) + 0.51
           print(collision_angle)
           possible_angles  = []
           for alpha in range(int(collision_angle), 80):
               alpha_rad = math.radians(alpha)
-              co_e.x = optimal_grasp_point.x - length_f*math.cos(alpha_rad)
-              co_e.y = optimal_grasp_point.y - length_f*math.sin(alpha_rad)
+              co_e.x = optimal_grasp_point.x - self.f_length*math.cos(alpha_rad)
+              co_e.y = optimal_grasp_point.y - self.f_length*math.sin(alpha_rad)
 
               collision_state = object_collision(co_e,optimal_grasp_point, objects, target_id)
               if(collision_state == False):
@@ -546,16 +519,17 @@ class MoveGroupPythonInterface(object):
       u_length = 0.36 # upepr arm length
       f_length = 0.40 # forearm length
 
+
       #print("Grasp point: %s" %grasp_point)
       # wrist_0_x = .x - f_length
       # elbow_angle = math.degrees(math.atan((grasp_point.y - sh_co.y)/(grasp_point.x - sh_co.x)))
       # e_angle = math.atan((grasp_point.y - sh_co.y)/(grasp_point.x - sh_co.x - 0.29))
-      e_angle = math.atan((grasp_point.y - wrist_co.y)/(grasp_point.x - wrist_co.x + f_length))
+      e_angle = math.atan((grasp_point.y - wrist_co.y)/(grasp_point.x - wrist_co.x + self.f_length))
       elbow_angle = math.degrees(e_angle)
       # print("Elbow angle: %s" %elbow_angle)
 
-      e_co.x = grasp_point.x - f_length*math.cos(e_angle)
-      e_co.y = grasp_point.y - f_length*math.sin(e_angle)
+      e_co.x = grasp_point.x - self.f_length*math.cos(e_angle)
+      e_co.y = grasp_point.y - self.f_length*math.sin(e_angle)
 
       return (e_co, sh_co, e_angle)
 
@@ -563,12 +537,6 @@ class MoveGroupPythonInterface(object):
       group = self.group
       scene = self.scene
       group.set_planning_time(15)
-
-      # pose_goal = geometry_msgs.msg.Pose()
-      # pose_goal.orientation.x = 0.00111054358639
-      # pose_goal.orientation.y = 0.70699483645
-      # pose_goal.orientation.z = 0.00111089701837
-      # pose_goal.orientation.w = 0.707216963763
 
       self.waypoints = []
       wpose = group.get_current_pose().pose
@@ -640,8 +608,8 @@ class MoveGroupPythonInterface(object):
           print("Point at which it failed: %s" %(successful_points+1))
       attempt = 0
       while fraction < 1:
-          if(attempt == 200):
-              print("Failed after 200 attempts")
+          if(attempt == 150):
+              print("Failed after 150 attempts")
               return False
           print("Attempt number: %s" %attempt)
           successful_points = int(fraction * waypoints_number)
@@ -841,10 +809,14 @@ class MoveGroupPythonInterface(object):
           # wpose.position.z = optimal_grasp_point.z
           # self.waypoints.append(copy.deepcopy(wpose))
 
-          hor = length_f*math.sin(math.radians(possible_angles[i]))
-          ver = length_f*math.cos(math.radians(possible_angles[i]))
+          hor = self.f_length*math.sin(math.radians(possible_angles[i]))
+          ver = self.f_length*math.cos(math.radians(possible_angles[i]))
           wpose.position.y = optimal_grasp_point.y - (hor/2) - 0.05
           wpose.position.x = optimal_grasp_point.x - (ver/2) + 0.03
+          if(optimal_grasp_point.z >=0.20):
+              wpose.position.z = optimal_grasp_point.z
+          else:
+              wpose.position.z = 0.20
           euler = [0, 1.5707, math.radians(possible_angles[i]/2)]
           quat = tf.transformations.quaternion_from_euler(euler[0],euler[1],euler[2])
           wpose.orientation.x = quat[0]
@@ -916,7 +888,8 @@ class MoveGroupPythonInterface(object):
           if self.orientation_plan == 1:
               reverse_waypoints = []
               wpose = self.waypoints[-1]
-              euler = [-1.5707+0.321, 0.505, -1.15]
+              # euler = [-1.5707+0.321, 0.505, -1.15]
+              euler = [-1.5707, 0.505, -1.15]
               quat = tf.transformations.quaternion_from_euler(euler[0],euler[1],euler[2])
               wpose.orientation.x = quat[0]
               wpose.orientation.y = quat[1]
@@ -927,7 +900,8 @@ class MoveGroupPythonInterface(object):
               reverse_waypoints.append(copy.deepcopy(wpose))
 
 
-              euler = [-1.5707+0.38, 0.505, -1.15]
+              # euler = [-1.5707+0.38, 0.505, -1.15]
+              euler = [-1.5707, 0.505, -1.15]
               quat = tf.transformations.quaternion_from_euler(euler[0],euler[1],euler[2])
               wpose.orientation.x = quat[0]
               wpose.orientation.y = quat[1]
@@ -961,6 +935,7 @@ class MoveGroupPythonInterface(object):
           # self.group.stop()
           self.group.clear_pose_targets()
 
+##DELETE
   def get_fk(self,fk_req):
 
       #fk_req = GetPositionFKRequest()
@@ -982,6 +957,7 @@ class MoveGroupPythonInterface(object):
             resp.error_code = 99999  # Failure
       return resp
 
+##DELETE
   def go_to_pose_goal(self):
     group = self.group
     scene = self.scene
@@ -1228,21 +1204,12 @@ class MoveGroupPythonInterface(object):
 
   ##DELETE
   def display_trajectory(self, plan):
-    # Copy class variables to local variables to make the web tutorials more clear.
-    # In practice, you should use the class variables directly unless you have a good
-    # reason not to.
+
     robot = self.robot
     display_trajectory_publisher = self.display_trajectory_publisher
 
     ## Displaying a Trajectory
-    ## ^^^^^^^^^^^^^^^^^^^^^^^
-    ## You can ask RViz to visualize a plan (aka trajectory) for you. But the
-    ## group.plan() method does this automatically so this is not that useful
-    ## here (it just displays the same trajectory again):
-    ##
-    ## A `DisplayTrajectory`_ msg has two primary fields, trajectory_start and trajectory.
-    ## We populate the trajectory_start with our current robot state to copy over
-    ## any AttachedCollisionObjects and add our plan to the trajectory.
+
     display_trajectory = moveit_msgs.msg.DisplayTrajectory()
     display_trajectory.trajectory_start = robot.get_current_state()
     display_trajectory.trajectory.append(pose_goal)
@@ -1382,13 +1349,14 @@ class MoveGroupPythonInterface(object):
     return self.wait_for_state_update(box_is_known=True, timeout=4)
 
   def add_box(self, objects, target_id):
+    print("Adding boxes...")
     # Add the bounding boxes of the objects to the planning scene
     # box_name = self.box_name
-    scene = self.scene
+    # scene = self.scene
 
     ## Removing all the objects in the scene before adding the new ones
     # print("Number of objects found in the scene:" , len(scene.get_known_object_names()))
-    no = len(scene.get_known_object_names())
+    no = len(self.scene.get_known_object_names())
 
     #  Loop to remove all the objects
     # f = 0
@@ -1413,7 +1381,7 @@ class MoveGroupPythonInterface(object):
     no = len(self.scene.get_known_object_names()) - 6
 
     # print(self.scene.get_known_object_names())
-    old_objs = scene.get_objects()
+    old_objs = self.scene.get_objects()
 
     # print(old_objs)
     # old_ids = [s for s in self.scene.get_known_object_names() if s.isdigit()]
@@ -1428,27 +1396,32 @@ class MoveGroupPythonInterface(object):
     #         print(poses[old_ids[i]].position.x)
 
     margin = 0.0
-    roi_margin = 0.1
+    roi_margin = 0.04
     i = 0
     world_objects = list(world_objects)
     # print(world_objects)
     while i < len(world_objects):
         object_id = str(i/6)
-        old_objs = scene.get_objects()
+        old_objs = self.scene.get_objects()
         # is_obj = scene.get_known_object_names_in_roi((world_objects[i+3] - (world_objects[i]/2) - roi_margin),(world_objects[i+4] - (world_objects[i+1]/2) - roi_margin),(world_objects[i+5] - (world_objects[i+2]/2)),(world_objects[i+3] + (world_objects[i]/2) + roi_margin),(world_objects[i+4] + (world_objects[i+1]/2) + roi_margin),(world_objects[i+5] + (world_objects[i+2]/2) + 0.5))
-        is_obj = scene.get_known_object_names_in_roi((world_objects[i+3] - (world_objects[i]/2) - roi_margin),(world_objects[i+4] - (world_objects[i+1]/2) - roi_margin),0.11,(world_objects[i+3] + (world_objects[i]/2) + roi_margin),(world_objects[i+4] + (world_objects[i+1]/2) + roi_margin),(world_objects[i+5] + (world_objects[i+2]/2) + 0.5))
+        is_obj = self.scene.get_known_object_names_in_roi((world_objects[i+3] - (world_objects[i]/2) - roi_margin),(world_objects[i+4] - (world_objects[i+1]/2) - roi_margin),0.11,(world_objects[i+3] + (world_objects[i]/2) + roi_margin),(world_objects[i+4] + (world_objects[i+1]/2) + roi_margin),(world_objects[i+5] + (world_objects[i+2]/2) + 0.5))
+        print("i: %s" %i)
         print("Is: %s" %is_obj)
         if is_obj: #list is not empty
             new_area = (world_objects[i] + margin)*(world_objects[i+1] + margin) # area = xDimension * yDimension
             old_area = (old_objs[str(is_obj[0])].primitives[0].dimensions[0])*(old_objs[str(is_obj[0])].primitives[0].dimensions[1])
-
-            if(new_area > old_area):
+            new_height = world_objects[i+2]
+            old_height = old_objs[str(is_obj[0])].primitives[0].dimensions[2]
+            if(new_area > old_area or new_height > old_height):
                 print(self.scene.get_known_object_names())
-                scene.remove_world_object(str(is_obj[0]))
+                print("Old objects was removed: %s" %is_obj[0])
+                rospy.sleep(1.0)
+                self.scene.remove_world_object(str(is_obj[0]))
                 print(self.scene.get_known_object_names())
             else:
+                print("Else:")
                 is_obj = [s for s in is_obj if s.isdigit()]
-                old_obj_pose = scene.get_object_poses(is_obj)
+                old_obj_pose = self.scene.get_object_poses(is_obj)
                 # print(i)
                 # print(world_objects)
                 world_objects.pop(i)
@@ -1458,29 +1431,39 @@ class MoveGroupPythonInterface(object):
                 world_objects.pop(i+2)
                 world_objects.insert(i+2,old_objs[str(is_obj[0])].primitives[0].dimensions[2])
                 world_objects.pop(i+3)
+
+                if old_obj_pose.get(str(is_obj[0])) == None:
+                    print("Key doesn't exist")
+                if bool(old_obj_pose) == False:
+                    print("Didn't get object pose")
                 world_objects.insert(i+3,old_obj_pose[str(is_obj[0])].position.x)
                 world_objects.pop(i+4)
                 world_objects.insert(i+4,old_obj_pose[str(is_obj[0])].position.y)
                 world_objects.pop(i+5)
                 world_objects.insert(i+5,old_obj_pose[str(is_obj[0])].position.z)
-                scene.remove_world_object(str(is_obj[0]))
+                self.scene.remove_world_object(str(is_obj[0]))
+                print("Old objects was removed: %s" %is_obj[0])
+                rospy.sleep(1.0)
         i+=6
 
-    old_objs = scene.get_objects()
+    old_objs = self.scene.get_objects()
     print("After")
     print(self.scene.get_known_object_names())
     old_ids = [s for s in self.scene.get_known_object_names() if s.isdigit()]
     print("old_ids: %s" %old_ids)
 
-
+    # Append old objects that are not in frame
     for k in old_ids:
         print("K: %s" %k)
         temp_id = str(k)
         # print(temp_id)
-        old_obj_pose = scene.get_object_poses([str(k)])
+        old_obj_pose = self.scene.get_object_poses([str(k)])
         # print(old_obj_pose)
+        if old_obj_pose.get(str(k)) == None:
+            print("Key doesn't exist")
         if bool(old_obj_pose) == False:
-            old_obj_pose = scene.get_object_poses([str(k)])
+            print("Didn't get object pose")
+            old_obj_pose = self.scene.get_object_poses([str(k)])
             # print(old_obj_pose)
 
         world_objects.append(old_objs[str(k)].primitives[0].dimensions[0])
@@ -1489,7 +1472,9 @@ class MoveGroupPythonInterface(object):
         world_objects.append(old_obj_pose[str(k)].position.x)
         world_objects.append(old_obj_pose[str(k)].position.y)
         world_objects.append(old_obj_pose[str(k)].position.z)
-        scene.remove_world_object(str(k))
+        self.scene.remove_world_object(k)
+        print("Removed old object: %s" %k)
+        rospy.sleep(1.0)
 
     print("After, after")
     print(self.scene.get_known_object_names())
@@ -1620,6 +1605,8 @@ class MoveGroupPythonInterface(object):
 
     i = 0
     # print(world_objects)
+    print("Number of objects: %s" %(len(world_objects)/6))
+    print(target_id)
     while i < len(world_objects):
         object_id = str(i/6)
         print(object_id)
@@ -1766,28 +1753,7 @@ def object_collision(e_co, grasp_point, objects_array, neig_idx):
     else:
         return False # There are no collisions
 
-def angle_ik(grasp_point):
-    e_co = geometry_msgs.msg.Point()
-    e_co.z = grasp_point.z
-
-    sh_co = geometry_msgs.msg.Point()
-    sh_co.x = -0.15
-    sh_co.y = 0.38
-    sh_co.z = 0.54
-    u_length = 0.36
-    f_length = 0.3
-    #print("Grasp point: %s" %grasp_point)
-    wrist_0_x = sh_co.x + f_length
-    # elbow_angle = math.degrees(math.atan((grasp_point.y - sh_co.y)/(grasp_point.x - sh_co.x)))
-    e_angle = math.atan((grasp_point.y - sh_co.y)/(grasp_point.x - sh_co.x - 0.29))
-    elbow_angle = math.degrees(e_angle)
-    # print("Elbow angle: %s" %elbow_angle)
-
-    e_co.x = grasp_point.x - f_length*math.cos(e_angle)
-    e_co.y = grasp_point.y - f_length*math.sin(e_angle)
-
-    return (e_co, sh_co)
-
+#delete
 def astar(maze, start, end):
     """Returns a list of tuples as a path from the given start to the given end point"""
 

@@ -28,5 +28,5 @@ if __name__ == "__main__":
         print usage()
         sys.exit(1)
     print "Gaze point is x:%s y:%s z:%s"%(gaze_x, gaze_y, gaze_z)
-    # Obtain True if service got through
+    # True if service got through:
     print "Gaze point sent state: %s"%(send_gaze_client(gaze_x, gaze_y, gaze_z))

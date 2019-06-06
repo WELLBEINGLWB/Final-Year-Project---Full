@@ -22,8 +22,7 @@
 
 #include "pcl/common/eigen.h"
 #include "pcl/common/transforms.h"
-// #include <iostream>
-// #include <pcl/io/io.h>
+
 #include "std_msgs/MultiArrayLayout.h"
 #include "std_msgs/MultiArrayDimension.h"
 
