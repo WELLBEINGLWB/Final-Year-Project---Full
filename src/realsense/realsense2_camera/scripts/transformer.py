@@ -73,13 +73,13 @@ def transform(data):
     tf_world.header.stamp = rospy.Time.now()
     tf_world.header.frame_id = "world"
     tf_world.child_frame_id = "mocap"
-    tf_world.transform.translation.x = 0.44119273064295744
-    tf_world.transform.translation.y = 0.9410698271776146
-    tf_world.transform.translation.z = 0.089792635101989
-    tf_world.transform.rotation.x = -0.005599046472481776
-    tf_world.transform.rotation.y = 0.006340010063533339
-    tf_world.transform.rotation.z = -0.0011661715015195775
-    tf_world.transform.rotation.w = 0.9990846595954537
+    tf_world.transform.translation.x = 0.4876457489909373
+    tf_world.transform.translation.y = 1.0021416179753073
+    tf_world.transform.translation.z = 0.07989414854903898
+    tf_world.transform.rotation.x = -0.004159865089929733
+    tf_world.transform.rotation.y = 0.007377069799192935
+    tf_world.transform.rotation.z = -0.003486532468107288
+    tf_world.transform.rotation.w = 1.0004041253078304
 
     tf_abs_cam = TransformStamped()
     tf_abs_cam.header.stamp = rospy.Time.now()
