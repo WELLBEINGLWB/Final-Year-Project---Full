@@ -4,9 +4,6 @@ import rospy
 from sensor_msgs.msg import PointCloud2
 import geometry_msgs.msg
 from std_msgs.msg import Float32MultiArray
-# from visualization_msgs.msg import Marker
-# from moveit_commander.conversions import pose_to_list
-
 from segmentation.srv import*
 
 class ExecutionManager(object):
@@ -17,14 +14,15 @@ class ExecutionManager(object):
     ## Initialize rospy`_ node:
     rospy.init_node('controller_node', anonymous=True)
 
+    # Variable to store the pointcloud
     self.pCloud = PointCloud2()
     self.gaze_point = geometry_msgs.msg.Point()
     self.gaze_sent = 0
 
+  # Storing the pointcloud from the camera depth topic
   def cloud_callback(self, pointcloud):
       self.pCloud = pointcloud
-      # print(self.pCloud )
-      # print(pointcloud)
+
 
   # Waiting for a gaze point to be sent by the gaze_client
   def gaze_server_setup(self):
@@ -38,45 +36,35 @@ class ExecutionManager(object):
       self.gaze_point.x = req.gaze_x
       self.gaze_point.y = req.gaze_y
       self.gaze_point.z = req.gaze_z
-      # self.debug_printer()
       self.gaze_sent = 1
-      # objects = Float32MultiArray()
-      # objects.data = [0.09238377213478088, 0.07335389405488968, 0.1415911614894867, 0.43495261669158936, -0.11511331796646118, -0.0012646578252315521, 0.08798286318778992, 0.07133589684963226, 0.18319405615329742, 0.5219529271125793, 0.02710883319377899, 0.08386678248643875, 0.0326995849609375, 0.06856178492307663, 0.05430290102958679, 0.45429980754852295, 0.14136792719364166, -0.02174977958202362]
-      # objects.data = [0.09238377213478088, 0.07335389405488968, 0.1415911614894867, 0.43495261669158936, -0.11511331796646118, -0.0012646578252315521]
-      # objects.data = [0.09238377213478088, 0.07335389405488968, 0.0715911614894867, 0.33495261669158936, -0.11511331796646118, -0.0012646578252315521, 0.08798286318778992, 0.07133589684963226, 0.18319405615329742, 0.5219529271125793, 0.02710883319377899, 0.08386678248643875, 0.0326995849609375, 0.06856178492307663, 0.05430290102958679, 0.45429980754852295, 0.14136792719364166, -0.02174977958202362]
       objects = self.request_segmentation()
       path_found = self.gaze_optimiser_caller(objects)
       if path_found == True:
-
           return gazePointResponse(True)
       elif path_found == False:
           return gazePointResponse(False)
 
+  # Segmentation service that sends the obtained pointcloud to the segmentation node
   def request_segmentation(self):
       print("Sending pointcloud to segmentation")
       rospy.wait_for_service('segmentation_service')
-
       try:
           #print("Sending pointcloud to segmentation")
           segmentation_service = rospy.ServiceProxy('segmentation_service', seg)
           resp = segmentation_service(self.pCloud)
-          print("Sent")
-          # print(resp.objects)
+          # Obtain array of objects
           return resp.objects
       except rospy.ServiceException, e:
           print "Service call failed: %s"%e
 
+  # Gaze optimiser service that sends the array of objects and gaze point to the gaze optimiser
   def gaze_optimiser_caller(self, objs):
       print("Sent data to gaze optimiser")
-      #self.gaze_point.x = 0.4
-      #self.gaze_point.y = 0.9
-      #self.gaze_point.z = 0.25
       rospy.wait_for_service('gaze_optimiser_service')
       try:
           gaze_optimiser_service = rospy.ServiceProxy('gaze_optimiser_service', gazeOptimiser)
           data = gaze_optimiser_service(objs,self.gaze_point)
           if(data!=None):
-          # self.request_segmentation()
               print(data)
               self.path_planner_caller(data)
               return True
@@ -85,66 +73,56 @@ class ExecutionManager(object):
       except rospy.ServiceException, e:
           print "Service call failed: %s"%e
 
+
   def path_planner_caller(self, data):
-      print("test")
-      # print(data)
+      # Define the path planner request
       planner_req = pathPlannerRequest()
       planner_req.sorted_objects = data.sorted_objects
       planner_req.target_id = data.target_id
       planner_req.grasp_point = data.grasp_point
       print(planner_req)
       rospy.wait_for_service('path_planner_service')
+
       try:
+          # Send data to path planner node
           path_planner_service = rospy.ServiceProxy('path_planner_service', pathPlanner)
           print("Sent data to path planner")
           planner_resp = path_planner_service(data.sorted_objects, data.target_id, data.grasp_point)
           print(planner_resp.path_found)
+          # Execute the plan found or not
           if(planner_resp.path_found == True):
               option=raw_input("Execute? (y/n)")
               if option=="y":
                 print("\n ")
                 self.path_executer(True)
           return planner_resp.path_found
+
       except rospy.ServiceException, e:
           print "Service call failed: %s"%e
 
+  # Service to execute the plan found
   def path_executer(self,req):
-
       rospy.wait_for_service('path_executer_service')
       try:
           path_executer_service = rospy.ServiceProxy('path_executer_service', executionOrder)
           print("Sent order to path executer")
           executer_resp = path_executer_service(req)
           print(executer_resp)
+          # Obtain True if path was executed
           return executer_resp
       except rospy.ServiceException, e:
           print "Service call failed: %s"%e
 
-  # Function purely for debugging
-  def debug_printer(self):
-      print("Got here!")
-      # print(self.gaze_point.y)
-
-
-
 if __name__ == '__main__':
-
+    # Declare class
     controller = ExecutionManager()
+
+    # Declare subscriber to the pointcloud topic
     rospy.Subscriber("/camera/depth_registered/points", PointCloud2, controller.cloud_callback, queue_size=1)
     rospy.sleep(1.0)
+
+    # Setup the service that receives gaze point
     success = controller.gaze_server_setup()
     print(success)
-    #objects = controller.request_segmentation()
-    # objects = Float32MultiArray()
-    # objects.data = [0.08766677975654602, 0.08212397247552872, 0.19581645727157593, 0.5342333912849426, -0.08212301135063171, 0.0106821209192276, 0.04192066192626953, 0.0972205102443695, 0.11764948815107346, 0.5432109832763672, 0.09034746885299683, -0.008821483701467514]
-    #print(objects)
-    # objects.data = [0.09238377213478088, 0.07335389405488968, 0.1415911614894867, 0.43495261669158936, -0.11511331796646118, -0.0012646578252315521, 0.08798286318778992, 0.07133589684963226, 0.18319405615329742, 0.5219529271125793, 0.02710883319377899, 0.08386678248643875, 0.0326995849609375, 0.06856178492307663, 0.05430290102958679, 0.45429980754852295, 0.14136792719364166, -0.02174977958202362]
-    # optimiser_output = controller.gaze_optimiser_caller(objects)
-    # print(optimiser_output)
-    # if controller.gaze_sent == 1:
-        # controller.request_segmentation()
-    # rospy.Subscriber("/camera/depth_registered/points", PointCloud2, controller.cloud_callback, queue_size=1)
-    print("blah")
-    # p = controller.path_planner_caller(optimiser_output)
-    # print(p)
+
     rospy.spin()

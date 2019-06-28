@@ -9,6 +9,11 @@ from geometry_msgs.msg import Point
 from matplotlib import colors
 
 
+
+##############################
+# This script creates a random distribution of objects for the experiments
+##############################
+
 for n in range(25):
     name = ""
     grid = np.array([[0,0,0,0],

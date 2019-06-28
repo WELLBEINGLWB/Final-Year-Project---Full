@@ -98,11 +98,6 @@ class MoveGroupPythonInterface(object):
     # Get a list of all the groups in the robot:
     group_names = robot.get_group_names()
 
-    #print "============ Printing robot state"
-    #print robot.get_current_state()
-
-
-
 	# Misc variables
     self.objectAdder = moveit_python.PlanningSceneInterface("world")
     self.box_name = ''
@@ -1272,33 +1267,10 @@ class MoveGroupPythonInterface(object):
 
     no = len(self.scene.get_known_object_names())
 
-
-
-    # group = self.group
-    # robot = self.robot
-    # eef_link = self.eef_link
-    # group_names = self.group_names
-    #
-    # camera_pose = geometry_msgs.msg.PoseStamped()
-    # camera_pose.header.frame_id = group.get_end_effector_link()
-    # camera_pose.pose.orientation.w = 1.0
-    # camera_pose.pose.position.x = 0.0
-    # camera_pose.pose.position.y = 0.0
-    # camera_pose.pose.position.z = 0.0
-    # scene.add_mesh("hand", camera_pose, "/home/faisallab008/catkin_ws/src/universal_robot/ur_description/meshes/hand.stl", size=(0.001,-0.001,0.001))
-    #
-    # grasping_group = 'manipulator'
-    # touch_links = robot.get_link_names(group=grasping_group)
-    # scene.attach_box(eef_link, "hand", touch_links=touch_links)
-
     print("Adding table")
     table_pose = geometry_msgs.msg.PoseStamped()
     table_pose.header.frame_id = "world"
     table_pose.pose.orientation.w = 0.0
-    # table_pose.pose.position.x = 0.44
-    # table_pose.pose.position.y = 0.65
-    # table_pose.pose.position.z = -0.24
-    # scene.add_box("table", table_pose, size=( 0.7, 1.7, 0.85))
     self.table_x_dim = 0.7
     self.table_y_dim = 1.4
     # self.table_z_dim = 0.85
@@ -1326,6 +1298,19 @@ class MoveGroupPythonInterface(object):
     self.objectAdder.setColor("leg_bottom_right", 0.78, 0.44, 0.2, a=1.0)
     self.objectAdder.setColor("leg_bottom_left", 0.78, 0.44, 0.2, a=1.0)
 
+    # objects = std_msgs.msg.Float32MultiArray()
+    # objects.data = [0.0766677975654602, 0.07212397247552872, 0.19581645727157593, 0.3642333912849426, 0.9, 0.2, 0.042066192626953, 0.08005102443695, 0.07464948815107346, 0.302109832763672, 0.75034746885299683, 0.16, 0.04, 0.064205102443695, 0.0764948815107346, 0.26232109832763672, 0.5834746885299683, 0.16, 0.064205102443695, 0.064205102443695, 0.0764948815107346, 0.36232109832763672, 0.4734746885299683, 0.16]
+    # world_objects = objects.data
+    # margin = 0
+    # self.objectAdder.addBox("a", world_objects[0] + margin, world_objects[0+1] + margin, world_objects[0+2], world_objects[0+3], world_objects[0+4], world_objects[0+5])
+    # self.objectAdder.addBox("b", world_objects[6] + margin, world_objects[6+1] + margin, world_objects[6+2], world_objects[6+3], world_objects[6+4], world_objects[6+5])
+    # self.objectAdder.addBox("c", world_objects[12] + margin, world_objects[12+1] + margin, world_objects[12+2], world_objects[12+3], world_objects[12+4], world_objects[12+5])
+    # self.objectAdder.addBox("d", world_objects[18] + margin, world_objects[18+1] + margin, world_objects[18+2], world_objects[18+3], world_objects[18+4], world_objects[18+5])
+    # self.objectAdder.setColor("a", 0.1, 1.0, 0.2, a=1.0)
+    # self.objectAdder.setColor("b", 1.0, 0.2, 0.2, a=1.0)
+    # self.objectAdder.setColor("c", 1.0, 0.2, 0.2, a=1.0)
+    # self.objectAdder.setColor("d", 1.0, 0.2, 0.2, a=1.0)
+    # self.objectAdder.sendColors()
 
     # table_pose.pose.position.x = 0.30
     # table_pose.pose.position.y = 0.70

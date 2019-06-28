@@ -31,6 +31,7 @@
 
 #include "segmentation/seg.h"
 
+// Declaring the publsihers and subcribers
 ros::Publisher pub;
 ros::Publisher pub2;
 ros::Subscriber sub;

@@ -4,6 +4,12 @@ import rospy
 import sys
 from segmentation.srv import*
 
+###############
+# This script is the gaze service gaze_client
+# It sends a gaze point to the controller node
+# To use type as follows in the command line:
+# rosrun segmentation gaze_client.py 0.48 0.65 0.2  
+###############
 
 def send_gaze_client(gaze_x, gaze_y, gaze_z):
     rospy.wait_for_service('send_gaze')

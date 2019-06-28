@@ -3,17 +3,15 @@
 import tf
 import rospy
 import geometry_msgs.msg
-
+import pylab
+import matplotlib.pyplot as plt
 import numpy as np
 import math
+import matplotlib.patches as patches
 from std_msgs.msg import Float32MultiArray
 from sensor_msgs.msg import PointCloud2
 from segmentation.srv import*
-
-import pylab
-import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import axes3d
-import matplotlib.patches as patches
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 from matplotlib import colors
 
@@ -30,10 +28,10 @@ def knn_search(x, D, K):
 
      K = K if K < ndata else ndata
      # euclidean distances from the other points
-     sqd = np.sqrt(((D - x[:,:ndata])**2).sum(axis=0))
-     idx = np.argsort(sqd) # sorting
-    # print(idx[:K])
-     # return the indexes of K nearest neighbours
+     sqd = np.sqrt(((D - x[:,:ndata])**2).sum(axis=0)) # calculating Euclidean distance
+     idx = np.argsort(sqd) # sorting the array
+
+     # return the indexes of nearest neighbour
      return idx[:K]
 
 def correct_ik(grasp_point, wrist_co):
@@ -62,41 +60,41 @@ def correct_ik(grasp_point, wrist_co):
 
     return (e_co, sh_co)
 
-def line_collision(x1,y1,x2,y2,x3,y3,x4,y4):
-    uA = ((x4-x3)*(y1-y3) - (y4-y3)*(x1-x3)) / ((y4-y3)*(x2-x1) - (x4-x3)*(y2-y1))
-    uB = ((x2-x1)*(y1-y3) - (y2-y1)*(x1-x3)) / ((y4-y3)*(x2-x1) - (x4-x3)*(y2-y1))
-    # print(uA)
-    # print(uB)
-    if( 0<= uA <= 1 and 0<= uB <= 1):
-        intersectionX = x1 + (uA*(x2-x1))
-        intersectionY = y1 + (uB*(y2-y1))
-        # print(intersectionX)
-        # print(intersectionY)
-        return True
-    return False
-
-def object_collision(e_co, grasp_point, objects_array, neig_idx):
-    i = 0
-    num_collisions = 0
-    target_index = neig_idx
-    # Add margin to avoid the objects with a safer distance
-    margin = 0.0
-    while i < len(objects_array):
-        if(i/6 != neig_idx):
-            bottom = line_collision(e_co.x, e_co.y, grasp_point.x, grasp_point.y,objects_array[i+3]-objects_array[i+0]/2 - margin,objects_array[i+4]-objects_array[i+1]/2 - margin,objects_array[i+3]-objects_array[i+0]/2 - margin, objects_array[i+4]+objects_array[i+1]/2 + margin)
-            top = line_collision(e_co.x, e_co.y, grasp_point.x, grasp_point.y,objects_array[i+3]+objects_array[i+0]/2,objects_array[i+4]-objects_array[i+1]/2,objects_array[i+3]+objects_array[i+0]/2, objects_array[i+4]+objects_array[i+1]/2)
-            left = line_collision(e_co.x, e_co.y, grasp_point.x, grasp_point.y,objects_array[i+3]-objects_array[i+0]/2 - margin ,objects_array[i+4]+objects_array[i+1]/2 + margin ,objects_array[i+3]+objects_array[i+0]/2 + margin, objects_array[i+4]+objects_array[i+1]/2 + margin)
-            right = line_collision(e_co.x, e_co.y, grasp_point.x, grasp_point.y,objects_array[i+3]-objects_array[i+0]/2,objects_array[i+4]-objects_array[i+1]/2,objects_array[i+3]+objects_array[i+0]/2, objects_array[i+4]-objects_array[i+1]/2)
-            if(bottom == True or top == True or left == True or right == True):
-                # Number of collisions in a given xy position
-                num_collisions+=1
-        i+=6
-
-    #print("number of collisions in state: %s" %num_collisions)
-    if(num_collisions > 0):
-        return True # There is at least one collision, the state is not possible
-    else:
-        return False # There are no collisions
+# def line_collision(x1,y1,x2,y2,x3,y3,x4,y4):
+#     uA = ((x4-x3)*(y1-y3) - (y4-y3)*(x1-x3)) / ((y4-y3)*(x2-x1) - (x4-x3)*(y2-y1))
+#     uB = ((x2-x1)*(y1-y3) - (y2-y1)*(x1-x3)) / ((y4-y3)*(x2-x1) - (x4-x3)*(y2-y1))
+#     # print(uA)
+#     # print(uB)
+#     if( 0<= uA <= 1 and 0<= uB <= 1):
+#         intersectionX = x1 + (uA*(x2-x1))
+#         intersectionY = y1 + (uB*(y2-y1))
+#         # print(intersectionX)
+#         # print(intersectionY)
+#         return True
+#     return False
+#
+# def object_collision(e_co, grasp_point, objects_array, neig_idx):
+#     i = 0
+#     num_collisions = 0
+#     target_index = neig_idx
+#     # Add margin to avoid the objects with a safer distance
+#     margin = 0.0
+#     while i < len(objects_array):
+#         if(i/6 != neig_idx):
+#             bottom = line_collision(e_co.x, e_co.y, grasp_point.x, grasp_point.y,objects_array[i+3]-objects_array[i+0]/2 - margin,objects_array[i+4]-objects_array[i+1]/2 - margin,objects_array[i+3]-objects_array[i+0]/2 - margin, objects_array[i+4]+objects_array[i+1]/2 + margin)
+#             top = line_collision(e_co.x, e_co.y, grasp_point.x, grasp_point.y,objects_array[i+3]+objects_array[i+0]/2,objects_array[i+4]-objects_array[i+1]/2,objects_array[i+3]+objects_array[i+0]/2, objects_array[i+4]+objects_array[i+1]/2)
+#             left = line_collision(e_co.x, e_co.y, grasp_point.x, grasp_point.y,objects_array[i+3]-objects_array[i+0]/2 - margin ,objects_array[i+4]+objects_array[i+1]/2 + margin ,objects_array[i+3]+objects_array[i+0]/2 + margin, objects_array[i+4]+objects_array[i+1]/2 + margin)
+#             right = line_collision(e_co.x, e_co.y, grasp_point.x, grasp_point.y,objects_array[i+3]-objects_array[i+0]/2,objects_array[i+4]-objects_array[i+1]/2,objects_array[i+3]+objects_array[i+0]/2, objects_array[i+4]-objects_array[i+1]/2)
+#             if(bottom == True or top == True or left == True or right == True):
+#                 # Number of collisions in a given xy position
+#                 num_collisions+=1
+#         i+=6
+#
+#     #print("number of collisions in state: %s" %num_collisions)
+#     if(num_collisions > 0):
+#         return True # There is at least one collision, the state is not possible
+#     else:
+#         return False # There are no collisions
 
 def handle_objects(req):
 
@@ -119,7 +117,7 @@ def handle_objects(req):
     i = 0
     while i < len(objects):
 
-        # Transform the center point of the object from cameraLink frame to world frame
+        # Transform the center point of the object from camera_link frame to world frame
         transformer.waitForTransform("camera_link", "world", rospy.Time(0),rospy.Duration(4.0))
         pointstamp = geometry_msgs.msg.PointStamped()
         pointstamp.header.frame_id = "camera_link"
@@ -128,27 +126,13 @@ def handle_objects(req):
         pointstamp.point.y = objects[i+4]
         pointstamp.point.z = objects[i+5]
 
-        # Converting the center point if the object to /world frame
+        # Converting the center point of the object to /world frame
         p_tr = transformer.transformPoint("world", pointstamp)
 
         height_to_table = 0.165 - (p_tr.point.z - (objects[i+2]/2))
 
-        # box_pose = geometry_msgs.msg.PoseStamped()
-        # box_pose.header.frame_id = "world"
-        # box_pose.pose.position.x = p_tr.point.x
-        # box_pose.pose.position.y = p_tr.point.y
-        # box_pose.pose.position.z = p_tr.point.z  # - height_to_table
-
         box_z = 0.11 + (objects[i+2]/2)
         box_z = box_z + (p_tr.point.z - box_z)/2
-        # world_objects[i+2] = objects[i+2] + (p_tr.point.z - box_pose.pose.position.z)
-
-        # world_objects.insert(i, objects[i])
-        # world_objects.insert(i+1, objects[i+1])
-        # world_objects.insert(i+2, objects[i+2] + (p_tr.point.z - box_z))
-        # world_objects.insert(i+3, p_tr.point.x)
-        # world_objects.insert(i+4, p_tr.point.y)
-        # world_objects.insert(i+5, box_z)
 
         world_objects.data[i] = objects[i]
         world_objects.data[i+1] = objects[i+1]
@@ -156,7 +140,7 @@ def handle_objects(req):
         world_objects.data[i+3] = p_tr.point.x
         world_objects.data[i+4] = p_tr.point.y
         world_objects.data[i+5] = box_z
-        # print(world_objects)
+
         object_id = str(i/6)
 
         print("x,y,z = ")
@@ -167,14 +151,7 @@ def handle_objects(req):
 
         i+=6
 
-        # target_obj = ['0', 0.11087217926979065, 0.3403069078922272, 0.11774600305213856, 0.48992229410969163, 0.49934569425808273, 0.27480948858513754]
-
-
-    # fig,ax = plt.subplots(1)
-    # fig.set_size_inches(18.5, 10.5)
-    # pylab.rcParams['figure.figsize'] = 5, 10
-    # plt.subplots_adjust(left=0.1, right=0.9, bottom=0.1, top=0.9)
-
+    # 1 for plots and animation, 0 for no plos
     plot_request = 0
     if(plot_request==1):
          fig = plt.figure(figsize=(10,10/(1.7/0.8)))
@@ -185,16 +162,12 @@ def handle_objects(req):
 
     j = 0
     while j < len(objects):
-    #    center[0].append(objects[i+3])
-    #    center[1].append(objects[i+4])
-    #    np.append(center,[objects[i+3]])
         iteration = int(j/6)
         center[0,iteration] = world_objects.data[j+3]
         center[1,iteration] = world_objects.data[j+4]
         if(plot_request==1):
             rect = patches.Rectangle((center[1,iteration]-world_objects.data[j+1]/2,center[0,iteration]-world_objects.data[j]/2),world_objects.data[j+1],world_objects.data[j],linewidth=1,edgecolor='r',facecolor='none')
             ax.add_patch(rect)
-        # print(center)
         j+=6
 
     print(center)
@@ -224,31 +197,24 @@ def handle_objects(req):
     co_e, co_s = correct_ik(grasp_point, wrist_co)
     print("Coord %s" %co_e)
 
-    # rect = patches.Rectangle((0.5,0.2),0.15,0.1,linewidth=1,edgecolor='r',facecolor='none')
-    # ax.add_patch(rect)
 
     if(plot_request==1):
     # highlighting the target object center
         pylab.plot(center[1,neig_idx],center[0,neig_idx],'o', markerfacecolor='None',markersize=15,markeredgewidth=1)
-        # plt.axis([-0.2,1.7, -0.2, 0.75])
         ax.plot(center[1,:],center[0,:],'ob',x[1,0],x[0,0],'or',grasp_point.y,grasp_point.x,'og')
         ax.plot(center[1,neig_idx],center[0,neig_idx],'o', markerfacecolor='None',markersize=15,markeredgewidth=1)
         plt.plot([co_s.y,co_e.y,grasp_point.y],[co_s.x,co_e.x,grasp_point.x])
         plt.plot([wrist_co.y,grasp_point.y],[wrist_co.x - 0.05,grasp_point.x + offset_x])
         plt.plot([co_s.y,co_e.y,grasp_point.y],[co_s.x,co_e.x,grasp_point.x],'o')
-        # plt.gca().invert_xaxis()
         plt.show(block=False)
         rospy.sleep(5.0)
         plt.close('all')
+
     print("Grasp point: %s" %grasp_point)
     print("Elbow point: %s" %co_e)
 
     index = int(neig_idx)
     print("Index %s" %index)
-
-    # b = Float32MultiArray()
-    # b.data = [0]*len(objects)
-    # print(b)
 
     srv_response = gazeOptimiserResponse()
     srv_response.sorted_objects = world_objects
@@ -259,19 +225,6 @@ def handle_objects(req):
 
 if __name__ == '__main__':
     rospy.init_node('gaze_optimiser', anonymous=True)
-    # req =  [0.09238377213478088, 0.07335389405488968, 0.1415911614894867, 0.43495261669158936, -0.11511331796646118, -0.0012646578252315521, 0.08798286318778992, 0.07133589684963226, 0.18319405615329742, 0.5219529271125793, 0.02710883319377899, 0.08386678248643875, 0.0326995849609375, 0.06856178492307663, 0.05430290102958679, 0.45429980754852295, 0.14136792719364166, -0.02174977958202362]
-
+    # Initialize the gaze optimiser service
     gaze_optimiser_server()
     print ("Ready to receive objects.")
-    #req = [0.08420228958129883, 0.0866108238697052, 0.16340254247188568, 0.5440202951431274, 0.07170078903436661, 0.11486805230379105, 0.044422149658203125, 0.054751671850681305, 0.11145603656768799, 0.4410666823387146, -0.08078508079051971, 0.02292603999376297, 0.03234878182411194, 0.03743894398212433, 0.046912916004657745, 0.45620059967041016, 0.2094809114933014, 0.030203916132450104]
-    #req = [0.10357585549354553, 0.07956766337156296, 0.1900981366634369, 0.3480975031852722, 0.038999784737825394, 0.025573041290044785, 0.09558302164077759, 0.06678294390439987, 0.1394098997116089, 0.3654365837574005, -0.11884936690330505, -0.04283341020345688, 0.02408367395401001, 0.07848946005105972, 0.06253930926322937, 0.5783331394195557, -0.037476059049367905, 0.04785224795341492]
-    #sim(req)
-    # handle_objects(req)
-    # path_plan_response = gaze_optimiser_server()
-    # if path_plan_response != False
-    #rospy.spin()
-
-
-
-# (0.08420228958129883, 0.0866108238697052, 0.16340254247188568, 0.5440202951431274, 0.07170078903436661, 0.11486805230379105, 0.044422149658203125, 0.054751671850681305, 0.11145603656768799, 0.4410666823387146, -0.08078508079051971, 0.02292603999376297, 0.03234878182411194, 0.03743894398212433, 0.046912916004657745, 0.45620059967041016, 0.2094809114933014, 0.030203916132450104)
-# (0.10357585549354553, 0.07956766337156296, 0.1900981366634369, 0.3480975031852722, 0.038999784737825394, 0.025573041290044785, 0.09558302164077759, 0.06678294390439987, 0.1394098997116089, 0.3654365837574005, -0.11884936690330505, -0.04283341020345688, 0.02408367395401001, 0.07848946005105972, 0.06253930926322937, 0.5783331394195557, -0.037476059049367905, 0.04785224795341492)
