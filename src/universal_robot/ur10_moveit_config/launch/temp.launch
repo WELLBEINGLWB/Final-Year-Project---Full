@@ -8,22 +8,13 @@
 
   <arg name="limited" default="true"/>
 
-  <!-- Load the URDF, SRDF and other .yaml configuration files on the param server -->
-  <!-- <include file="$(find ur10_moveit_config)/launch/planning_context.launch">
-    <arg name="load_robot_description" value="true"/>
-    <arg name="limited" value="$(arg limited)"/>
-  </include> -->
-
   <!-- Camera node -->
   <include file="$(find realsense2_camera)/launch/rs_rgbd_pc.launch"/>
 
-  <!-- mocap node -->
+  <!-- Natnet/mocap node -->
   <node pkg="natnet_ros" type="client" name="mocap" output="screen" args="--clock"/>
-    <!-- <param name="server" value="10.0.0.107"/> -->
-  <!-- </node> -->
-   <!--add negative negative to clock-->
 
-  <!-- TF node -->
+  <!-- TF broadcaster node -->
   <!-- <node pkg="realsense2_camera" type="tf_broadcaster.py" name="camera_tf_node" output="screen"/> -->
 
   <node pkg="realsense2_camera" type="transformer.py" name="camera_tf_node" output="screen"/>

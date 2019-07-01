@@ -1,3 +1,8 @@
+// This node receives a pointcloud and segments it, using the PCL library
+// The output are the position and dimensions of each found object
+// All the used filters to build this algorithm can be found on the PCL website: http://pointclouds.org/documentation/
+
+
 #include <ros/ros.h>
 #include <sensor_msgs/PointCloud2.h>
 #include <std_msgs/Float32.h>
@@ -37,25 +42,24 @@ ros::Publisher pub2;
 ros::Subscriber sub;
 ros::ServiceServer service;
 
+// Declaring pointcloud opbject
 pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_pcl(new pcl::PointCloud<pcl::PointXYZ>);
 
+// Service callback; receives pointcloud, returns segmented objects dimensions and positions
 bool service_callback (segmentation::seg::Request  &req, segmentation::seg::Response &res ){
 
   ROS_INFO("Callback");
-  // std_msgs::Float32MultiArray array;
-  // std_msgs::Float32MultiArray obj_interest;
-  pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_pcl(new pcl::PointCloud<pcl::PointXYZ>);
-  pcl::fromROSMsg(req.pointcloud, *cloud_pcl);
-  // *cloud_pcl_new = *req.pointcloud;
-  std::cout << "PointCloud: " << cloud_pcl->points.size () << " data points." << std::endl;
-  //Input of the above cloud and the corresponding output of cloud_pcl
-  // pcl::fromROSMsg(cloud_msg, *cloud_pcl);
-  // std::cout << "PointCloud: " << cloud_pcl->points.size () << " data points." << std::endl;
 
+  pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_pcl(new pcl::PointCloud<pcl::PointXYZ>);
+  pcl::fromROSMsg(req.pointcloud, *cloud_pcl); // Convert from PCL to ROS pointcloud
+
+  std::cout << "PointCloud: " << cloud_pcl->points.size () << " data points." << std::endl;
+
+  // Use this to save the pointcloud to a pcl file
   pcl::PCDWriter writer;
   std::stringstream ss;
   ss << "main.pcd";
-  writer.write<pcl::PointXYZ> (ss.str (), *cloud_pcl, false);
+  //writer.write<pcl::PointXYZ> (ss.str (), *cloud_pcl, false);
 
   // Passthrough filter to remove point beyond a distance treshold
   pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_passthrough_filtered (new pcl::PointCloud<pcl::PointXYZ>);
@@ -63,7 +67,6 @@ bool service_callback (segmentation::seg::Request  &req, segmentation::seg::Resp
   pass.setInputCloud(cloud_pcl);
   pass.setFilterFieldName ("z");
   pass.setFilterLimits (0.0f, 0.8f);
-  //pass.setFilterLimitsNegative (true);
   pass.filter (*cloud_passthrough_filtered);
   writer.write<pcl::PointXYZ> ("filtered.pcd", *cloud_passthrough_filtered, false);
 
@@ -79,28 +82,7 @@ bool service_callback (segmentation::seg::Request  &req, segmentation::seg::Resp
   pcl::transformPointCloud (*cloud_passthrough_filtered, *transformed1_cloud, transform_z);
   pcl::transformPointCloud (*transformed1_cloud, *transformed2_cloud, transform_y);
 
-
-  // pcl::PointXYZ minimumPt, maximumPt;
-  // pcl::getMinMax3D (*transformed2_cloud, minimumPt, maximumPt);
-  //
-  // // add additional points at same heiht of minimum to replicate table
-  // for (float y=-0.5f; y<=0.5f; y+=0.001f) {
-  //   for (float x=-0.5f; x<=0.5f; x+=0.001f) {
-  //     pcl::PointXYZ point;
-  //     point.x = x;
-  //     point.y = y;
-  //     point.z = minimumPt.z;
-  //     transformed2_cloud->points.push_back(point);
-  //   }
-  // }
-
-
-
-  // pcl::PCDReader reader;
-  // pcl::PointCloud<pcl::PointXYZ>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZ>), cloud_f (new pcl::PointCloud<pcl::PointXYZ>);
   pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_f (new pcl::PointCloud<pcl::PointXYZ>);
-  // reader.read ("/home/faisallab008/catkin_ws/src/segmentation/src/scene.pcd", *cloud);
-  // std::cout << "PointCloud before filtering has: " << cloud->points.size () << " data points." << std::endl; //*
 
   // Create the filtering object: downsample the dataset using a leaf size of 1cm
   pcl::VoxelGrid<pcl::PointXYZ> vg;
@@ -117,16 +99,12 @@ bool service_callback (segmentation::seg::Request  &req, segmentation::seg::Resp
   pcl::PointIndices::Ptr inliers (new pcl::PointIndices);
   pcl::ModelCoefficients::Ptr coefficients (new pcl::ModelCoefficients);
   pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_plane (new pcl::PointCloud<pcl::PointXYZ> ());
-  // pcl::PCDWriter writer;
   seg.setOptimizeCoefficients (true);
   seg.setModelType (pcl::SACMODEL_PLANE);
   seg.setMethodType (pcl::SAC_RANSAC);
-  seg.setMaxIterations (100); //100
-  seg.setDistanceThreshold (0.02); //0.02
+  seg.setMaxIterations (100);
+  seg.setDistanceThreshold (0.02);
 
-  // std::stringstream ss;
-  // ss << "main.pcd";
-  // writer.write<pcl::PointXYZ> (ss.str (), *cloud_filtered, false);
 
   int i=0, nr_points = (int) cloud_filtered->points.size ();
   while (cloud_filtered->points.size () > 0.3 * nr_points)
@@ -150,7 +128,7 @@ bool service_callback (segmentation::seg::Request  &req, segmentation::seg::Resp
     extract.filter (*cloud_plane);
     std::cout << "Callback: PointCloud representing the planar component: " << cloud_plane->points.size () << " data points." << std::endl;
 
-    // Remove the planar inliers, extract the rest
+    // Remove the planar inliers (i.e. only the objects remain)
     extract.setNegative (true);
     extract.filter (*cloud_f);
     *cloud_filtered = *cloud_f;
@@ -168,6 +146,7 @@ bool service_callback (segmentation::seg::Request  &req, segmentation::seg::Resp
   pcl::search::KdTree<pcl::PointXYZ>::Ptr tree (new pcl::search::KdTree<pcl::PointXYZ>);
   tree->setInputCloud (cloud_filtered);
 
+  // Euclidean Cluster extraction
   std::vector<pcl::PointIndices> cluster_indices;
   pcl::EuclideanClusterExtraction<pcl::PointXYZ> ec;
   ec.setClusterTolerance (0.02); // original = 2cm (0.02)
@@ -177,7 +156,7 @@ bool service_callback (segmentation::seg::Request  &req, segmentation::seg::Resp
   ec.setInputCloud (cloud_filtered);
   ec.extract (cluster_indices);
 
-  // cloud to publish all clusters
+  // Cloud to publish all clusters
   pcl::PointCloud<pcl::PointXYZ>::Ptr clustered_cloud (new pcl::PointCloud<pcl::PointXYZ>);
   int j = 0;
   for (std::vector<pcl::PointIndices>::const_iterator it = cluster_indices.begin (); it != cluster_indices.end (); ++it)
@@ -190,35 +169,27 @@ bool service_callback (segmentation::seg::Request  &req, segmentation::seg::Resp
     cloud_cluster->height = 1;
     cloud_cluster->is_dense = true;
 
-
+   // Setup Radius outlier filter: http://pointclouds.org/documentation/tutorials/remove_outliers.php
    pcl::RadiusOutlierRemoval<pcl::PointXYZ> outrem;
-   // build the filter
+   // Build the filter
    outrem.setInputCloud(cloud_cluster);
    outrem.setRadiusSearch(0.05);
    outrem.setMinNeighborsInRadius (25); // 25 - 30 looks good
-   // apply filter
+   // Apply filter
    outrem.filter (*cluster_filtered);
 
 
     std::cout << "PointCloud representing the Cluster: " << cluster_filtered->points.size () << " data points." << std::endl;
     std::stringstream ss;
     ss << "CB_cluster_" << j << ".pcd";
-    // writer.write<pcl::PointXYZ> (ss.str (), *cloud_cluster, false); //*
+    // writer.write<pcl::PointXYZ> (ss.str (), *cloud_cluster, false);
 
-    //////////////////////////////////////////////////////////////////////////
     //Find max and min xyz of each cluster
       pcl::PointXYZ minPt, maxPt;
       pcl::getMinMax3D (*cluster_filtered, minPt, maxPt);
       std::cout << "Cluster " << j << ":" << std::endl;
 
-      // Get max and min xyz of each cluster
-      // std::cout << "Max x: " << maxPt.x << std::endl;
-      // std::cout << "Max y: " << maxPt.y << std::endl;
-      // std::cout << "Max z: " << maxPt.z << std::endl;
-      // std::cout << "Min x: " << minPt.x << std::endl;
-      // std::cout << "Min y: " << minPt.y << std::endl;
-      // std::cout << "Min z: " << minPt.z << std::endl;
-      // minPt.z = minTable.z;
+
       // Calculate dimensions of each cluster
       float xDim = maxPt.x - minPt.x;
       float yDim = maxPt.y - minPt.y;
@@ -230,19 +201,16 @@ bool service_callback (segmentation::seg::Request  &req, segmentation::seg::Resp
       std::cout << "Dim z: " << zDim << std::endl;
 
       // // Calculate center point of each cluster
-      // float xCenter = (maxPt.x + minPt.x)/2 - 0.30;
-      // float yCenter = (maxPt.y + minPt.y)/2 - 0.18;
-      // float zCenter = (maxPt.z + minPt.z)/2 + 0.08;
-      // float xCenter = (maxPt.x + minPt.x)/2;
       float xCenter = maxPt.x;
       // float xCenter = (maxPt.x + minPt.x)/2;
       float yCenter = (maxPt.y + minPt.y)/2;
       float zCenter = (maxPt.z + minPt.z)/2;
-      // float zCenter = (maxPt.z + minTable.z)/2;
+
       std::cout << "Center x: " << xCenter << std::endl;
       std::cout << "Center y: " << yCenter << std::endl;
       std::cout << "Center z: " << zCenter << std::endl;
 
+      // Eliminate clusters that are outside the table
       if(xCenter < 2.0) {
         res.objects.data.push_back(xDim);
         res.objects.data.push_back(yDim);
@@ -256,11 +224,11 @@ bool service_callback (segmentation::seg::Request  &req, segmentation::seg::Resp
       *clustered_cloud += *cluster_filtered;
       j++;
   }
-  // pub.publish(array);
-  writer.write<pcl::PointXYZ> ("clusters.pcd", *clustered_cloud, false);
+
+  // writer.write<pcl::PointXYZ> ("clusters.pcd", *clustered_cloud, false);
+  // Publish the clusters to a ROS topic
   sensor_msgs::PointCloud2::Ptr clusters (new sensor_msgs::PointCloud2);
   pcl::toROSMsg (*clustered_cloud , *clusters);
-
   clusters->header.frame_id = "/camera_link";
   clusters->header.stamp=ros::Time::now();
   pub2.publish (*clusters);
@@ -271,33 +239,18 @@ bool service_callback (segmentation::seg::Request  &req, segmentation::seg::Resp
 
 int main (int argc, char** argv)
 {
-
+  // Initialize node
   ros::init(argc, argv, "segmentation_node");
   ros::NodeHandle nh;
 
-  // sub = nh.subscribe ("/depth/points", 1, cloud_callback);
-  std_msgs::Float32MultiArray array;
-
-  // sub = nh.subscribe ("/camera/depth_registered/points", 1, cloud_callback);
-  // sub2 = nh.subscribe ("/gaze", 1, gaze_callback);
-
-  // pub = nh.advertise<std_msgs::Float32MultiArray>("objects_array", 100);
+  // Pointcloud publisher
   pub2= nh.advertise<sensor_msgs::PointCloud2>("cluster_cloud", 100);
 
+  // Service advertiser
   service = nh.advertiseService("segmentation_service", service_callback);
-
-  // std_msgs::Float32MultiArray array = cloud_callback;
-
-  // std::cout << "TEST: PointCloud: " << &cloud_pcl->points.size () << " data points." << std::endl;
-
-    // while (ros::ok()){
-    //   ros::spinOnce();
-    //   sleep(3);
-    // }
 
   ROS_INFO("Ready to segment pointcloud.");
   ros::spin();
-
 
   return 0;
 }

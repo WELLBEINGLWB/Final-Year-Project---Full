@@ -1,0 +1,31 @@
+
+roslaunch ur_modern_driver ur10_bringup_joint_limited.launch robot_ip:=192.168.1.102
+
+roslaunch ur10_moveit_config ur10_moveit_planning_execution.launch limited:=true
+
+
+roslaunch ur10_moveit_config temp.launch
+
+--------------------------------------------------------------
+
+roslaunch ur10_moveit_config main.launch
+
+rosrun ur10_moveit_config controller.py
+
+rosrun segmentation segmentation_server
+
+rosrun ur10_moveit_config gaze_optimiser.py
+
+rosrun ur10_moveit_config path_planner.py
+
+rosrun segmentation gaze_client.py 0.2 0.9 0.2
+
+rosrun ur10_moveit_config exp_random.py
+
+rosrun image_view image_view image:=/camera/color/image_raw
+
+
+
+rosrun segmentation gaze_client.py 0.48 0.95 0.2
+rosrun segmentation gaze_client.py 0.48 0.72 0.2
+rosrun segmentation gaze_client.py 0.48 0.65 0.2

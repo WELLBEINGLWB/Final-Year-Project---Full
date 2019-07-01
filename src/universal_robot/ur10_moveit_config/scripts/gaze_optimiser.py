@@ -1,5 +1,8 @@
 #!/usr/bin/env python
 
+# This node receives the array of segmented objects in "/camera_link" frame and the gaze position
+# It returns the array of objects transformed to the "/world" link, the target object index and the optimal grasp point
+
 import tf
 import rospy
 import geometry_msgs.msg
@@ -35,72 +38,32 @@ def knn_search(x, D, K):
      return idx[:K]
 
 def correct_ik(grasp_point, wrist_co):
-    e_co = geometry_msgs.msg.Point()
-    sh_co = geometry_msgs.msg.Point()
-    # wrist_co = geometry_msgs.msg.Point()
-    # wrist_co = self.group.get_current_pose().pose.position
+    # inverse kinematic calculations to return the position of the elbow joint
+    e_co = geometry_msgs.msg.Point() # Elbow joint coordinates
+    sh_co = geometry_msgs.msg.Point() # Shoulder joint coordinates
+    # Note, shoulder joint is used only for the plots
     e_co.z = grasp_point.z
-
     sh_co.x = -0.18
     sh_co.y = 0.36
     sh_co.z = 0.54
-    u_length = 0.36 # upepr arm length
+    u_length = 0.36 # upper arm length
     f_length = 0.38 # forearm length
 
-    #print("Grasp point: %s" %grasp_point)
-    # wrist_0_x = .x - f_length
-    # elbow_angle = math.degrees(math.atan((grasp_point.y - sh_co.y)/(grasp_point.x - sh_co.x)))
-    # e_angle = math.atan((grasp_point.y - sh_co.y)/(grasp_point.x - sh_co.x - 0.29))
+    # Calculate forearm angle
     e_angle = math.atan((grasp_point.y - wrist_co.y)/(grasp_point.x - wrist_co.x + f_length))
     elbow_angle = math.degrees(e_angle)
-    # print("Elbow angle: %s" %elbow_angle)
 
+    # Calculate elbow joint position
     e_co.x = grasp_point.x - f_length*math.cos(e_angle)
     e_co.y = grasp_point.y - f_length*math.sin(e_angle)
 
     return (e_co, sh_co)
 
-# def line_collision(x1,y1,x2,y2,x3,y3,x4,y4):
-#     uA = ((x4-x3)*(y1-y3) - (y4-y3)*(x1-x3)) / ((y4-y3)*(x2-x1) - (x4-x3)*(y2-y1))
-#     uB = ((x2-x1)*(y1-y3) - (y2-y1)*(x1-x3)) / ((y4-y3)*(x2-x1) - (x4-x3)*(y2-y1))
-#     # print(uA)
-#     # print(uB)
-#     if( 0<= uA <= 1 and 0<= uB <= 1):
-#         intersectionX = x1 + (uA*(x2-x1))
-#         intersectionY = y1 + (uB*(y2-y1))
-#         # print(intersectionX)
-#         # print(intersectionY)
-#         return True
-#     return False
-#
-# def object_collision(e_co, grasp_point, objects_array, neig_idx):
-#     i = 0
-#     num_collisions = 0
-#     target_index = neig_idx
-#     # Add margin to avoid the objects with a safer distance
-#     margin = 0.0
-#     while i < len(objects_array):
-#         if(i/6 != neig_idx):
-#             bottom = line_collision(e_co.x, e_co.y, grasp_point.x, grasp_point.y,objects_array[i+3]-objects_array[i+0]/2 - margin,objects_array[i+4]-objects_array[i+1]/2 - margin,objects_array[i+3]-objects_array[i+0]/2 - margin, objects_array[i+4]+objects_array[i+1]/2 + margin)
-#             top = line_collision(e_co.x, e_co.y, grasp_point.x, grasp_point.y,objects_array[i+3]+objects_array[i+0]/2,objects_array[i+4]-objects_array[i+1]/2,objects_array[i+3]+objects_array[i+0]/2, objects_array[i+4]+objects_array[i+1]/2)
-#             left = line_collision(e_co.x, e_co.y, grasp_point.x, grasp_point.y,objects_array[i+3]-objects_array[i+0]/2 - margin ,objects_array[i+4]+objects_array[i+1]/2 + margin ,objects_array[i+3]+objects_array[i+0]/2 + margin, objects_array[i+4]+objects_array[i+1]/2 + margin)
-#             right = line_collision(e_co.x, e_co.y, grasp_point.x, grasp_point.y,objects_array[i+3]-objects_array[i+0]/2,objects_array[i+4]-objects_array[i+1]/2,objects_array[i+3]+objects_array[i+0]/2, objects_array[i+4]-objects_array[i+1]/2)
-#             if(bottom == True or top == True or left == True or right == True):
-#                 # Number of collisions in a given xy position
-#                 num_collisions+=1
-#         i+=6
-#
-#     #print("number of collisions in state: %s" %num_collisions)
-#     if(num_collisions > 0):
-#         return True # There is at least one collision, the state is not possible
-#     else:
-#         return False # There are no collisions
-
 def handle_objects(req):
 
     transformer = tf.TransformListener()
 
-    # Iterating through the array from the segmentation noe and adding object with the respective center point coordinates and dimensions
+    # Iterating through the array from the segmentation node and adding object with the respective center point coordinates and dimensions
     # The array is structurer as follows: [xDim, yDim, zDim, xCenter, yCenter, zCenter]
 
     objects = req.objects.data
@@ -112,12 +75,11 @@ def handle_objects(req):
 
     world_objects = Float32MultiArray()
     world_objects.data = [0]*len(objects)
-    center = np.empty([2, num_objects]) # array that will contain the x,y center of the objects
+    center = np.empty([2, num_objects]) # array that will contain the x,y center point of the objects
 
     i = 0
     while i < len(objects):
-
-        # Transform the center point of the object from camera_link frame to world frame
+        # Transform the center point of the objects from camera_link frame to world frame
         transformer.waitForTransform("camera_link", "world", rospy.Time(0),rospy.Duration(4.0))
         pointstamp = geometry_msgs.msg.PointStamped()
         pointstamp.header.frame_id = "camera_link"
@@ -126,14 +88,15 @@ def handle_objects(req):
         pointstamp.point.y = objects[i+4]
         pointstamp.point.z = objects[i+5]
 
-        # Converting the center point of the object to /world frame
+        # Converting the center point of the object to "/world" frame
         p_tr = transformer.transformPoint("world", pointstamp)
 
+        # Recalculating the z center point and z height of each object so that they are flat on the table
         height_to_table = 0.165 - (p_tr.point.z - (objects[i+2]/2))
-
         box_z = 0.11 + (objects[i+2]/2)
         box_z = box_z + (p_tr.point.z - box_z)/2
 
+        # Reassign objects to the new array of objects in "/world" frame
         world_objects.data[i] = objects[i]
         world_objects.data[i+1] = objects[i+1]
         world_objects.data[i+2] = objects[i+2] + (p_tr.point.z - box_z)
@@ -143,6 +106,7 @@ def handle_objects(req):
 
         object_id = str(i/6)
 
+        # Print coordinates of each object
         print("x,y,z = ")
         print(world_objects.data[i+3])
         print(world_objects.data[i+4])
@@ -151,12 +115,11 @@ def handle_objects(req):
 
         i+=6
 
-    # 1 for plots and animation, 0 for no plos
+    # 1 for plots and animation, 0 for no plots
     plot_request = 0
     if(plot_request==1):
          fig = plt.figure(figsize=(10,10/(1.7/0.8)))
          ax = fig.add_subplot(111)
-         # plt.cla()
          ax.axis([-0.2,1.7, -0.2, 0.75])
          plt.gca().invert_xaxis()
 
@@ -166,22 +129,28 @@ def handle_objects(req):
         center[0,iteration] = world_objects.data[j+3]
         center[1,iteration] = world_objects.data[j+4]
         if(plot_request==1):
+            # Plotting the 2D objects
             rect = patches.Rectangle((center[1,iteration]-world_objects.data[j+1]/2,center[0,iteration]-world_objects.data[j]/2),world_objects.data[j+1],world_objects.data[j],linewidth=1,edgecolor='r',facecolor='none')
             ax.add_patch(rect)
         j+=6
 
     print(center)
 
-    x = np.array([[gaze.x],[gaze.y]])
-    neig_idx = knn_search(x,center,1)
-    print("Index %s" %neig_idx)
+    x = np.array([[gaze.x],[gaze.y]]) # Gaze point
+    neig_idx = knn_search(x,center,1) # Find target object
+    index = int(neig_idx) # Index of the target object
+    print("Index %s" %index)
+
     print("target object xyz:")
     print(world_objects.data[neig_idx*6 + 3])
     print(world_objects.data[neig_idx*6 + 4])
     print(world_objects.data[neig_idx*6 + 5])
+
+    # X and Y offset for the grasping point
     offset_x = -0.015
     offset_y = -0.015
 
+    # Calculate optimal grasp point (with offset)
     grasp_point = geometry_msgs.msg.Point()
     grasp_point.x = world_objects.data[neig_idx*6 + 3] - offset_x # - world_objects.data[neig_idx*6]/2
     grasp_point.y = world_objects.data[neig_idx*6 + 4] - offset_y #- world_objects.data[neig_idx*6 + 1]/2 - offset_y
@@ -189,6 +158,9 @@ def handle_objects(req):
 
     print("Grasp point: %s" %grasp_point)
 
+    ########################
+    ## The next block is just for plots and information
+    # Initial wrist position
     wrist_co = geometry_msgs.msg.Point()
     wrist_co.x = 0.2
     wrist_co.y = 0.36
@@ -199,8 +171,9 @@ def handle_objects(req):
 
 
     if(plot_request==1):
-    # highlighting the target object center
+        # Highlighting the target object center
         pylab.plot(center[1,neig_idx],center[0,neig_idx],'o', markerfacecolor='None',markersize=15,markeredgewidth=1)
+
         ax.plot(center[1,:],center[0,:],'ob',x[1,0],x[0,0],'or',grasp_point.y,grasp_point.x,'og')
         ax.plot(center[1,neig_idx],center[0,neig_idx],'o', markerfacecolor='None',markersize=15,markeredgewidth=1)
         plt.plot([co_s.y,co_e.y,grasp_point.y],[co_s.x,co_e.x,grasp_point.x])
@@ -212,10 +185,9 @@ def handle_objects(req):
 
     print("Grasp point: %s" %grasp_point)
     print("Elbow point: %s" %co_e)
+    ############################
 
-    index = int(neig_idx)
-    print("Index %s" %index)
-
+    # Sending the service response back to the "Controller" node
     srv_response = gazeOptimiserResponse()
     srv_response.sorted_objects = world_objects
     srv_response.target_id = index

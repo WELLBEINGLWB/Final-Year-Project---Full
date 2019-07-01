@@ -6,26 +6,17 @@ import sys
 import copy
 import moveit_commander
 import moveit_python
-import moveit_msgs.msg
 import numpy as np
+import moveit_msgs.msg
 import geometry_msgs.msg
-import trajectory_msgs.msg
-import shape_msgs.msg
-from moveit_msgs.srv import GetPositionFK
-from moveit_msgs.srv import GetPositionFKRequest
-from moveit_msgs.srv import GetPositionFKResponse
+import pylab
+import matplotlib.pyplot as plt
+import matplotlib.patches as patches
 from std_msgs.msg import String
 from std_msgs.msg import Float32MultiArray
 from moveit_commander.conversions import pose_to_list
 from segmentation.srv import*
-
-import pylab
-import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import axes3d
-import matplotlib.patches as patches
-from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 from matplotlib import colors
-
 from heapq import *
 
 
@@ -51,90 +42,49 @@ def all_close(goal, actual, tolerance):
 
   return True
 
-##DELETE
-class Node():
-    """A node class for A* Pathfinding"""
-
-    def __init__(self, parent=None, position=None):
-        self.parent = parent
-        self.position = position
-
-        self.g = 0
-        self.h = 0
-        self.f = 0
-
-    def __eq__(self, other):
-        return self.position == other.position
 
 class MoveGroupPythonInterface(object):
   """MoveGroupPythonInterface"""
   def __init__(self):
     super(MoveGroupPythonInterface, self).__init__()
 
-
-    ## First initialize `moveit_commander`_ and a `rospy`_ node:
+    ## Initialize `moveit_commander`_ and a `rospy`_ node:
     moveit_commander.roscpp_initialize(sys.argv)
     rospy.init_node('path_planner', anonymous=True)
 
-    ## Instantiate a `RobotCommander`_ object. This object is the outer-level interface to the robot:
-    robot = moveit_commander.RobotCommander()
-
-    ## Instantiate a `PlanningSceneInterface`_ object.  This object is an interface to the world surrounding the robot:
+    ## Interface to the world surrounding the robot:
     scene = moveit_commander.PlanningSceneInterface()
 
-    ## Instantiate a `MoveGroupCommander`_ object.  This object is an interface to one group of joints.
+    ## Interface to one group of joints.
     group_name = "manipulator"
     group = moveit_commander.MoveGroupCommander(group_name)
-    # group.set_planner_id("RRTConnectkConfigDefault")
-    ## Create a `DisplayTrajectory`_ publisher which is used later to publish trajectories for RViz to visualize:
-    display_trajectory_publisher = rospy.Publisher('/move_group/display_planned_path', moveit_msgs.msg.DisplayTrajectory, queue_size=20)
 
-    # Get name of the reference frame for the robot:
-    planning_frame = group.get_planning_frame()
-
-    # Print the name of the end-effector link for this group:
-    eef_link = group.get_end_effector_link()
-
-    # Get a list of all the groups in the robot:
-    group_names = robot.get_group_names()
-
-	# Misc variables
+    # Used to at the objects to the planning scene
     self.objectAdder = moveit_python.PlanningSceneInterface("world")
     self.box_name = ''
-    self.robot = robot
     self.scene = scene
     self.group = group
-    self.display_trajectory_publisher = display_trajectory_publisher
-    self.planning_frame = planning_frame
-    self.eef_link = eef_link
-    self.group_names = group_names
 
+    # Target object id will be stored
     self.target_obj_id = 0
 
+    # This variable flag when the "Top planner" is used
     self.orientation_plan = 0
 
-    self.f_length = 0.38
+    self.f_length = 0.38 # Forearm length
 
-    ##DELETE
-    self.area_array = []
-
-    self.fk_srv = rospy.ServiceProxy('/compute_fk',GetPositionFK)
-    self.fk_srv.wait_for_service()
-    # self.objs = []
 
 
   def go_to_initial_state(self):
-    group = self.group
-
-    # joint_goal = group.get_current_joint_values()
-    group.set_planning_time(10)
+    # Send robot to initial position
+    self.group.set_planning_time(10)
 
     self.waypoints = []
-    wpose = group.get_current_pose().pose
-    # self.waypoints.append(copy.deepcopy(wpose))
+    wpose = self.group.get_current_pose().pose
 
+    # Initial position waypoint
     wpose.position.x = 0.2
-    wpose.position.y = 0.36 #0.4
+    wpose.position.y = 0.36
     wpose.position.z = 0.2
     wpose.orientation.x = 0.00111054358639
     wpose.orientation.y = 0.70699483645
@@ -143,16 +93,14 @@ class MoveGroupPythonInterface(object):
 
     self.waypoints.append(copy.deepcopy(wpose))
 
-    (plan, fraction) = group.compute_cartesian_path(
+    (plan, fraction) = self.group.compute_cartesian_path(
                                        self.waypoints,   # waypoints to follow
                                        0.01,        # eef_step
                                        0.0, True)
 
 
     self.group.execute(plan, wait = True)
-    group.clear_pose_targets()
-
-
+    self.group.clear_pose_targets()
 
     current_pose = self.group.get_current_pose().pose
     return all_close(wpose, current_pose, 0.01)
@@ -162,13 +110,11 @@ class MoveGroupPythonInterface(object):
       s = rospy.Service('path_planner_service', pathPlanner, self.planner)
       print "Ready to plan."
       rospy.spin()
-      # print("Not get here")
 
   def path_executer_server(self):
 
-      no = len(self.scene.get_known_object_names())
-      # print(self.scene.get_known_object_names())
-      # print(no)
+      no = len(self.scene.get_known_object_names()) # Number of objects in the scene
+
       #  Loop to remove all the objects
       f = 0
       while f < no:
@@ -178,7 +124,6 @@ class MoveGroupPythonInterface(object):
           # print(f)
           f = f + 1
 
-      # print(self.scene.get_known_object_names())
       # Initialize server proxy for path_planner_service
       s = rospy.Service('path_executer_service', executionOrder, self.path_executer)
       print "Ready to execute path."
@@ -186,105 +131,74 @@ class MoveGroupPythonInterface(object):
       # print("Not get here")
 
   def planner(self,request):
-      # print(request)
-
+      # Main trajectory planner
       plot_request = 0 # 0 for no plots, 1 for plots
 
+      # Handle request data
       objects = request.sorted_objects.data
       optimal_grasp_point = request.grasp_point
       grasp_point = geometry_msgs.msg.Point()
       target_id = request.target_id
       self.target_obj_id = target_id
+
       # Add object bounding boxes to planning scene
       self.add_box(objects, target_id)
 
-      ratio = 1.2/0.7
+      # Setting up the collision grid
+      # The number of rows and columns will dictate the resolution of the grid
+      ratio = 1.2/0.7 # Ratio of y/x dimensions of the table
       rows = 240
       cols = int(rows/ratio) + 1
       print("num cols: %s" %cols)
-      data = [[0 for _ in range(rows)] for _ in range(cols)]
-      Yresolution = 1.2/rows
-      Xresolution = 0.7/cols
+      data = [[0 for _ in range(rows)] for _ in range(cols)] # Array of 0's and 1's. 1 represents a collision state
+      Yresolution = 1.2/rows # Table y dimension is approximately 1.2m
+      Xresolution = 0.7/cols # Table x dimension is approximately 0.7m
+
+
       print("Optimal grasp point: %s" %optimal_grasp_point)
-      target_x = optimal_grasp_point.x  # - world_objects.data[neig_idx*6]/2
-      target_y = optimal_grasp_point.y
-      # target_index = [round(target_x/Xresolution)-1,round(target_y/Yresolution)-2]
-      target_index = [round(target_x/Xresolution),round(target_y/Yresolution)]
+      # Calculate index of the target position in the grid
+      target_index = [round(optimal_grasp_point.x/Xresolution),round(optimal_grasp_point.y/Yresolution)]
 
-      print(target_index)
-
-      # Initial position of the robot/wrist
+      # Initial position of the robot end-effector (/wrist)
       wrist_co = geometry_msgs.msg.Point()
       wrist_co = self.group.get_current_pose().pose.position
 
-      elbow_angle = 0
+      elbow_angle = 0 # Variable to store the forearm angle
 
-      # start_point = [0.15,0.38]
+      # Trajectory initial position (where the wrist starts)
       start_point = [wrist_co.x,wrist_co.y]
-      # print("start_point:", start_point)
       start = (int(round(start_point[0]/Xresolution)-1), int(round(start_point[1]/Yresolution)-1))
       end = (int(target_index[0]), int(target_index[1]))
-      # print(end)
-      # print("start:", start)
-      # print("end:", end)
 
-
-
-
+      # Populate the collision grid:
+      # Iterate through the (x,y) points grid along the table and find which states are in collision
       for i in range(rows):
           for j in range(cols):
-              #target = [Xresolution*(j+1),Yresolution*(i+1)]
               grasp_point.x = Xresolution*(j+1)
               grasp_point.y = Yresolution*(i+1)
+              # Obtain elbow position and elbow angle
               co_e, co_s, elbow_angle = self.ik_calculator(grasp_point,wrist_co)
+              # Calculate if the arm would be in collision in the given hand position
               collision_state = object_collision(co_e,grasp_point, objects, target_id)
               if(collision_state == True):
+                  # If the state is in collision, it is reoresented by a '1', '0' otherwise
                   data[j][i] = 1
 
-      #data[end[0]][end[1]]=2
-      #data[start[0]][start[1]]=3
-
-      test_data = np.array(data)
-      test_data.shape
-      # Plot collision state grid
-      # fig2 = plt.figure(figsize=(10,10/ratio))
-      # cmap = colors.ListedColormap(['white','red','green','#0060ff','#aaaaaa'])
-      # plt.figure(figsize=(20,20/ratio))
-      # plt.pcolor(test_data[::1],cmap=cmap,edgecolors='k', linewidths=1)
-      # plt.gca().invert_xaxis()
-      # plt.show(block=False)
-      # rospy.sleep(10.0)
-      # plt.close('all')
-
-      # grasp_point = optimal_grasp_point
-      # co_e, co_s, elbow_angle = self.ik_calculator(grasp_point,wrist_co)
-      # print("Grasp point: %s" %grasp_point)
-      # print("Elbow point: %s" %co_e)
-
-      #print astar(nmap, (0,0), (10,13))
-
-
-
-
+      # If the target state is not in collision, send collision grid, initial and final positions to A* algorithm
       if data[end[0]][end[1]] != 1:
           print("A star working...")
-          #path = astar(data, start, end)
           path = astar2(np.array(data), start, end)
           print("A star done")
-          # print(path) # print astar output - path in xy indexes
 
-          if(path==False):
+          if(path==False): # If no path was found
               print("The target state is in collision")
               return False
 
-
-          path_xy =  [[0]*3 for k in range(len(path))]
-          # print(path)
+          path_xy =  [[0]*3 for k in range(len(path))] # Initialize path variable
 
           for j in range(len(path)):
                   r = path[j][0]
                   c = path[j][1]
-      #                print(r,c)
                   data[r][c]= 4
                   path_xy[j][0]=Xresolution*r
                   path_xy[j][1]=Yresolution*c
@@ -296,6 +210,7 @@ class MoveGroupPythonInterface(object):
           data[start[0]][start[1]]=3
           data = np.array(data)
           data.shape
+
           # Plot collision state grid
           # fig2 = plt.figure(figsize=(10,10/ratio))
           if(plot_request==1):
@@ -344,6 +259,7 @@ class MoveGroupPythonInterface(object):
               grasp_point.x = path_xy[i][0]
               grasp_point.y = path_xy[i][1]
               co_e, co_s, elbow_angle = self.ik_calculator(grasp_point,wrist_co)
+
               if(plot_request==1):
                   ax.plot(center[1,:],center[0,:],'ob',grasp_point.y,grasp_point.x,'og',co_e.y,co_e.x,'ok',0.38,-0.15,'oy')
                   ax.plot(center[1,target_id],center[0,target_id],'o', markerfacecolor='None',markersize=15,markeredgewidth=1)
@@ -353,70 +269,32 @@ class MoveGroupPythonInterface(object):
 
               # plt.cla()
               i+=1
-          if(plot_request==1):
+
+          if(plot_request==1): # Close the plots
               rospy.sleep(3.0)
               plt.close('all')
 
-
+          ##### The next block works as a window averaging filter to smooth the robot trajectory
           path_n = [[0 for col in range(2)] for row in range(len(path_xy))]
           path_x = [[0 for col in range(1)] for row in range(len(path_xy))]
           path_y = [[0 for col in range(1)] for row in range(len(path_xy))]
-
 
           for k in range(len(path_xy)):
               path_n[k][0] = path_xy[k][0]
               path_n[k][1] = path_xy[k][1]
               path_x[k] =  path_xy[k][0]
               path_y[k] =  path_xy[k][1]
-          # print(path_n)
-          # path_x = path_xy[:,0]
 
-          # print(path_x)
-          # print(path_y)
-          # fig, ax = plt.subplots(figsize=(25,25/(1.2/0.7)))
-          # ax.plot(path_y, path_x, 'r.', label= 'Unsmoothed curve')
+          # Use convolution to create a window filter
           window_size = 6
           window = np.ones(int(window_size))/float(window_size)
           smooth_y = np.convolve(path_y, window, 'valid')
           smooth_x = np.convolve(path_x, window, 'valid')
+          # fig, ax = plt.subplots(figsize=(25,25/(1.2/0.7)))
+          # ax.plot(path_y, path_x, 'r.', label= 'Unsmoothed curve')
           # ax.plot(smooth_y, smooth_x, 'b.', label= 'Smoothed curve')
 
-
-          # weight_data = 0.5
-          # weight_smooth = 0.1
-          # tolerance = 0.001
-          #
-          # newpath = [[0 for col in range(len(path_n[0]))] for row in range(len(path_n))]
-          # new_smooth = [[0 for col in range(1)] for row in range(len(path_xy))]
-          # for i in range(len(path_n)):
-          #   for j in range(len(path_n[0])):
-          #       newpath[i][j] = path_n[i][j]
-          #
-          #
-          # change = 1
-          # while change > tolerance:
-          #   change = 0
-          #   for i in range(1,len(path_n)-1):
-          #       for j in range(len(path_n[0])):
-          #           ori = newpath[i][j]
-          #           newpath[i][j] = newpath[i][j] + weight_data*(path_n[i][j]-newpath[i][j])
-          #           newpath[i][j] = newpath[i][j] + weight_smooth*(newpath[i+1][j]+newpath[i-1][j]-2*newpath[i][j])
-          #           change += abs(ori - newpath[i][j])
-          #           # print(change)
-          #
-          # for i in range(len(path_n)):
-          #     print '['+ ', '.join('%.6f'%x for x in path_n[i]) +'] -> ['+ ', '.join('%.6f'%x for x in newpath[i]) +']'
-          #     new_smooth[i] = newpath[i][1]
-          # ax.plot(new_smooth, path_x, 'g.', label= 'Smoothed curve2')
-          # ax.axis([0.2,1.4, -0.2, 0.75])
-          # plt.gca().invert_xaxis()
-          # plt.xlabel("Y")
-          # plt.ylabel("X")
-          # plt.grid(True)
-          # plt.show(block=False)
-          # rospy.sleep(10.0)
-          # plt.close('all')
-
+          # Calculating the new forearm orientation of the new path
           new_path = [[0 for col in range(len(smooth_x))] for row in range(len(smooth_y))]
           for j in range(len(new_path)):
               new_path[j][0] = smooth_x[j]
@@ -426,55 +304,48 @@ class MoveGroupPythonInterface(object):
               co_e, co_s, elbow_angle = self.ik_calculator(grasp_point,wrist_co)
               new_path[j][2] = elbow_angle
 
-          # for j in range(len(new_smooth)):
-          #     new_path[j][0] = new_smooth[j][0]
-          #     new_path[j][1] = new_smooth[j][1]
-          #     grasp_point.x = new_smooth[j][0]
-          #     grasp_point.y = new_smooth[j][1]
-          #     co_e, co_s, elbow_angle = self.ik_calculator(grasp_point,wrist_co)
-          #     new_path[j][2] = elbow_angle
-
           plan_found = self.point_planner(new_path, optimal_grasp_point)
 
           if(plan_found == False):
-              # return False
-
+              # If the "from the front" reach is not possible, two more strategies are tried
               print("The target state is in collision")
 
-              # length_f = 0.38
+              # First, try to grasp the object from behind
+              # Find the forearm angles that don't result in collision
               _, _, collision_angle = self.ik_calculator(optimal_grasp_point,wrist_co)
               collision_angle = math.degrees(collision_angle) + 0.51
               print(collision_angle)
               possible_angles  = []
-              for alpha in range(int(collision_angle), 80):
+              for alpha in range(int(collision_angle), 80): # Only allow angles smaller than 80
+                  # Calculate elbow position for a given angle
                   alpha_rad = math.radians(alpha)
                   co_e.x = optimal_grasp_point.x - self.f_length*math.cos(alpha_rad)
                   co_e.y = optimal_grasp_point.y - self.f_length*math.sin(alpha_rad)
-
+                  # Calculate if the forearm is in collision or not
                   collision_state = object_collision(co_e,optimal_grasp_point, objects, target_id)
                   if(collision_state == False):
                       if(alpha>62):
-                          possible_angles.append(alpha)
+                          possible_angles.append(alpha) # Append the possible angles
 
               print(possible_angles)
 
               plan_found = self.behind_point_planner(optimal_grasp_point, possible_angles)
               if(plan_found == False):
+                  # If the "behind planner" fails, try to avoid the obstacle from the top
                   plan_found = self.orientation_point_planner(optimal_grasp_point)
+                  ## TODO: The planner is assuming the target object can be added from the top, disregarding the obstacles height
                   self.orientation_plan = 1
                   if(plan_found == False):
                       return False
 
               return True
 
-          #self.go_to_initial_state()
           return True
 
       elif data[end[0]][end[1]] == 1:
+          # If the target position is in collision "from the front", two more strategies are tried
           print("The target state is in collision")
 
-
-          # length_f =  0.38
           _, _, collision_angle = self.ik_calculator(optimal_grasp_point,wrist_co)
           collision_angle = math.degrees(collision_angle) + 0.51
           print(collision_angle)
@@ -501,11 +372,9 @@ class MoveGroupPythonInterface(object):
           return True
 
   def ik_calculator(self, grasp_point, wrist_co):
-
+      # Inverse kinematic calculator to obtain the elbow joint position and forearm angle given the end-effector position
       e_co = geometry_msgs.msg.Point()
       sh_co = geometry_msgs.msg.Point()
-      # wrist_co = geometry_msgs.msg.Point()
-      # wrist_co = self.group.get_current_pose().pose.position
       e_co.z = grasp_point.z
 
       sh_co.x = -0.18
@@ -514,21 +383,19 @@ class MoveGroupPythonInterface(object):
       u_length = 0.36 # upepr arm length
       f_length = 0.40 # forearm length
 
-
-      #print("Grasp point: %s" %grasp_point)
-      # wrist_0_x = .x - f_length
-      # elbow_angle = math.degrees(math.atan((grasp_point.y - sh_co.y)/(grasp_point.x - sh_co.x)))
-      # e_angle = math.atan((grasp_point.y - sh_co.y)/(grasp_point.x - sh_co.x - 0.29))
+      # Calculate forearm angle
       e_angle = math.atan((grasp_point.y - wrist_co.y)/(grasp_point.x - wrist_co.x + self.f_length))
       elbow_angle = math.degrees(e_angle)
       # print("Elbow angle: %s" %elbow_angle)
 
+      # Calculate elbow joint position
       e_co.x = grasp_point.x - (self.f_length + 0.02)*math.cos(e_angle)
       e_co.y = grasp_point.y - (self.f_length + 0.02)*math.sin(e_angle)
 
       return (e_co, sh_co, e_angle)
 
   def point_planner(self, path_xy, optimal_grasp_point):
+      # This function converts the xy path found from A* to a robot trajectory (waypoints)
       group = self.group
       scene = self.scene
       group.set_planning_time(15)
@@ -540,55 +407,46 @@ class MoveGroupPythonInterface(object):
       waypoints_number = len(path_xy)
       print("Number of waypoints: %s" %waypoints_number)
       print("Object center points: %s" %optimal_grasp_point.z)
+      # Z height will be incremented/decremented gradually from the initial to the target position
       z_increment = (wpose.position.z - optimal_grasp_point.z)/waypoints_number
+      # This increment is used in case the object height is smaller than a certain threshold
       z_increment_threshold = (wpose.position.z - 0.20)/waypoints_number
 
-      # distance from star point to target point
+      # Distance from starting point to target point
       dist_target = math.sqrt((optimal_grasp_point.y - wpose.position.y)**2 + (optimal_grasp_point.x - wpose.position.x)**2)
       print("Distance to target: %s" %dist_target)
+      # Calculate the angle from the initial position to the grasping position according to the target height
       angle_z = math.asin((optimal_grasp_point.z-wpose.position.z)/dist_target)
+      # Divide this angle by the number of waypoints to increment the angle gradually
       z_angle_increment = angle_z/waypoints_number
+      # Convert angle to degrees
       angle_z = math.degrees(angle_z)
       print("Z angle: %s" %angle_z)
 
       ## Convert arm trajectory to waypoints:
-      z_rot = 1.5707
+      z_rot = 1.5707 # Initial z angle
       for i in range(len(path_xy)):
           wpose.position.x = path_xy[i][0]
           wpose.position.y = path_xy[i][1]
-          ################################################################## CHECK height limit
+
           if(optimal_grasp_point.z >=0.20):
               wpose.position.z = wpose.position.z - z_increment
           else:
+              # The minimum grasp point height allowed is z = 20cm (relative to the world frame),
               wpose.position.z =  wpose.position.z - z_increment_threshold
 
-
-          # euler = [1.571212121212, 1.5711348887669473,1.5711348887669473]
-
-          # euler = [0, 1.5707, path_xy[i][2]]
+          # Create a waypoint for each (x,y) point of the A* trajectory
           euler = [0, z_rot, path_xy[i][2]]
-          # euler = [-1.5707, 0, -0.707]
           quat = tf.transformations.quaternion_from_euler(euler[0],euler[1],euler[2])
-          # quat_test = [-0.51025,0.51025,-0.51025,0.51025]
-          # quat_test = [-0.661025,0.251025,-0.251025,0.661025]
-          # euler_test = tf.transformations.euler_from_quaternion(quat_test)
-          # print(euler_test)
-          # print(quat)
-          # print(path_xy[i][2])
           wpose.orientation.x = quat[0]
           wpose.orientation.y = quat[1]
           wpose.orientation.z = quat[2]
           wpose.orientation.w = quat[3]
-
-          # wpose.orientation.x = 0.489916391691
-          # wpose.orientation.y = -0.510273396847
-          # wpose.orientation.z = 0.531276672863
-          # wpose.orientation.w = -0.466206055832
-
           self.waypoints.append(copy.deepcopy(wpose))
-          z_rot = z_rot - z_angle_increment
-      # waypoints_number = len(waypoints)
-      # print("Number of waypoints: %s" %waypoints_number)
+
+          z_rot = z_rot - z_angle_increment # Gradually increment/decrement the angle
+
+      # Create plan
       (self.plan, fraction) = group.compute_cartesian_path(
                                          self.waypoints,   # waypoints to follow
                                          0.01,        # eef_step
@@ -596,19 +454,21 @@ class MoveGroupPythonInterface(object):
 
 
       print("Fraction: %s" %fraction)
-      successful_points = int(fraction * waypoints_number)
+      successful_points = int(fraction * waypoints_number) # Number of successful points
       print("Number of successful points: %s" %successful_points)
-      if(fraction < 1):
+      if(fraction < 1): # Only execute if fraction =1
           # failure_point = successful_points + 1
           print("Point at which it failed: %s" %(successful_points+1))
       attempt = 0
       while fraction < 1:
+          # Iterator that decrements the x value in case the robot is in collision
+          # Allow 150 attempts
           if(attempt == 150):
               print("Failed after 150 attempts")
               return False
           print("Attempt number: %s" %attempt)
           successful_points = int(fraction * waypoints_number)
-          failure_point_index = successful_points
+          failure_point_index = successful_points # Find the failure point
           self.waypoints[failure_point_index].position.x = self.waypoints[failure_point_index].position.x - 0.01
           (self.plan, fraction) = group.compute_cartesian_path(
                                              self.waypoints,   # waypoints to follow
@@ -617,22 +477,17 @@ class MoveGroupPythonInterface(object):
           attempt+=1
           print(fraction)
 
-      print(self.waypoints[-1])
-      # current_pose = self.group.get_current_pose().pose
-      #success = group.execute(plan, wait=True)
-      #print(success)
-      # group.stop()
-      # Clear  targets after planning with poses.
-      # group.clear_pose_targets()
-      #self.path_executer()
-      # group.set_start_state_to_current_state()
+      print(self.waypoints[-1]) # Print the last waypoint, i.e. the target position
+
       return True
 
   def orientation_point_planner(self, optimal_grasp_point):
+      # This is the "Top planner" that will try to avoid the objects from the top
       group = self.group
       scene = self.scene
       group.set_planning_time(15)
 
+      # Obtain current wrist position
       wrist_co = geometry_msgs.msg.Point()
       wrist_co = self.group.get_current_pose().pose.position
       co_e, co_s, elbow_angle = self.ik_calculator(optimal_grasp_point,wrist_co)
@@ -642,38 +497,8 @@ class MoveGroupPythonInterface(object):
       self.waypoints.append(copy.deepcopy(wpose))
       print("Initial pose: %s" %wpose)
 
-      # wpose.position.z = optimal_grasp_point.z + 0.1
-      # # self.waypoints.append(copy.deepcopy(wpose))
-      #
-      # # euler = [-1.5707, 0, -1.5707]
-      # euler = [-1.5707, 0.505, -1.5707]
-      # quat = tf.transformations.quaternion_from_euler(euler[0],euler[1],euler[2])
-      # wpose.orientation.x = quat[0]
-      # wpose.orientation.y = quat[1]
-      # wpose.orientation.z = quat[2]
-      # wpose.orientation.w = quat[3]
-      # self.waypoints.append(copy.deepcopy(wpose))
-      #
-      # wpose.position.x = optimal_grasp_point.x - 0.02
-      # wpose.position.y = optimal_grasp_point.y - 0.02
-      # # euler = [-1.5707, 0, -elbow_angle]
-      # # euler = [-1.1344, 0.505, -elbow_angle]
-      # euler = [-1.5707, 0.505, -1.15]
-      # # euler = [-1.5707, 0.505, -elbow_angle]
-      # quat = tf.transformations.quaternion_from_euler(euler[0],euler[1],euler[2])
-      # wpose.orientation.x = quat[0]
-      # wpose.orientation.y = quat[1]
-      # wpose.orientation.z = quat[2]
-      # wpose.orientation.w = quat[3]
-      # self.waypoints.append(copy.deepcopy(wpose))
-      #
-      # wpose.orientation.z -= 0.05
-      # self.waypoints.append(copy.deepcopy(wpose))
-
+      # First waypoint that rotates the wrist
       wpose.position.z = optimal_grasp_point.z + 0.1
-      # self.waypoints.append(copy.deepcopy(wpose))
-
-      # euler = [-1.5707, 0, -1.5707]
       euler = [-1.5707, 0.505, -1.5707]
       quat = tf.transformations.quaternion_from_euler(euler[0],euler[1],euler[2])
       wpose.orientation.x = quat[0]
@@ -682,12 +507,10 @@ class MoveGroupPythonInterface(object):
       wpose.orientation.w = quat[3]
       self.waypoints.append(copy.deepcopy(wpose))
 
+      # Second waypoint that takes the hand to the target object
       wpose.position.x = optimal_grasp_point.x - 0.01
       wpose.position.y = optimal_grasp_point.y - 0.01
-      # euler = [-1.5707, 0, -elbow_angle]
-      # euler = [-1.1344, 0.505, -elbow_angle]
       euler = [-1.5707, 0.505, -1.15]
-      # euler = [-1.5707, 0.505, -elbow_angle]
       quat = tf.transformations.quaternion_from_euler(euler[0],euler[1],euler[2])
       wpose.orientation.x = quat[0]
       wpose.orientation.y = quat[1]
@@ -695,53 +518,7 @@ class MoveGroupPythonInterface(object):
       wpose.orientation.w = quat[3]
       self.waypoints.append(copy.deepcopy(wpose))
 
-      # wpose.position.z -= 0.05
-      # self.waypoints.append(copy.deepcopy(wpose))
-
-
-
-      # euler = [-1.5707+0.321, 0.505, -1.15]
-      # quat = tf.transformations.quaternion_from_euler(euler[0],euler[1],euler[2])
-      # wpose.orientation.x = quat[0]
-      # wpose.orientation.y = quat[1]
-      # wpose.orientation.z = quat[2]
-      # wpose.orientation.w = quat[3]
-      # wpose.position.z += 0.12
-      # temp_z = wpose.position.z
-      # self.waypoints.append(copy.deepcopy(wpose))
-
-
-      # wpose = group.get_current_pose().pose
-      # euler = [-1.5707, 0.505, -1.15]
-      # quat = tf.transformations.quaternion_from_euler(euler[0],euler[1],euler[2])
-      # wpose.orientation.x = quat[0]
-      # wpose.orientation.y = quat[1]
-      # wpose.orientation.z = quat[2]
-      # wpose.orientation.w = quat[3]
-      # wpose.position.z = temp_z
-      # self.waypoints.append(copy.deepcopy(wpose))
-
-
-
-      # wpose.orientation.x = 0
-      # wpose.orientation.y = 0.707
-      # wpose.orientation.z = 0
-      # wpose.orientation.w = 0.707
-      # wpose.position.z -= 0.12
-      # self.waypoints.append(copy.deepcopy(wpose))
-
-      # euler = [-1.5707, 0.505, -1.5707]
-      # quat = tf.transformations.quaternion_from_euler(euler[0],euler[1],euler[2])
-      # wpose.orientation.x = quat[0]
-      # wpose.orientation.y = quat[1]
-      # wpose.orientation.z = quat[2]
-      # wpose.orientation.w = quat[3]
-      # wpose = group.get_current_pose().pose
-      # self.waypoints.append(copy.deepcopy(wpose))
-
-
-
-
+      # Create plan
       (self.plan, fraction) = group.compute_cartesian_path(
                                          self.waypoints,   # waypoints to follow
                                          0.01,        # eef_step
@@ -750,68 +527,46 @@ class MoveGroupPythonInterface(object):
 
       print("Fraction: %s" %fraction)
 
-      # if(fraction < 1):
-      #     # failure_point = successful_points + 1
-      #     print("Point at which it failed: %s" %(successful_points+1))
-      # attempt = 0
-      # while fraction < 1:
-      #     print("Attempt number: %s" %attempt)
-      #     successful_points = int(fraction * waypoints_number)
-      #     failure_point_index = successful_points
-      #     self.waypoints[failure_point_index].position.x = self.waypoints[failure_point_index].position.x - 0.01
-      #     (self.plan, fraction) = group.compute_cartesian_path(
-      #                                        self.waypoints,   # waypoints to follow
-      #                                        0.01,        # eef_step
-      #                                        0.0, True)
-      #     attempt+=1
-      #     print(fraction)
-
-      # current_pose = self.group.get_current_pose().pose
-      #success = group.execute(plan, wait=True)
-      #print(success)
-      # group.stop()
-      # Clear  targets after planning with poses.
-      # group.clear_pose_targets()
-      #self.path_executer()
-      # group.set_start_state_to_current_state()
+      # Only want to execute a plan if the fraction is 1
       if fraction == 1:
           return True
       else:
           return False
 
   def behind_point_planner(self, optimal_grasp_point, possible_angles):
+      # This is the "Behind planner" that will try to avoid the objects from behind
       group = self.group
       scene = self.scene
       group.set_planning_time(15)
 
       wrist_co = geometry_msgs.msg.Point()
       wrist_co = self.group.get_current_pose().pose.position
-      # co_e, co_s, elbow_angle = self.ik_calculator(optimal_grasp_point,wrist_co)
 
-      length_f = 0.38
+      length_f = 0.38 # forearm length
       fraction = 0
       i = 0
-      while((fraction<1)):
+      while((fraction<1)): # Iterate to the list of possible angles to find a possible trajectory
           if i == len(possible_angles):
               break
           self.waypoints = []
           wpose = group.get_current_pose().pose
           self.waypoints.append(copy.deepcopy(wpose))
-          # print("Initial pose: %s" %wpose)
-          print(i)
-          # wpose.position.x = optimal_grasp_point.x #- length_f*math.cos(math.radians(possible_angles[i])) + 0.3 # length_f
-          # wpose.position.y = (optimal_grasp_point.y - 0.05) - length_f*math.sin(math.radians(possible_angles[i]))
-          # wpose.position.z = optimal_grasp_point.z
-          # self.waypoints.append(copy.deepcopy(wpose))
 
+          print(i)
+
+          # Calculating the elbow joint position according to the given forearm angle
           hor = self.f_length*math.sin(math.radians(possible_angles[i]))
           ver = self.f_length*math.cos(math.radians(possible_angles[i]))
           wpose.position.y = optimal_grasp_point.y - (hor/2) - 0.05
           wpose.position.x = optimal_grasp_point.x - (ver/2) + 0.03
+
+          # If the z grasping point is below 20cm, it is set to 20cm
           if(optimal_grasp_point.z >=0.20):
               wpose.position.z = optimal_grasp_point.z
           else:
               wpose.position.z = 0.20
+
+          # First waypoint in the middle of the trajectory, to ensuer a smooth path that goes around the obstacles
           euler = [0, 1.5707, math.radians(possible_angles[i]/2)]
           quat = tf.transformations.quaternion_from_euler(euler[0],euler[1],euler[2])
           wpose.orientation.x = quat[0]
@@ -820,7 +575,7 @@ class MoveGroupPythonInterface(object):
           wpose.orientation.w = quat[3]
           self.waypoints.append(copy.deepcopy(wpose))
 
-
+          # Grasping waypoint
           wpose.position.x = optimal_grasp_point.x
           wpose.position.y = optimal_grasp_point.y - 0.02
           euler = [0, 1.5707, math.radians(possible_angles[i])]
@@ -831,7 +586,7 @@ class MoveGroupPythonInterface(object):
           wpose.orientation.w = quat[3]
           self.waypoints.append(copy.deepcopy(wpose))
 
-
+          # Create plan
           (self.plan, fraction) = group.compute_cartesian_path(
                                              self.waypoints,   # waypoints to follow
                                              0.01,        # eef_step
@@ -839,51 +594,28 @@ class MoveGroupPythonInterface(object):
 
           print("Fraction: %s" %fraction)
           i+=1
-
-
-      # if(fraction < 1):
-      #     # failure_point = successful_points + 1
-      #     print("Point at which it failed: %s" %(successful_points+1))
-      # attempt = 0
-      # while fraction < 1:
-      #     print("Attempt number: %s" %attempt)
-      #     successful_points = int(fraction * waypoints_number)
-      #     failure_point_index = successful_points
-      #     self.waypoints[failure_point_index].position.x = self.waypoints[failure_point_index].position.x - 0.01
-      #     (self.plan, fraction) = group.compute_cartesian_path(
-      #                                        self.waypoints,   # waypoints to follow
-      #                                        0.01,        # eef_step
-      #                                        0.0, True)
-      #     attempt+=1
-      #     print(fraction)
-
-      # current_pose = self.group.get_current_pose().pose
-      #success = group.execute(plan, wait=True)
-      #print(success)
-      # group.stop()
-      # Clear  targets after planning with poses.
-      # group.clear_pose_targets()
-      #self.path_executer()
-      # group.set_start_state_to_current_state()
-
+      # Want fraction to be one
       if fraction == 1:
         return True
       else:
         return False
 
   def path_executer(self,request):
+      # Will execute the path if a True execute order is received from the user
       if request.execute_order == True:
           success = self.group.execute(self.plan, wait = True)
           print(success)
 
-          # remove target object
+          # Remove target object from the scene
           self.scene.remove_world_object(str(self.target_obj_id))
-          rospy.sleep(3)
+          rospy.sleep(3) # Increase to allow the glove to be closed
 
           if self.orientation_plan == 1:
+              # If the object was avoided from the top, a new reverse trajectory has to be calculated
               reverse_waypoints = []
+
+              # First waypoint is the target point with a z increment, to clear over the obstacles
               wpose = self.waypoints[-1]
-              # euler = [-1.5707+0.321, 0.505, -1.15]
               euler = [-1.5707, 0.505, -1.15]
               quat = tf.transformations.quaternion_from_euler(euler[0],euler[1],euler[2])
               wpose.orientation.x = quat[0]
@@ -894,8 +626,7 @@ class MoveGroupPythonInterface(object):
               temp_z = wpose.position.z
               reverse_waypoints.append(copy.deepcopy(wpose))
 
-
-              # euler = [-1.5707+0.38, 0.505, -1.15]
+              # Second waypoint: home position
               euler = [-1.5707, 0.505, -1.15]
               quat = tf.transformations.quaternion_from_euler(euler[0],euler[1],euler[2])
               wpose.orientation.x = quat[0]
@@ -907,11 +638,13 @@ class MoveGroupPythonInterface(object):
               wpose.position.z -= 0.12
               reverse_waypoints.append(copy.deepcopy(wpose))
 
+              # Last waypoint: rotating the wrist to the natural orientation
               reverse_waypoints.append(copy.deepcopy(self.waypoints[0]))
 
-              self.orientation_plan = 0
+              self.orientation_plan = 0 # Set the orientation flag to 0
 
           else:
+              # In case the objects were not avoided from the top, execute the reverse trajectory to the home position
               reverse_waypoints = self.waypoints[::-1]
 
           (self.reverse_plan, fraction) = self.group.compute_cartesian_path(
@@ -921,314 +654,29 @@ class MoveGroupPythonInterface(object):
           rospy.sleep(2)
           self.group.execute(self.reverse_plan, wait = True)
 
+          # Return True if plan was executed with success
           if success == True:
               return True
           elif success == False:
               return False
+
       elif request.execute_order == False:
           print("Why the hell did I bother planning this?!")
-          # self.group.stop()
+
           self.group.clear_pose_targets()
-
-##DELETE
-  def get_fk(self,fk_req):
-
-      #fk_req = GetPositionFKRequest()
-      # print(fk_req)
-      # print(ee_position)
-      #fk_req.header.frame_id = 'world'
-      #fk_req.fk_link_names = ['wrist_3_joint']
-      #fk_req.robot_state.joint_state.position = ee_position
-      #fk_req.robot_state.joint_state.header.frame_id = 'world'
-      #fk_req.header.stamp = rospy.Time()
-      #print(fk_req)
-
-      try:
-            resp = self.fk_srv(fk_req)
-            return resp
-      except rospy.ServiceException as e:
-            rospy.logerr("Service exception: " + str(e))
-            resp = GetPositionFKResponse()
-            resp.error_code = 99999  # Failure
-      return resp
-
-##DELETE
-  def go_to_pose_goal(self):
-    group = self.group
-    scene = self.scene
-    group.set_planning_time(15)
-
-     # Create a contraints list and name it
-    constraint = moveit_msgs.msg.Constraints()
-    constraint.name = "fixed wrist orientation"
-    #
-    # constraint.joint_constraints.append(moveit_msgs.msg.JointConstraint(joint_name='elbow_joint', position=0, tolerance_above=math.pi,tolerance_below=math.pi, weight=1))
-    ## Orientation constraint for the end effector to keep the orientation constant
-    orientation_constraint = moveit_msgs.msg.OrientationConstraint()
-    orientation_constraint.header.frame_id = "world"
-    orientation_constraint.link_name = group.get_end_effector_link()
-    orientation_constraint.orientation.x = 0.00111054358639
-    orientation_constraint.orientation.y = 0.70699483645
-    orientation_constraint.orientation.z = 0.00111089701837
-    orientation_constraint.orientation.w = 0.707216963763
-    orientation_constraint.absolute_x_axis_tolerance = 0.05
-    orientation_constraint.absolute_y_axis_tolerance = 0.05
-    orientation_constraint.absolute_z_axis_tolerance = 0.14
-    orientation_constraint.weight = 1.0
-
-    # # Append the constraint to the list of contraints
-    constraint.orientation_constraints.append(orientation_constraint)
-
-    # j_val = group.get_current_joint_values()
-    # joint_constraint = moveit_msgs.msg.JointConstraint()
-    # joint_constraint.joint_name = "elbow_joint"
-    # joint_constraint.position = j_val[2]
-    # # print(j_val[2])
-    # joint_constraint.tolerance_above = 0.3
-    # joint_constraint.tolerance_below = 0.3
-    # joint_constraint.weight = 0.9
-    # constraint.joint_constraints.append(joint_constraint)
-
-
-    # self.target_obj = [0.055,0.055,0.15,0.3,0.7,0.26,"ID"] #dummy0
-
-    self.target_obj = [0.055,0.055,0.15,0.4,0.9,0.25,"ID"] #dummy1
-    ws_margin = 0.05
-    # Position constraint that define the workspace of the end effector link
-    primitive = shape_msgs.msg.SolidPrimitive()
-    primitive.type = primitive.BOX
-    ## The workspace dimensions and center point will change according to the object to be grasped
-    # ws_x = 0.7 #self.table_x #table original dimensions
-    # ws_y = 1.7 #self.table_y
-    # ws_z = 0.2 #self.table_z
-    ws_x = (self.target_obj[3] + (self.target_obj[0]/2) + ws_margin) - 0.15 # (0.15 is the x coordinate of the bottom margin of the table)
-    # ws_y = (self.target_obj[4] + (self.target_obj[1]/2) + ws_margin) + 0.2
-    ws_y = self.target_obj[4]  + 0.2
-    ws_z = (self.target_obj[5] + (self.target_obj[2]/2)) - 0.185
-    dim = [ws_x,ws_y,ws_z]
-    primitive.dimensions = dim
-    ws_pose = geometry_msgs.msg.Pose();
-    ## Table center point = (0.44,0.65,0.25)
-    # ws_pose.position.x = 0.44
-    # ws_pose.position.y = 0.65
-    # ws_pose.position.z = 0.25
-    ws_pose.position.x = 0.15 + ws_x/2
-    ws_pose.position.y = -0.2 + ws_y/2 + 0.5
-    ws_pose.position.z = 0.185 + ws_z/2
-    # targe_obj is set as such: [xDimension, yDimension, zDimension, xCenter, yCenter, zCenter, objectID]
-    # self.objectAdder.addBox("ws", ws_x, ws_y, ws_z, ws_pose.position.x, ws_pose.position.y, ws_pose.position.z)
-    # self.objectAdder.setColor("ws", 0.0, 0.0, 0.0, a=0.7)
-    # self.objectAdder.sendColors()
-    # rospy.sleep(4.0)
-    # self.objectAdder.removeCollisionObject("ws")
-    # scene.remove_world_object("ws")
-    # table_pose.pose.position.x = 0.30
-    # table_pose.pose.position.y = 0.70
-    # table_pose.pose.position.z = 0.26
-    # scene.add_box("dummy0", table_pose, size=( 0.055, 0.055, 0.15))
-
-    ws_pose.orientation.w = 0.0
-    pos_constraint = moveit_msgs.msg.PositionConstraint()
-    pos_constraint.header.frame_id = "world"
-    pos_constraint.link_name = group.get_end_effector_link()
-    pos_constraint.weight = 0.9
-    primitives = [primitive]
-    ws_poses = [ws_pose]
-    pos_constraint.constraint_region.primitives = primitives
-    pos_constraint.constraint_region.primitive_poses = ws_poses
-
-    # pos_constraint.constraint_region.primitives.type=SPHERE
-    # pos_constraint.constraint_region.primitive_poses.position.x=0.0
-    # pos_constraint.constraint_region.primitive_poses.position.y=0.0
-    # pos_constraint.constraint_region.primitive_poses.position.z=0.0
-    constraint.position_constraints.append(pos_constraint)
-    # Set the path constraints on the end effector
-    group.set_path_constraints(constraint)
-
-    pos_x = float(input("Enter x coordinate: "))
-    pos_y = float(input("Enter y coordinate: "))
-    pos_z = float(input("Enter z coordinate: "))
-    # Tagret pose to where the hand will be sent. The
-    offset_x = 0.015
-    offset_y = 0.035
-    # pos_x = self.target_obj[3] - self.target_obj[0]/2 - offset_x
-    # pos_y = self.target_obj[4] - self.target_obj[1]/2 - offset_y
-    # pos_z = self.target_obj[5]
-    ## Planning to a Pose Goal of the end-effector:
-    pose_goal = geometry_msgs.msg.Pose()
-    # pose_goal = geometry_msgs.msg.PoseStamped()
-    # pose_goal.header.frame_id = group.get_end_effector_link()
-    pose_goal.orientation.x = 0.00111054358639
-    pose_goal.orientation.y = 0.70699483645
-    pose_goal.orientation.z = 0.00111089701837
-    pose_goal.orientation.w = 0.707216963763
-    # pose_goal.orientation.x = 0.0
-    # pose_goal.orientation.y = 0.7
-    # pose_goal.orientation.z = 0.0
-    # pose_goal.orientation.w = 0.7
-    # pose_goal.orientation.x = -0.267023522538
-    # pose_goal.orientation.y = 0.653702052828
-    # pose_goal.orientation.z = 0.269304381591
-    # pose_goal.orientation.w = 0.654864271888
-    # x: -0.267023522538
-    #     y: 0.653702052828
-    #     z: 0.269304381591
-    #     w: 0.654864271888
-
-    # orientation_list = [pose_goal.orientation.x, pose_goal.orientation.y,pose_goal.orientation.z, pose_goal.orientation.w]
-    # eul = tf.transformations.euler_from_quaternion(orientation_list)
-    # print(eul)
-
-
-    # (1.4711348887669473, 1.5676390675265013, 1.4711353885958782)
-    # (0.7105587279368307, 1.5671760841731328, 1.4885120467903026)
-
-    # euler = [0.8271760841731328, 1.5671760841731328, 1.4711348887669473]
-    # quat = tf.transformations.quaternion_from_euler(euler[0],euler[1],euler[2])
-    # print(quat)
-    # pose_goal.orientation.x = quat[0]
-    # pose_goal.orientation.y = quat[1]
-    # pose_goal.orientation.z = quat[2]
-    # pose_goal.orientation.w = quat[3]
-    # x: -0.228603116552
-    #     y: 0.668342268725
-    #     z: 0.230398602104
-    #     w: 0.669309876729
-    # x: -0.264022915886
-    #     y: 0.655028719657
-    #     z: 0.266384321892
-    #     w: 0.655948678909
-    pose_goal.position.x = pos_x
-    pose_goal.position.y = pos_y
-    pose_goal.position.z = pos_z
-
-    # waypoints = []
-    # x = 0.40
-    # y = 0.70
-    # z = 0.25
-    # wpose = group.get_current_pose().pose
-
-    # wpose.position.y = 0.45
-    # wpose.position.x = 0.4
-    # waypoints.append(copy.deepcopy(wpose))
-    #
-    # wpose.position.y = 0.6
-    # wpose.position.x = 0.2
-    # waypoints.append(copy.deepcopy(wpose))
-    #
-    # wpose.position.y = 0.4
-    # wpose.position.x = 0.4
-    # wpose.position.z = 0.25
-    # waypoints.append(copy.deepcopy(wpose))
-    #
-    # wpose.position.y = 0.8
-    # wpose.position.x = 0.4
-    # wpose.position.z = 0.25
-    # waypoints.append(copy.deepcopy(wpose))
-
-    # # We want the Cartesian path to be interpolated at a resolution of 1 cm
-    # # which is why we will specify 0.01 as the eef_step in Cartesian
-    # # translation.  We will disable the jump threshold by setting it to 0.0 disabling:
-    # (plan, fraction) = group.compute_cartesian_path(
-    #                                    waypoints,   # waypoints to follow
-    #                                    0.01,        # eef_step
-    #                                    0.0, True)         # jump_threshold
-
-
-    # group.set_max_acceleration_scaling_factor(0.1)
-    # group.get_planner_id()
-    # [minX, minY, minZ, maxX, maxY, maxZ]
-    # ws = [0.0,0.0,0.0,0.0,0.1,0.1]
-    # group.set_workspace(ws)
-    group.set_pose_target(pose_goal, group.get_end_effector_link())
-    plan_manipulator = group.plan()
-
-    # print(plan_manipulator)
-    #s = rospy.Service('compute_fk', AddTwoInts, handle_add_two_ints)
-
-    # fk_req = GetPositionFK()
-    # fk_req.header.frame_id = 'world'
-    # fk_req.fk_link_names = ['wrist_3_joint']
-    #print(rospy.Time())
-    n_points = len(plan_manipulator.joint_trajectory.points)
-    for n in range(n_points):
-       current_pose = group.get_current_pose()
-       print("Point %s" %n)
-       print("Angle: %s" %plan_manipulator.joint_trajectory.points[n].positions[5])
-       print("---------")
-       ee_position = plan_manipulator.joint_trajectory.points[n].positions
-       fk_req = GetPositionFKRequest()
-       # print(fk_req)
-       # print(ee_position)
-       fk_req.header.frame_id = 'world'
-       fk_req.fk_link_names = ['fake_hand_link']
-       fk_req.robot_state.joint_state.position = ee_position
-       #fk_req.robot_state
-       fk_req.robot_state.joint_state.header.frame_id = 'world'
-       fk_req.robot_state.joint_state.name = ['shoulder_pan_joint','shoulder_lift_joint','elbow_joint','wrist_1_joint','wrist_2_joint','wrist_3_joint']
-       fk_req.robot_state.joint_state.header.stamp = rospy.Time.now()
-       fk_req.header.stamp = rospy.Time.now()
-       #print(fk_req)
-       fk_resp = self.get_fk(fk_req)
-       print(fk_resp.pose_stamped[0].pose.position)
-    # print(plan_manipulator.joint_trajectory.points[0])
-
-    # group.execute(plan, wait=True)
-    group.plan(pose_goal)
-    option=raw_input("Execute? (y/n)")
-    if option=="y":
-      print("\n ")
-      group.go(pose_goal, wait=True)
-    # Call the planner to compute the plan and execute it.
-    # group.go(wait=True)
-    # plan = group.go(wait=True)
-    # Calling `stop()` ensures that there is no residual movement
-    group.stop()
-    # It is always good to clear your targets after planning with poses.
-    group.clear_pose_targets()
-
-    # objs = scene.get_objects()
-    # print(objs)
-    # print("---------------")
-    # For testing:
-    # Note that since this section of code will not be included in the tutorials
-    # we use the class variable rather than the copied state variable
-    current_pose = self.group.get_current_pose().pose
-    # group.set_start_state_to_current_state()
-    return all_close(pose_goal, current_pose, 0.01)
-
-  ##DELETE
-  def display_trajectory(self, plan):
-
-    robot = self.robot
-    display_trajectory_publisher = self.display_trajectory_publisher
-
-    ## Displaying a Trajectory
-
-    display_trajectory = moveit_msgs.msg.DisplayTrajectory()
-    display_trajectory.trajectory_start = robot.get_current_state()
-    display_trajectory.trajectory.append(pose_goal)
-    # Publish
-    display_trajectory_publisher.publish(display_trajectory);
 
   def execute_plan(self, plan):
 
     group = self.group
     group.set_planning_time(10)
-    ## Executing a Plan
-    ## ^^^^^^^^^^^^^^^^
-    ## Use execute if you would like the robot to follow
-    ## the plan that has already been computed:
-    group.execute(pose_goal, wait=True)
 
-    ## **Note:** The robot's current joint state must be within some tolerance of the
-    ## first waypoint in the `RobotTrajectory`_ or ``execute()`` will fail
+    # Execute the already planned trajectory
+    group.execute(pose_goal, wait=True)
 
   def wait_for_state_update(self, box_is_known=False, box_is_attached=False, timeout=4):
 
     box_name = self.box_name
     scene = self.scene
-
 
     ## Ensuring Collision Updates Are Receieved
     ## ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -1262,33 +710,32 @@ class MoveGroupPythonInterface(object):
     return False
 
   def add_table(self):
-    # box_name = self.box_name
-    scene = self.scene
-
-    no = len(self.scene.get_known_object_names())
+    ## Function to add the tabke to the planning scene
 
     print("Adding table")
-    table_pose = geometry_msgs.msg.PoseStamped()
-    table_pose.header.frame_id = "world"
-    table_pose.pose.orientation.w = 0.0
+
+    # Dimensions of the table top
     self.table_x_dim = 0.7
     self.table_y_dim = 1.4
-    # self.table_z_dim = 0.85
     self.table_z_dim = 0.06
+    #  Coordinates of the center point of the table
     self.table_x_center = 0.44
     self.table_y_center = 0.5
-    # self.table_z_center = -0.24
-    self.table_z_center = 0.08 # 0.145
+    self.table_z_center = 0.08
+
+    # Calculating table height
     self.table_height = self.table_z_center +  self.table_z_dim/2
-    print(self.table_height)
-    # self.objectAdder.addBox("table1", self.table_x_dim, self.table_y_dim, 0.85, self.table_x_center, self.table_y_center, -0.24)
+    # Add table top and set solor
     self.objectAdder.addBox("table", self.table_x_dim, self.table_y_dim, self.table_z_dim, self.table_x_center, self.table_y_center, self.table_z_center)
-    # self.objectAdder.setColor("table", 0.1, 1.0, 0.2, a=0.9)
     self.objectAdder.setColor("table", 0.57, 0.73, 1.0, a=0.9)
 
+    # Dimensions of the legs of the table
     leg_side_length = 0.05
     leg_height = 0.7
+    # Calculating the center point of the legs
     leg_center = self.table_z_center - self.table_z_dim/2 - leg_height/2
+
+    # Adding the 4 legs of the table
     self.objectAdder.addBox("leg_top_right", leg_side_length , leg_side_length , leg_height , self.table_x_center + self.table_x_dim/2 - leg_side_length/2 , self.table_y_center - self.table_y_dim/2 + leg_side_length/2 , leg_center)
     self.objectAdder.addBox("leg_top_left", leg_side_length , leg_side_length , leg_height , self.table_x_center + self.table_x_dim/2 - leg_side_length/2 , self.table_y_center + self.table_y_dim/2 - leg_side_length/2 , leg_center)
     self.objectAdder.addBox("leg_bottom_right", leg_side_length , leg_side_length , leg_height , self.table_x_center - self.table_x_dim/2 + leg_side_length/2 , self.table_y_center - self.table_y_dim/2 + leg_side_length/2 , leg_center)
@@ -1298,97 +745,28 @@ class MoveGroupPythonInterface(object):
     self.objectAdder.setColor("leg_bottom_right", 0.78, 0.44, 0.2, a=1.0)
     self.objectAdder.setColor("leg_bottom_left", 0.78, 0.44, 0.2, a=1.0)
 
-    # objects = std_msgs.msg.Float32MultiArray()
-    # objects.data = [0.0766677975654602, 0.07212397247552872, 0.19581645727157593, 0.3642333912849426, 0.9, 0.2, 0.042066192626953, 0.08005102443695, 0.07464948815107346, 0.302109832763672, 0.75034746885299683, 0.16, 0.04, 0.064205102443695, 0.0764948815107346, 0.26232109832763672, 0.5834746885299683, 0.16, 0.064205102443695, 0.064205102443695, 0.0764948815107346, 0.36232109832763672, 0.4734746885299683, 0.16]
-    # world_objects = objects.data
-    # margin = 0
-    # self.objectAdder.addBox("a", world_objects[0] + margin, world_objects[0+1] + margin, world_objects[0+2], world_objects[0+3], world_objects[0+4], world_objects[0+5])
-    # self.objectAdder.addBox("b", world_objects[6] + margin, world_objects[6+1] + margin, world_objects[6+2], world_objects[6+3], world_objects[6+4], world_objects[6+5])
-    # self.objectAdder.addBox("c", world_objects[12] + margin, world_objects[12+1] + margin, world_objects[12+2], world_objects[12+3], world_objects[12+4], world_objects[12+5])
-    # self.objectAdder.addBox("d", world_objects[18] + margin, world_objects[18+1] + margin, world_objects[18+2], world_objects[18+3], world_objects[18+4], world_objects[18+5])
-    # self.objectAdder.setColor("a", 0.1, 1.0, 0.2, a=1.0)
-    # self.objectAdder.setColor("b", 1.0, 0.2, 0.2, a=1.0)
-    # self.objectAdder.setColor("c", 1.0, 0.2, 0.2, a=1.0)
-    # self.objectAdder.setColor("d", 1.0, 0.2, 0.2, a=1.0)
-    # self.objectAdder.sendColors()
-
-    # table_pose.pose.position.x = 0.30
-    # table_pose.pose.position.y = 0.70
-    # table_pose.pose.position.z = 0.26
-    # scene.add_box("dummy0", table_pose, size=( 0.055, 0.055, 0.15))
-
-
+    # Add extra side wall for safety
     self.objectAdder.addBox("side_wall", 2.0, 0.1, 1.5, 0.45, -0.40, 0.20)
     self.objectAdder.setColor("side_wall", 0.1, 1.0, 0.2, a=0.9)
     self.objectAdder.sendColors()
 
-
-    # scene.setColor("table", 0.9, 0.2, 0.9, 1.0)
-    # Add a mesh
-    # self.leg_mesh = "/home/faisallab008/catkin_ws/src/universal_robot/ur_description/meshes/cube.stl" # or better, use find_package()
-    # scene.add_mesh("mesh_test", box_pose, self.leg_mesh)
-
-    # Copy local variables back to class variables. In practice, you should use the class
-    # variables directly unless you have a good reason not to.
-    # print(scene.get_known_object_names())
     return self.wait_for_state_update(box_is_known=True, timeout=4)
 
   def add_box(self, objects, target_id):
+    # Function to add the bounding boxes of the objects to the planning scene
+
     print("Adding boxes...")
-    # Add the bounding boxes of the objects to the planning scene
-    # box_name = self.box_name
-    # scene = self.scene
 
-    ## Removing all the objects in the scene before adding the new ones
-    # print("Number of objects found in the scene:" , len(scene.get_known_object_names()))
-    no = len(self.scene.get_known_object_names())
+    world_objects = objects # Array of the new objects received after segmentation
+    old_objs = self.scene.get_objects() # Array of old objects currently in the planning scene
 
-    #  Loop to remove all the objects
-    # f = 0
-    # while f < no:
-    #     box_nam = str(f)
-    #     # scene.remove_world_object(box_nam)
-    #     # print("Removed object number ")
-    #     # print(f)
-    #     f+=1
-
-    # print(msg.data)
-    ## Adding Objects to the Planning Scene
-    # objects = msg.data
-    world_objects = objects
-    # print(world_objects)
-
-    # Number of objects in the array (each has 6 dimensions)
-    num_objects = len(world_objects)/6
-
-    ##################################################################################
-
-    no = len(self.scene.get_known_object_names()) - 6
-
-    # print(self.scene.get_known_object_names())
-    old_objs = self.scene.get_objects()
-
-    # print(old_objs)
-    # old_ids = [s for s in self.scene.get_known_object_names() if s.isdigit()]
-    # print(old_ids)
-    # # old_ids = [0]
-    # old_ids = [str(item) for item in old_ids]
-    # # print(old_ids)
-    # if  len(old_ids) > 0:
-    #     poses = scene.get_object_poses(old_ids)
-    #     print("blah")
-    #     for i in range(len(old_ids)):
-    #         print(poses[old_ids[i]].position.x)
-
-    margin = 0.0
-    roi_margin = 0.04
+    margin = 0.0 # Margin for the bounding boxes
+    roi_margin = 0.04 #
     i = 0
     world_objects = list(world_objects)
-    # print(world_objects)
     while i < len(world_objects):
         object_id = str(i/6)
         old_objs = self.scene.get_objects()
-        # is_obj = scene.get_known_object_names_in_roi((world_objects[i+3] - (world_objects[i]/2) - roi_margin),(world_objects[i+4] - (world_objects[i+1]/2) - roi_margin),(world_objects[i+5] - (world_objects[i+2]/2)),(world_objects[i+3] + (world_objects[i]/2) + roi_margin),(world_objects[i+4] + (world_objects[i+1]/2) + roi_margin),(world_objects[i+5] + (world_objects[i+2]/2) + 0.5))
         is_obj = self.scene.get_known_object_names_in_roi((world_objects[i+3] - (world_objects[i]/2) - roi_margin),(world_objects[i+4] - (world_objects[i+1]/2) - roi_margin),0.11,(world_objects[i+3] + (world_objects[i]/2) + roi_margin),(world_objects[i+4] + (world_objects[i+1]/2) + roi_margin),(world_objects[i+5] + (world_objects[i+2]/2) + 0.5))
         print("i: %s" %i)
         print("Is: %s" %is_obj)
@@ -1440,16 +818,12 @@ class MoveGroupPythonInterface(object):
     # Append old objects that are not in frame
     for k in old_ids:
         print("K: %s" %k)
-        temp_id = str(k)
-        # print(temp_id)
         old_obj_pose = self.scene.get_object_poses([str(k)])
-        # print(old_obj_pose)
         if old_obj_pose.get(str(k)) == None:
             print("Key doesn't exist")
         if bool(old_obj_pose) == False:
             print("Didn't get object pose")
             old_obj_pose = self.scene.get_object_poses([str(k)])
-            # print(old_obj_pose)
 
         world_objects.append(old_objs[str(k)].primitives[0].dimensions[0])
         world_objects.append(old_objs[str(k)].primitives[0].dimensions[1])
@@ -1461,380 +835,80 @@ class MoveGroupPythonInterface(object):
         print("Removed old object: %s" %k)
         rospy.sleep(1.0)
 
-    print("After, after")
-    print(self.scene.get_known_object_names())
-
-    # no = len(scene.get_known_object_names())
-
-    # f = 0
-    # while f < no:
-    #     box_nam = str(f)
-    #     scene.remove_world_object(box_nam)
-    #     # print("Removed object number ")
-    #     # print(f)
-    #     f+=1
-
-
-
-    # scene.remove_world_object(str(is_obj[0]))
-
-
-    # while i < len(world_objects):
-    #     # find is there is already an object in within the boundaries of the new object
-    #     object_id = str(i/6)
-    #     is_obj = scene.get_known_object_names_in_roi((world_objects[i+3] - (world_objects[i]/2) - roi_margin),(world_objects[i+4] - (world_objects[i+1]/2) - roi_margin),(world_objects[i+5] - (world_objects[i+2]/2)),(world_objects[i+3] + (world_objects[i]/2) + roi_margin),(world_objects[i+4] + (world_objects[i+1]/2) + roi_margin),(world_objects[i+5] + (world_objects[i+2]/2) + 0.5))
-    #     if (not is_obj): # is_obj is emtpy, no previous object in same place
-    #         print("No object in place")
-    #         if(object_id==str(target_id)):
-    #             self.objectAdder.addBox(object_id, world_objects[i] + margin, world_objects[i+1] + margin, 0.01, world_objects[i+3], world_objects[i+4], world_objects[i+5]-world_objects[i+2]/2 + 0.005)
-    #             self.objectAdder.setColor(object_id, 1.0, 0.2, 0.2, a=1.0)
-    #         if(object_id!=str(target_id)):
-    #             self.objectAdder.addBox(object_id, world_objects[i] + margin, world_objects[i+1] + margin, world_objects[i+2], world_objects[i+3], world_objects[i+4], world_objects[i+5])
-    #             if(object_id == str(target_id)):
-    #                 self.objectAdder.setColor(object_id, 1.0, 0.2, 0.2, a=1.0)
-    #                 ## Target object will have a different colour
-    #             else:
-    #                 self.objectAdder.setColor(object_id, 0.1, 0.4, 1.0, a=1.0)
-    #     else:
-    #         print("Old object id is: %s" %is_obj[0])
-    #         new_area = (world_objects[i] + margin)*(world_objects[i+1] + margin) # area = xDimension * yDimension
-    #         old_area = (old_objs[str(is_obj[0])].primitives[0].dimensions[0])*(old_objs[str(is_obj[0])].primitives[0].dimensions[1])
-    #         print(new_area)
-    #         print(old_area)
-    #         # old_area = 0.2*0.2#self.area_array[i/6]
-    #         if(new_area > old_area): # or i == target_id
-    #             if(object_id==str(target_id)):
-    #                 self.objectAdder.addBox(object_id, world_objects[i] + margin, world_objects[i+1] + margin, 0.01, world_objects[i+3], world_objects[i+4], world_objects[i+5]-world_objects[i+2]/2 + 0.005)
-    #                 self.objectAdder.setColor(object_id, 1.0, 0.2, 0.2, a=1.0)
-    #             if(object_id!=str(target_id)):
-    #                 self.objectAdder.addBox(object_id, world_objects[i] + margin, world_objects[i+1] + margin, world_objects[i+2], world_objects[i+3], world_objects[i+4], world_objects[i+5])
-    #                 if(object_id == str(target_id)):
-    #                     self.objectAdder.setColor(object_id, 1.0, 0.2, 0.2, a=1.0)
-    #                     ## Target object will have a different colour
-    #                 else:
-    #                     self.objectAdder.setColor(object_id, 0.1, 0.4, 1.0, a=1.0)
-    #     i+=6
-    # self.objectAdder.sendColors()
-
-    ##################################################################################
-
-
-    # print("Number of objects: ")
-    # print(num_objects)
-    # obj_name={}
-    # for n in range(1,10):
-    #     obj_name["object{0}".format(n)]="Hello"
-
-
-    ##################################################################################
-
-
-    # old_objs = scene.get_objects()
-    # margin = 0.0
-    # roi_margin = 0.1
-    # i = 0
-    # while i < len(world_objects):
-    #     # find is there is already an object in within the boundaries of the new object
-    #     object_id = str(i/6)
-    #     is_obj = scene.get_known_object_names_in_roi((world_objects[i+3] - (world_objects[i]/2) - roi_margin),(world_objects[i+4] - (world_objects[i+1]/2) - roi_margin),(world_objects[i+5] - (world_objects[i+2]/2)),(world_objects[i+3] + (world_objects[i]/2) + roi_margin),(world_objects[i+4] + (world_objects[i+1]/2) + roi_margin),(world_objects[i+5] + (world_objects[i+2]/2) + 0.5))
-    #     if (not is_obj):
-    #         print("No object in place")
-    #         if(object_id==str(target_id)):
-    #             self.objectAdder.addBox(object_id, world_objects[i] + margin, world_objects[i+1] + margin, 0.01, world_objects[i+3], world_objects[i+4], world_objects[i+5]-world_objects[i+2]/2 + 0.005)
-    #             self.objectAdder.setColor(object_id, 1.0, 0.2, 0.2, a=1.0)
-    #         if(object_id!=str(target_id)):
-    #             self.objectAdder.addBox(object_id, world_objects[i] + margin, world_objects[i+1] + margin, world_objects[i+2], world_objects[i+3], world_objects[i+4], world_objects[i+5])
-    #             if(object_id == str(target_id)):
-    #                 self.objectAdder.setColor(object_id, 1.0, 0.2, 0.2, a=1.0)
-    #                 ## Target object will have a different colour
-    #             else:
-    #                 self.objectAdder.setColor(object_id, 0.1, 0.4, 1.0, a=1.0)
-    #     else:
-    #         print("Old object id is: %s" %is_obj[0])
-    #         new_area = (world_objects[i] + margin)*(world_objects[i+1] + margin) # area = xDimension * yDimension
-    #         old_area = (old_objs[str(is_obj[0])].primitives[0].dimensions[0])*(old_objs[str(is_obj[0])].primitives[0].dimensions[1])
-    #         print(new_area)
-    #         print(old_area)
-    #         # old_area = 0.2*0.2#self.area_array[i/6]
-    #         if(new_area > old_area): # or i == target_id
-    #             if(object_id==str(target_id)):
-    #                 self.objectAdder.addBox(object_id, world_objects[i] + margin, world_objects[i+1] + margin, 0.01, world_objects[i+3], world_objects[i+4], world_objects[i+5]-world_objects[i+2]/2 + 0.005)
-    #                 self.objectAdder.setColor(object_id, 1.0, 0.2, 0.2, a=1.0)
-    #             if(object_id!=str(target_id)):
-    #                 self.objectAdder.addBox(object_id, world_objects[i] + margin, world_objects[i+1] + margin, world_objects[i+2], world_objects[i+3], world_objects[i+4], world_objects[i+5])
-    #                 if(object_id == str(target_id)):
-    #                     self.objectAdder.setColor(object_id, 1.0, 0.2, 0.2, a=1.0)
-    #                     ## Target object will have a different colour
-    #                 else:
-    #                     self.objectAdder.setColor(object_id, 0.1, 0.4, 1.0, a=1.0)
-    #     i+=6
-    # self.objectAdder.sendColors()
-    # Extra margin to add to the bounding boxes and to find gaze point within one object(in meters)
-    # old_objs = scene.get_objects()
-    # id = 0
-    # objDim = (old_objs[str(id)].primitives[0].dimensions[0])*(old_objs[str(id)].primitives[0].dimensions[0])
-    # print(objDim) #["primitives"]
-
-    # self.area_array = [[0] for k in range(num_objects)]
-
-    # i = 0
-    # while i < len(world_objects):
-    #     self.area_array[i/6] = (world_objects[i] + margin)*(world_objects[i+1] + margin)
-    #     i+=6
-    #
-    # # print(self.area_array)
-
-    # area = (world_objects[i] + margin)*(world_objects[i+1] + margin)
-
-    ##################################################################################
-
     i = 0
-    # print(world_objects)
+
     print("Number of objects: %s" %(len(world_objects)/6))
     print(target_id)
-    while i < len(world_objects):
+
+    while i < len(world_objects): # Iterate to the array of objects to add them to the planning scene
         object_id = str(i/6)
         print(object_id)
-        if(object_id==str(target_id)):
+        if(object_id==str(target_id)): # Add target object bounding box, with a capped z height
             self.objectAdder.addBox(object_id, world_objects[i] + margin, world_objects[i+1] + margin, 0.01, world_objects[i+3], world_objects[i+4], world_objects[i+5]-world_objects[i+2]/2 + 0.005)
-            # self.objectAdder.setColor(object_id, 1.0, 0.2, 0.2, a=1.0)
-            self.objectAdder.setColor(object_id, 0.1, 1.0, 0.2, a=1.0)
+            self.objectAdder.setColor(object_id, 0.1, 1.0, 0.2, a=1.0) # Target object is green
 
-        if(object_id!=str(target_id)):
+        if(object_id!=str(target_id)): # Add obstacles bounding box
             self.objectAdder.addBox(object_id, world_objects[i] + margin, world_objects[i+1] + margin, world_objects[i+2], world_objects[i+3], world_objects[i+4], world_objects[i+5])
-            # self.objectAdder.setColor(object_id, 0.1, 0.4, 1.0, a=1.0)
-            self.objectAdder.setColor(object_id, 1.0, 0.2, 0.2, a=1.0)
-            # if(object_id == str(target_id)):
-            #     self.objectAdder.setColor(object_id, 1.0, 0.2, 0.2, a=1.0)
-            #     ## Target object will have a different colour
-            # else:
-            #     self.objectAdder.setColor(object_id, 0.1, 0.4, 1.0, a=1.0)
-            # All obstacles have the same colour
-        # All the colours are set at the same time
-        # self.objectAdder.sendColors()
+            self.objectAdder.setColor(object_id, 1.0, 0.2, 0.2, a=1.0) # Obstacles are red
+
 
         i+=6
     self.objectAdder.sendColors()
-    # minx, miny, minz, maxx, maxy, maxz, with_type = False
-    # ((world_objects[i+3] - (world_objects[i]/2),(world_objects[i+4] - (world_objects[i+1]/2),(world_objects[i+5] - (world_objects[i+2]/2),(world_objects[i+3] + (world_objects[i]/2),(world_objects[i+4] + (world_objects[i+1]/2),(world_objects[i+5] + (world_objects[i+2]/2))
 
-    ##################################################################################
-
-
-    # print(scene.get_known_object_names())
-    # transformer = tf.TransformListener()
-
-    # Add a mesh
-    # self.leg_mesh = "/home/faisallab008/catkin_ws/src/universal_robot/ur_description/meshes/cube.stl" # or better, use find_package()
-    # scene.add_mesh("mesh_test", box_pose, self.leg_mesh)
-
-
-    #self.box_name=box_name
-    # print(scene.get_known_object_names())
     return self.wait_for_state_update(box_is_known=True, timeout=4)
 
-  def attach_box(self, timeout=4):
-
-    box_name = self.box_name
-    robot = self.robot
-    scene = self.scene
-    eef_link = self.eef_link
-    group_names = self.group_names
-
-    ## Attaching Objects to the Robot
-    ## Attach the box to the robot and add "touch link" to tell the plannign scene to ingore collision between the object and the linkself.
-    grasping_group = 'manipulator'
-    touch_links = robot.get_link_names(group=grasping_group)
-    self.objectAdder.setColor(self.target_obj[6],0.0,1.0,0.2,a=0.9)
-    self.objectAdder.sendColors()
-    scene.attach_box(eef_link, self.target_obj[6], touch_links=touch_links)
-    # self.attached_box =
-
-    # Wait for the planning scene to update.
-    return self.wait_for_state_update(box_is_attached=True, box_is_known=False, timeout=timeout)
-
-  def detach_box(self, timeout=4):
-
-    box_name = self.box_name
-    scene = self.scene
-    eef_link = self.eef_link
-
-    ## Detaching Objects from the Robot
-    ## ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-    ## We can also detach and remove the object from the planning scene:
-    scene.remove_attached_object(eef_link, name=box_name)
-
-
-    # Wait for the planning scene to update.
-    return self.wait_for_state_update(box_is_known=True, box_is_attached=False, timeout=timeout)
-
-  def remove_box(self, timeout=4):
-
-    box_name = self.box_name
-    scene = self.scene
-
-    f = 0
-    print("Number of objects found in the scene:" , len(scene.get_known_object_names()))
-    no = len(scene.get_known_object_names())
-    print(scene.get_known_object_names())
-    while f < no:
-        box_nam = str(f)
-        scene.remove_world_object(box_nam)
-        print("Removed object number ")
-        print(f)
-        f+=1
-
-    #scene.remove_world_object(box_name)
-
-    ## **Note:** The object must be detached before it can removed it from the world
-
-    # Wait for the planning scene to update.
-    return self.wait_for_state_update(box_is_attached=False, box_is_known=False, timeout=timeout)
-
 def line_collision(x1,y1,x2,y2,x3,y3,x4,y4):
+    # Calculates if there is a collision between two lines, given two (x,y) points for each line
+    # This is used to infer whether there is a collision or not between the forearm line and the obstacles
     uA = ((x4-x3)*(y1-y3) - (y4-y3)*(x1-x3)) / ((y4-y3)*(x2-x1) - (x4-x3)*(y2-y1))
     uB = ((x2-x1)*(y1-y3) - (y2-y1)*(x1-x3)) / ((y4-y3)*(x2-x1) - (x4-x3)*(y2-y1))
-    # print(uA)
-    # print(uB)
+
     if( 0<= uA <= 1 and 0<= uB <= 1):
+        # Intersection point
         intersectionX = x1 + (uA*(x2-x1))
         intersectionY = y1 + (uB*(y2-y1))
-        # print(intersectionX)
-        # print(intersectionY)
         return True
     return False
 
 def object_collision(e_co, grasp_point, objects_array, neig_idx):
     i = 0
     num_collisions = 0
-    target_index = neig_idx
-    # Add margin to avoid the objects with a safer distance
-    margin = 0.0
-    while i < len(objects_array):
-        if(i/6 != neig_idx):
-            # bottom = line_collision(e_co.x, e_co.y, grasp_point.x, grasp_point.y,objects_array[i+3]-objects_array[i+0]/2 - margin,objects_array[i+4]-objects_array[i+1]/2 - margin,objects_array[i+3]-objects_array[i+0]/2 - margin, objects_array[i+4]+objects_array[i+1]/2 + margin)
-            # top = line_collision(e_co.x, e_co.y, grasp_point.x, grasp_point.y,objects_array[i+3]+objects_array[i+0]/2,objects_array[i+4]-objects_array[i+1]/2,objects_array[i+3]+objects_array[i+0]/2, objects_array[i+4]+objects_array[i+1]/2)
-            # left = line_collision(e_co.x, e_co.y, grasp_point.x, grasp_point.y,objects_array[i+3]-objects_array[i+0]/2 - margin ,objects_array[i+4]+objects_array[i+1]/2 + margin ,objects_array[i+3]+objects_array[i+0]/2 + margin, objects_array[i+4]+objects_array[i+1]/2 + margin)
-            # right = line_collision(e_co.x, e_co.y, grasp_point.x, grasp_point.y,objects_array[i+3]-objects_array[i+0]/2,objects_array[i+4]-objects_array[i+1]/2,objects_array[i+3]+objects_array[i+0]/2, objects_array[i+4]-objects_array[i+1]/2)
 
+    margin = 0.0 # Add margin to avoid the objects with an extra safety distance
+    while i < len(objects_array): # Iterate through the obstacles to find collisions
+        if(i/6 != neig_idx): # Note that collisions with the target object are allowed
+            # Find if the forearm line intersects any of the four sides of each obstacle
             bottom = line_collision(e_co.x, e_co.y, grasp_point.x, grasp_point.y,objects_array[i+3]-objects_array[i+0]/2 - margin,objects_array[i+4]-objects_array[i+1]/2 - margin,objects_array[i+3]-objects_array[i+0]/2 - margin, objects_array[i+4]+objects_array[i+1]/2 + margin)
             top = line_collision(e_co.x, e_co.y, grasp_point.x, grasp_point.y,objects_array[i+3]+objects_array[i+0]/2,objects_array[i+4]-objects_array[i+1]/2,objects_array[i+3]+objects_array[i+0]/2, objects_array[i+4]+objects_array[i+1]/2)
             left = line_collision(e_co.x, e_co.y, grasp_point.x, grasp_point.y,objects_array[i+3]-objects_array[i+0]/2,objects_array[i+4]+objects_array[i+1]/2,objects_array[i+3]+objects_array[i+0]/2, objects_array[i+4]+objects_array[i+1]/2)
             right = line_collision(e_co.x, e_co.y, grasp_point.x, grasp_point.y,objects_array[i+3]-objects_array[i+0]/2,objects_array[i+4]-objects_array[i+1]/2,objects_array[i+3]+objects_array[i+0]/2, objects_array[i+4]-objects_array[i+1]/2)
 
-            # bottom = line_collision(e_co.x, e_co.y, grasp_point.x, grasp_point.y,objects_array[i+3]-objects_array[i]/2,objects_array[i+4]-objects_array[i+1]/2,objects_array[i+3]-objects_array[i]/2, objects_array[i+4]+objects_array[i+1]/2)
-            # top = line_collision(e_co.x, e_co.y, grasp_point.x, grasp_point.y,objects_array[i+3]+objects_array[i]/2,objects_array[i+4]-objects_array[i+1]/2,objects_array[i+3]+objects_array[i]/2, objects_array[i+4]+objects_array[i+1]/2)
-            # left = line_collision(e_co.x, e_co.y, grasp_point.x, grasp_point.y,objects_array[i+3]-objects_array[i]/2 - margin ,objects_array[i+4]+objects_array[i+1]/2 + margin ,objects_array[i+3]+objects_array[i+0]/2 + margin, objects_array[i+4]+objects_array[i+1]/2 + margin)
-            # right = line_collision(e_co.x, e_co.y, grasp_point.x, grasp_point.y,objects_array[i+3]-objects_array[i]/2,objects_array[i+4]-objects_array[i+1]/2,objects_array[i+3]+objects_array[i]/2, objects_array[i+4]-objects_array[i+1]/2)
-
             if(bottom == True or top == True or left == True or right == True):
-                # Number of collisions in a given xy position
+                # Number of collisions in a given xy position of the wrist
                 num_collisions+=1
         i+=6
 
-    #print("number of collisions in state: %s" %num_collisions)
     if(num_collisions > 0):
         return True # There is at least one collision, the state is not possible
     else:
         return False # There are no collisions
 
-#delete
-def astar(maze, start, end):
-    """Returns a list of tuples as a path from the given start to the given end point"""
-
-    # Create start and end node
-    start_node = Node(None, start)
-    start_node.g = start_node.h = start_node.f = 0
-    end_node = Node(None, end)
-    end_node.g = end_node.h = end_node.f = 0
-    print(start_node.position)
-    print(end_node.position)
-    # Initialize open and closed list
-    open_list = []
-    closed_list = []
-
-    # Add the start node
-    open_list.append(start_node)
-
-    # Loop until you find the end
-    while len(open_list) > 0:
-
-        # Get the current node
-        current_node = open_list[0]
-        current_index = 0
-        for index, item in enumerate(open_list):
-            if item.f < current_node.f:
-                current_node = item
-                current_index = index
-
-        # Pop current off open list, add to closed list
-        open_list.pop(current_index)
-        closed_list.append(current_node)
-
-        # Found the goal
-        if current_node == end_node:
-            path = []
-            current = current_node
-            while current is not None:
-                path.append(current.position)
-                print(path[::-1])
-                current = current.parent
-            return path[::-1] # Return reversed path
-
-        # Generate children
-        children = []
-        for new_position in [(0, -1), (0, 1), (-1, 0), (1, 0), (-1, -1), (-1, 1), (1, -1), (1, 1)]: # Adjacent squares
-
-            # Get node position
-            node_position = (current_node.position[0] + new_position[0], current_node.position[1] + new_position[1])
-
-            # Make sure within range
-            if node_position[0] > (len(maze) - 1) or node_position[0] < 0 or node_position[1] > (len(maze[len(maze)-1]) -1) or node_position[1] < 0:
-                continue
-
-            # Make sure walkable terrain
-            if maze[node_position[0]][node_position[1]] != 0:
-                continue
-
-            # Create new node
-            new_node = Node(current_node, node_position)
-
-            # Append
-            children.append(new_node)
-
-        # Loop through children
-        for child in children:
-
-            # Child is on the closed list
-            for closed_child in closed_list:
-                if child == closed_child:
-                    continue
-
-            # Create the f, g, and h values
-            child.g = current_node.g + 1
-            child.h = ((child.position[0] - end_node.position[0]) ** 2) + ((child.position[1] - end_node.position[1]) ** 2)
-            child.f = child.g + child.h
-
-            # Child is already in the open list
-            for open_node in open_list:
-                if child == open_node and child.g > open_node.g:
-                    continue
-
-            # Add the child to the open list
-            open_list.append(child)
-            print(child.position)
-
 def heuristic(a, b):
+    # heuristic term of the cost-function for the A* algorithm
     return (b[0] - a[0]) ** 2 + (b[1] - a[1]) ** 2
 
 def astar2(array, start, goal):
+    # A* pathfinding algorithm function
+    # Receive a grid with the non/possible states, the initial and target positions
+    # It outputs a trajectory that avoids collisions
 
+    # 8 neighbouring position
     neighbors = [(0,1),(0,-1),(1,0),(-1,0),(1,1),(1,-1),(-1,1),(-1,-1)]
 
-    close_set = set()
-    came_from = {}
-    gscore = {start:0}
-    fscore = {start:heuristic(start, goal)}
+    close_set = set() #
+    came_from = {} # Previous node
+    gscore = {start:0} # Distance to initial position cost
+    fscore = {start:heuristic(start, goal)} # Euclidean distance cost
     oheap = []
 
     heappush(oheap, (fscore[start], start))
@@ -1878,9 +952,8 @@ def astar2(array, start, goal):
 
 
 if __name__ == '__main__':
-	#main()
-    commander = MoveGroupPythonInterface()
-    commander.go_to_initial_state()
-    commander.add_table()
-    commander.path_executer_server()
-    commander.path_planner_server()
+    commander = MoveGroupPythonInterface() # Declare main class
+    commander.go_to_initial_state() # Move robot to initial position
+    commander.add_table() # Add table to the planning scene
+    commander.path_executer_server() # Service that receives trajectory execution order
+    commander.path_planner_server() # Service that will calculate the collision-free trajectory

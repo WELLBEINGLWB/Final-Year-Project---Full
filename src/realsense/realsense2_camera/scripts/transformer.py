@@ -106,9 +106,3 @@ def listener():
 
 if __name__ == '__main__':
     listener()
-
-
-# try:
-#         now = rospy.Time.now()
-#         listener.waitForTransform("/camera_link", "/mocap", now, rospy.Duration(4.0))
-#         (trans,rot) = listener.lookupTransform("/camera_link", "/mocap", now)

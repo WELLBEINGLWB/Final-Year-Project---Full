@@ -30,7 +30,7 @@ class ExecutionManager(object):
       print "Ready to send gaze point"
       rospy.spin()
 
-  # Gaze service call back
+  # Gaze service call back - send pointcloud to segmentation when gaze point is received
   def handle_gaze_point(self, req):
       print "Got gaze point: [x:%s  y:%s  z:%s]"%(req.gaze_x, req.gaze_y, req.gaze_z)
       self.gaze_point.x = req.gaze_x
@@ -38,6 +38,7 @@ class ExecutionManager(object):
       self.gaze_point.z = req.gaze_z
       self.gaze_sent = 1
       objects = self.request_segmentation()
+      # After segmentation, send objects to the gaze optimiser
       path_found = self.gaze_optimiser_caller(objects)
       if path_found == True:
           return gazePointResponse(True)
@@ -66,6 +67,7 @@ class ExecutionManager(object):
           data = gaze_optimiser_service(objs,self.gaze_point)
           if(data!=None):
               print(data)
+              # Send gaze optimiser output to path planner, if the array of objects is not empty
               self.path_planner_caller(data)
               return True
           else:
@@ -104,6 +106,7 @@ class ExecutionManager(object):
   def path_executer(self,req):
       rospy.wait_for_service('path_executer_service')
       try:
+          # Send path execution order
           path_executer_service = rospy.ServiceProxy('path_executer_service', executionOrder)
           print("Sent order to path executer")
           executer_resp = path_executer_service(req)
@@ -114,7 +117,7 @@ class ExecutionManager(object):
           print "Service call failed: %s"%e
 
 if __name__ == '__main__':
-    # Declare class
+    # Declare main class
     controller = ExecutionManager()
 
     # Declare subscriber to the pointcloud topic
